@@ -1,0 +1,19 @@
+{
+
+  "entity.rpg-minibosses.juggernaut": "Forsaken Juggernaut",
+  "entity.rpg-minibosses.mercenary":  "Forsaken Mercenary",
+  "entity.rpg-minibosses.trickster":  "Forsaken Rogue",
+  "entity.rpg-minibosses.archmage_fire":  "Forsaken Fire Mage",
+
+  "item.rpg-minibosses.forsaken_juggernaut_spawn_egg": "Forsaken Juggernaut Spawn Egg",
+  "item.rpg-minibosses.forsaken_mercenary_spawn_egg": "Forsaken Mercenary Spawn Egg",
+  "item.rpg-minibosses.forsaken_trickster_spawn_egg": "Forsaken Rogue Spawn Egg",
+  "item.rpg-minibosses.forsaken_archmage_fire_spawn_egg": "Forsaken Fire Mage Spawn Egg",
+
+  "itemGroup.rpg-minibosses.eggs": "Forsaken Adventurer Eggs",
+  "text.rpg-minibosses.petrified": "This long forgotten adventurer seems to be petrified...",
+  "text.rpg-minibosses.petrified2": "Perhaps further investigation will do something...",
+  "effect.rpg-minibosses.feather": "Lesser Phoenix Down",
+  "effect.rpg-minibosses.petrified": "Petrified"
+
+}

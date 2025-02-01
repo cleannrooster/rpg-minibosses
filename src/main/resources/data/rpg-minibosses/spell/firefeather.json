@@ -1,0 +1,80 @@
+{
+  "school": "FIRE",
+  "group": "primary",
+  "range": 64,
+  "learn": {
+    "tier": 1
+  },
+  "cast": {
+    "duration": 0,
+    "animation": "spell_engine:one_handed_projectile_charge",
+    "sound": {
+      "id": "spell_engine:generic_fire_casting",
+      "randomness": 0
+    },
+    "particles": [
+      {
+        "particle_id": "spell_engine:flame",
+        "shape": "PIPE",
+        "origin": "FEET",
+        "count": 1.0,
+        "min_speed": 0.05,
+        "max_speed": 0.1
+      }
+    ]
+  },
+  "release": {
+    "target": {
+      "type": "SELF"
+    }
+  },
+  "impact": [
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "apply_to_caster": true,
+        "status_effect": {
+          "apply_mode": "ADD",
+          "duration": 2,
+          "amplifier": 9,
+          "effect_id": "rpg-minibosses:feather",
+          "show_particles": false
+        }
+      },
+      "sound": {
+        "id": "spell_engine:generic_fire_release"
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:flame",
+          "shape": "SPHERE",
+          "origin": "CENTER",
+          "count": 30,
+          "min_speed": 0.2,
+          "max_speed": 0.3
+        },
+        {
+          "particle_id": "spell_engine:flame",
+          "shape": "CIRCLE",
+          "origin": "CENTER",
+          "count": 40.0,
+          "min_speed": 0.4,
+          "max_speed": 0.4
+        }
+      ]
+    },
+    {
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "knockback": 0.4,
+          "spell_power_coefficient": 0.2
+        }
+      }
+    }
+  ],
+  "cost": {
+    "item_id": "runes:fire_stone",
+    "cooldown_duration": 0.5
+  }
+}

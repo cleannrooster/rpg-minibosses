@@ -1,0 +1,71 @@
+{
+  "school": "PHYSICAL_MELEE",
+  "range": 3.5,
+  "learn": {
+    "tier": 1
+  },
+  "cast": {
+    "movement_speed": 0.8,
+    "haste_affected": false,
+    "duration": 1.25
+  },
+  "release": {
+    "target": {
+      "type": "AREA",
+      "area": {
+        "vertical_range_multiplier": 0.5
+      }
+    },
+    "sound": {
+      "id": "entity.iron_golem.hurt"
+    },
+    "particles": [
+      {
+        "particle_id": "smoke",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 60.0,
+        "min_speed": 0.2,
+        "max_speed": 0.6
+      },
+      {
+        "particle_id": "cloud",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 80.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      }
+    ]
+  },
+  "impact": [
+
+    {
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "knockback": 1,
+          "spell_power_coefficient": 1.2
+        }
+      },
+
+      "particles": [
+        {
+          "particle_id": "cloud",
+          "shape": "SPHERE",
+          "origin": "CENTER",
+          "count": 20.0,
+          "min_speed": 0.5,
+          "max_speed": 0.9
+        }
+      ],
+      "sound": {
+        "id": "entity.iron_golem.hurt"
+      }
+    }
+  ],
+  "cost": {
+    "exhaust": 0.2,
+    "cooldown_duration": 0
+  }
+}
