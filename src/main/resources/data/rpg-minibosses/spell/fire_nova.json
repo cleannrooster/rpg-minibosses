@@ -1,41 +1,26 @@
 {
-  "range": 6.0,
-  "school": "FIRE",
-  "learn": {
-    "tier": 0
-  },
-  "scroll":{
-    "generate": false
-  },
-  "cast": {
-    "duration": 0.5,
-    "animation": "spell_engine:one_handed_area_charge",
-    "sound": {
-      "id": "spell_engine:generic_fire_casting",
-      "randomness": 0
-    },
-    "particles": [
-      {
-        "particle_id": "spell_engine:flame",
-        "shape": "PILLAR",
-        "origin": "CENTER",
-        "count": 0.5,
-        "min_speed": 0.1,
-        "max_speed": 0.2
-      }
-    ]
+  "school": "spell_power:fire",
+  "range": 8.0,
+  "tier": 4,
+  "learn": {},
+  "active": {
+    "cast": {
+      "sound": {
+        "id": "spell_engine:generic_fire_casting"
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:flame",
+          "origin": "FEET",
+          "shape": "WIDE_PIPE",
+          "count": 1.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1
+        }
+      ]
+    }
   },
   "release": {
-    "target": {
-      "type": "AREA",
-      "area": {
-        "vertical_range_multiplier": 0.5
-      }
-    },
-    "animation": "spell_engine:one_handed_area_release",
-    "sound": {
-      "id": "spell_engine:generic_fire_release"
-    },
     "particles": [
       {
         "particle_id": "spell_engine:flame",
@@ -69,10 +54,36 @@
         "min_speed": 0.5,
         "max_speed": 0.9
       }
-    ]
+    ],
+    "sound": {
+      "id": "minecraft:entity.player.attack.knockback"
+    }
   },
-  "impact": [
+  "target": {
+    "type": "AREA",
+    "area": {}
+  },
+  "deliver": {
+    "type": "CUSTOM",
+    "custom": {
+      "handler": "spellbladenext:dragon_slam"
+    }
+  },
+  "impacts": [
     {
+      "school": "spell_power:fire",
+      "target_modifiers": [
+        {
+          "conditions": [
+            {
+              "entity_type": "#minecraft:freeze_immune_entity_types"
+            }
+          ],
+          "modifier": {
+            "critical_chance_bonus": 0.3
+          }
+        }
+      ],
       "action": {
         "type": "DAMAGE",
         "damage": {
@@ -81,19 +92,44 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:flame",
-          "shape": "SPHERE",
+          "particle_id": "spell_engine:flame_spark",
           "origin": "CENTER",
-          "count": 30.0,
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
           "min_speed": 0.2,
-          "max_speed": 0.7
+          "max_speed": 0.7,
+          "angle": 360.0
+        },
+        {
+          "particle_id": "minecraft:smoke",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
         }
-      ]
+      ],
+      "sound": {
+        "id": "minecraft:entity.player.hurt_on_fire"
+      }
+    },
+    {
+      "school": "spell_power:physical_melee",
+      "action": {
+        "type": "DAMAGE",
+        "damage": {}
+      }
     }
   ],
   "cost": {
-    "exhaust": 0.2,
-    "item_id": "runes:fire_stone",
-    "cooldown_duration": 1
+    "cooldown": {
+      "duration": 12.0
+    },
+    "item": {
+      "id": "runes:fire_stone"
+    }
   }
 }

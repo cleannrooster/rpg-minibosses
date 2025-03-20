@@ -7,10 +7,7 @@ import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.CrossbowUser;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RangedAttackMob;
 import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.AttackGoal;
@@ -100,6 +97,16 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
 
     }
+
+    @Override
+    public void onAttacking(Entity target) {
+        target.timeUntilRegen = 0;
+        if(target instanceof LivingEntity living){
+            living.hurtTime = 0;
+        }
+        super.onAttacking(target);
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         animationData.add(new AnimationController<MinibossEntity>(this,"shoot",
@@ -108,7 +115,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     }
 
-    private static final TrackedData<Boolean> CHARGING;
+    public static final TrackedData<Boolean> CHARGING;
 
 
     public void setCharging(boolean charging) {

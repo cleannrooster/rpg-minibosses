@@ -31,20 +31,23 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.Spell;
+import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
+import net.spell_engine.fx.ParticleHelper;
+import net.spell_engine.fx.SpellEngineSounds;
 import net.spell_engine.internals.SpellHelper;
-import net.spell_engine.internals.WorldScheduler;
-import net.spell_engine.particle.ParticleHelper;
+import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
+import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 
 public class ArchmageFireEntity extends MinibossEntity  {
     private boolean performing;
-    private int throwtimer = 60;
-    private int jumptimer = 120;
-    private int novatimer = 120;
-    private int feathertimer = 80;
+    private int throwtimer = 20;
+    private int jumptimer = 100;
+    private int novatimer = 100;
+    private int feathertimer = 160;
 
     protected ArchmageFireEntity(EntityType<? extends HostileEntity> entityType, World world) {
         super(entityType, world);
@@ -91,8 +94,14 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     protected void mobTick() {
-        if(this.getTarget() != null && this.getTarget().distanceTo(this) > 8) {
-            this.getMoveControl().moveTo(this.getTarget().getX(),this.getTarget().getY(),this.getTarget().getZ(),1F);
+        if(this.getTarget() != null ) {
+            if( this.getTarget().distanceTo(this) > 8){
+                this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
+            }
+            else{
+                this.getMoveControl().strafeTo(-1,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -1 : 1);
+
+            }
             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
 
         }
@@ -107,11 +116,12 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.setVelocity(vec3);
             this.jumptimer = 0;
         }
-        if(!this.getWorld().isClient() && throwtimer > 120 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
             ((ArchmageFireEntity)this).triggerAnim("throw1","throw1");
             if(this.getTarget() != null) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
             }
+            SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
             SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).get(),
                     new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
@@ -123,6 +133,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 if(this.getTarget() != null) {
                     this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
                 }
+                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+
                 SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).get(),
                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
@@ -134,7 +146,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.throwtimer = 0;
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && feathertimer > 240 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
             if(this.getMoveControl().isMoving()){
                 ((ArchmageFireEntity)this).triggerAnim("walk_wave","walk_wave");
 
@@ -144,6 +156,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
             }
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
                 this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.registryEntry, 40, 10));
                 this.performing = false;
@@ -153,7 +166,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.feathertimer = 0;
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && novatimer > 140 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 6) {
+        if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 6) {
 
             if(this.getMoveControl().isMoving()){
                 ((ArchmageFireEntity)this).triggerAnim("walk_wave","walk_wave");
@@ -164,10 +177,11 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
             }
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                        SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Release.Target.Area(), null)) {
+                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
                     SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).get(),
-                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).impact,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
+                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
                 }
                         ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).release.particles);

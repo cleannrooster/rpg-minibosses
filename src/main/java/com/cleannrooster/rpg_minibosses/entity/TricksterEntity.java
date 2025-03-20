@@ -19,7 +19,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
-import net.spell_engine.internals.WorldScheduler;
 
 public class TricksterEntity extends MinibossEntity{
     protected TricksterEntity(EntityType<? extends HostileEntity> entityType, World world) {

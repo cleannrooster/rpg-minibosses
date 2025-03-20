@@ -1,23 +1,21 @@
 {
-  "school": "PHYSICAL_MELeE",
-  "range": 8.0,
-  "tier": 4,
-  "learn": {},
-  "active": {
-    "cast": {
-      "movement_speed": 0.8,
-      "haste_affected": false,
-      "duration": 1.25
-    }
+  "school": "PHYSICAL_MELEE",
+  "range": 3.5,
+  "learn": {
+    "tier": 1
   },
-  "target": {
-    "type": "AREA",
-    "area": {
-      "vertical_range_multiplier": 0.5
-    }
+  "cast": {
+    "movement_speed": 0.8,
+    "haste_affected": false,
+    "duration": 1.25
   },
   "release": {
-
+    "target": {
+      "type": "AREA",
+      "area": {
+        "vertical_range_multiplier": 0.5
+      }
+    },
     "sound": {
       "id": "entity.iron_golem.hurt"
     },
@@ -40,7 +38,7 @@
       }
     ]
   },
-  "impacts": [
+  "impact": [
 
     {
       "action": {
@@ -67,11 +65,7 @@
     }
   ],
   "cost": {
-    "cooldown": {
-      "duration": 12.0
-    },
-    "item": {
-      "id": "runes:fire_stone"
-    }
+    "exhaust": 0.2,
+    "cooldown_duration": 0
   }
 }

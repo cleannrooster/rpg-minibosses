@@ -2,10 +2,7 @@ package com.cleannrooster.rpg_minibosses;
 
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.FeatherRenderer;
-import com.cleannrooster.rpg_minibosses.client.entity.model.ArchmageFireModel;
-import com.cleannrooster.rpg_minibosses.client.entity.model.ArtilleristModel;
-import com.cleannrooster.rpg_minibosses.client.entity.model.JuggernautModel;
-import com.cleannrooster.rpg_minibosses.client.entity.model.TricksterModel;
+import com.cleannrooster.rpg_minibosses.client.entity.model.*;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossRenderer;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
@@ -32,6 +29,8 @@ public class RPGMinibossesClient implements ClientModInitializer {
 		EntityRendererRegistry.register(RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArtilleristModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TricksterModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArchmageFireModel<>()));
+		EntityRendererRegistry.register(RPGMinibossesEntities.TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TemplarModel<>()));
+
 		CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());
 
 	}

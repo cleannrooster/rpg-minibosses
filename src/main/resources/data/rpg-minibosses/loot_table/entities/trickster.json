@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+
+  ],
+  "random_sequence": "minecraft:entities/trickster"
+}

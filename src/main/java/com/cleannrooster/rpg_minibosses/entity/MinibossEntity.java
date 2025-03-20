@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.google.common.base.Predicates;
 import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
 import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
 import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
@@ -10,9 +11,12 @@ import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
+import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageType;
@@ -33,16 +37,24 @@ import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.DamageTypeTags;
+import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.TypeFilter;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.random.Random;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import net.spell_engine.api.effect.Synchronized;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.WorldScheduler;
-import net.spell_engine.particle.ParticleHelper;
+import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.utils.SoundHelper;
 
 public class MinibossEntity extends HostileEntity implements GeoEntity {
@@ -99,10 +111,17 @@ public class MinibossEntity extends HostileEntity implements GeoEntity {
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if(!this.notPetrified()) {
+            for(MinibossEntity boss : this.getWorld().getEntitiesByType(TypeFilter.instanceOf(MinibossEntity.class),this.getBoundingBox().expand(8), Predicates.alwaysTrue())){
+                if(!boss.notPetrified()) {
+                    boss.playIntro(player);
+
+                }
+            }
             playIntro(player);
             return ActionResult.SUCCESS_NO_ITEM_USED;
 
         }
+
         return ActionResult.PASS;
     }
     public String introTranslation(){
@@ -163,10 +182,7 @@ public class MinibossEntity extends HostileEntity implements GeoEntity {
         super.dropLoot(damageSource, causedByPlayer);
     }
 
-    @Override
-    protected RegistryKey<LootTable> getLootTableId() {
-    return         LootTables.SIMPLE_DUNGEON_CHEST;
-    }
+
 
     @Override
     public boolean isAiDisabled() {
@@ -178,8 +194,10 @@ public class MinibossEntity extends HostileEntity implements GeoEntity {
         this.goalSelector.add(8, new LookAroundGoal(this));
         this.goalSelector.add(7, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(1, new SwimGoal(this));
+        this.targetSelector.add(1, (new RevengeGoal(this, new Class[0])).setGroupRevenge());
 
         this.targetSelector.add(2, new ActiveTargetGoal(this, PlayerEntity.class, true));
+
         this.targetSelector.add(3, new ActiveTargetGoal(this, HostileEntity.class, true, mob -> !(mob  instanceof CreeperEntity)));
 
         this.initCustomGoals();
@@ -209,6 +227,10 @@ public class MinibossEntity extends HostileEntity implements GeoEntity {
 
     }
 
+    public static boolean canSpawn(EntityType<? extends MinibossEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+
+        return (world.getDifficulty() != Difficulty.PEACEFUL && BlockPos.stream(Box.from(Vec3d.of(pos)).expand(8)).anyMatch(blockPos -> world.getBlockEntity(pos) instanceof LootableContainerBlockEntity));
+    }
 
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {

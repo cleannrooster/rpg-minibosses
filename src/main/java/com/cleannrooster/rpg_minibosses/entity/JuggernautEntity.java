@@ -30,12 +30,13 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
+import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
+import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.internals.SpellHelper;
-import net.spell_engine.internals.WorldScheduler;
-import net.spell_engine.particle.ParticleHelper;
 import net.spell_engine.utils.TargetHelper;
+import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 
@@ -49,6 +50,9 @@ public class JuggernautEntity extends MinibossEntity{
     public static final RawAnimation TWOHANDWAVE = RawAnimation.begin().then("animation.mob.wizard.staffwave", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation TWOHANDSPIN = RawAnimation.begin().thenPlayXTimes("animation.mob.spin_2h", 4);
     public static final RawAnimation SLAM = RawAnimation.begin().thenPlayXTimes("animation.mob.heavy.slam", 1);
+    public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2", Animation.LoopType.PLAY_ONCE);
+
 
     @Override
     protected void initCustomGoals() {
@@ -79,13 +83,13 @@ public class JuggernautEntity extends MinibossEntity{
         if(this.getTarget() != null) {
             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
         }
-        if(!this.getWorld().isClient() && slamtimer > 80 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {
+        if(!this.getWorld().isClient() && slamtimer > 140 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {
             ((JuggernautEntity)this).triggerAnim("slam","slam");
             ((WorldScheduler) this.getWorld()).schedule(20, () ->{
                 ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"pound")).release.particles);
-                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Release.Target.Area(), null)) {
+                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
                     SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
-                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impact, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
                 }
                 this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
@@ -96,7 +100,7 @@ public class JuggernautEntity extends MinibossEntity{
             this.slamtimer = 0;
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && spintimer > 320 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
+        if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
             ((JuggernautEntity)this).triggerAnim("twohandwave","twohandwave");
             ((WorldScheduler) this.getWorld()).schedule(40, () ->{
                 ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"pound")).release.particles);
@@ -130,7 +134,7 @@ public class JuggernautEntity extends MinibossEntity{
             this.spintimer = 0;
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && leapTimer > 80 && !this.performing && this.getTarget() != null && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
+        if(!this.getWorld().isClient() && leapTimer > 160 && !this.performing && this.getTarget() != null && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
             ((JuggernautEntity)this).triggerAnim("leapslam","leapslam");
             ((WorldScheduler) this.getWorld()).schedule(10, () ->{
                 this.addVelocity(this.getRotationVector().multiply(2).add(0,0.5,0));
@@ -138,9 +142,9 @@ public class JuggernautEntity extends MinibossEntity{
 
             ((WorldScheduler) this.getWorld()).schedule(28, () -> {
                 ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"pound")).release.particles);
-                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Release.Target.Area(), null)) {
+                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
                     SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
-                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impact, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
                 }
                 this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
@@ -162,14 +166,30 @@ public class JuggernautEntity extends MinibossEntity{
     public int leapTimer;
     public int spintimer = 300;
 
-    public int slamtimer = 20;
+    public int slamtimer = 60;
 
     @Override
     public void tick() {
 
         super.tick();
     }
+    public boolean   swingBool;
 
+    public boolean tryAttack(Entity target) {
+        if(!performing) {
+            if (swingBool) {
+                (this).triggerAnim("swing1", "swing1");
+                swingBool = false;
+
+            } else {
+                (this).triggerAnim("swing2", "swing2");
+                swingBool = true;
+
+            }
+        }
+        return super.tryAttack(target);
+
+    }
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
@@ -185,6 +205,11 @@ public class JuggernautEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "slam", event -> PlayState.CONTINUE)
                         .triggerableAnim("slam", SLAM));
-
+        animationData.add(
+                new AnimationController<>(this, "swing1", event -> PlayState.CONTINUE)
+                        .triggerableAnim("swing1", SWING1));
+        animationData.add(
+                new AnimationController<>(this, "swing2", event -> PlayState.CONTINUE)
+                        .triggerableAnim("swing2", SWING2));
     }
 }

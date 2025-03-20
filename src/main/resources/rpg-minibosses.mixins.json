@@ -3,7 +3,8 @@
 	"package": "com.cleannrooster.rpg_minibosses.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+		"DefaultLootMixin",
+		"SpellHelperMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

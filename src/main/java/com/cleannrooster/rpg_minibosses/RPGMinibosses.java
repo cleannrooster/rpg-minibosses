@@ -4,12 +4,18 @@ import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.loot.v3.LootTableEvents;
 import net.minecraft.util.Identifier;
 import net.spell_engine.api.render.CustomModels;
+import net.spell_engine.rpg_series.RPGSeriesCore;
+import net.spell_engine.rpg_series.loot.LootHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+
+import static net.spell_engine.rpg_series.RPGSeriesCore.lootEquipmentConfig;
 
 public class RPGMinibosses implements ModInitializer {
 	public static final String MOD_ID = "rpg-minibosses";
@@ -25,6 +31,7 @@ public class RPGMinibosses implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 		RPGMinibossesEntities.register();
+
 		Effects.register();
 		CustomModels.registerModelIds(List.of(
 				Identifier.of(MOD_ID, "projectile/feather")
@@ -32,6 +39,7 @@ public class RPGMinibosses implements ModInitializer {
 		CustomModels.registerModelIds(List.of(
 				Identifier.of(MOD_ID, "projectile/flamewaveprojectile")
 		));
+
 		LOGGER.info("Hello Fabric world!");
 	}
 }

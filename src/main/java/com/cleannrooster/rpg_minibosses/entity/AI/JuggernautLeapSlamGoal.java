@@ -10,7 +10,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.predicate.entity.EntityPredicates;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Hand;
-import net.spell_engine.internals.WorldScheduler;
 
 import java.util.EnumSet;
 

@@ -1,8 +1,10 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.extraspellattributes.ReabsorptionInit;
 import com.google.common.base.Predicates;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
+import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
@@ -13,6 +15,7 @@ import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.entity.mob.GuardianEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.SkeletonEntity;
@@ -30,10 +33,15 @@ import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.Heightmap;
+import net.minecraft.world.StructureSpawns;
+import net.minecraft.world.biome.SpawnSettings;
+import net.minecraft.world.gen.structure.BasicTempleStructure;
+import net.spell_engine.rpg_series.config.Defaults;
 import net.spell_power.api.SpellSchools;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -74,37 +82,56 @@ public class RPGMinibossesEntities {
     }
     public static double normalMovementSpeed = 0.23000000417232513;
     public static final Entry<JuggernautEntity> JUGGERNAUT_ENTITY_ENTRY = new Entry<JuggernautEntity>("juggernaut",
-            JuggernautEntity::new, HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ARMOR_TOUGHNESS,4).add(EntityAttributes.GENERIC_ARMOR,20)
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*1.2)
+            JuggernautEntity::new, HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(ReabsorptionInit.DEFIANCE,4F)
+            .add(EntityAttributes.GENERIC_ARMOR,20)
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*1)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,100)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,0.75),
             0x09356B,
             0xebcb6a);
     public static final Entry<ArtilleristEntity> ARTILLERIST_ENTITY_ENTRY = new Entry<ArtilleristEntity>("mercenary",
             ArtilleristEntity::new, HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32).add(EntityAttributes.GENERIC_ARMOR,20)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_ARMOR,14)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,100),
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,100)
+            .add(ReabsorptionInit.DEFIANCE,2F),
+
             0x09356B,
             0xebcb6a);
     public static final Entry<TricksterEntity> TRICKSTER_ENTITY_ENTRY = new Entry<TricksterEntity>("trickster",
-            TricksterEntity::new,HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            TricksterEntity::new,HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,6)
-            .add(EntityAttributes.GENERIC_ARMOR,12)
+            .add(EntityAttributes.GENERIC_ARMOR,8)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*1.8F)
-            .add(Reabs)
+            .add(ReabsorptionInit.SPELLSUPPRESS,160F)
+            .add(ReabsorptionInit.GLANCINGBLOW,160F)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,100),
             0x09356B,
             0xebcb6a);
 
     public static final Entry<ArchmageFireEntity> ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("archmage_fire",
-            ArchmageFireEntity::new,HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            ArchmageFireEntity::new,HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
-            .add(EntityAttributes.GENERIC_ARMOR,7)
+            .add(EntityAttributes.GENERIC_ARMOR,4)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*0.9F)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,100)
             .add(SpellSchools.FIRE.attributeEntry,6),
+            0x09356B,
+            0xebcb6a);
+    public static final Entry<TemplarEntity> TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("templar",
+            TemplarEntity::new,HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,8)
+            .add(EntityAttributes.GENERIC_ATTACK_SPEED,1)
+            .add(EntityAttributes.GENERIC_ARMOR,16)
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*1.4F)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,100)
+            .add(SpellSchools.HEALING.attributeEntry,6),
             0x09356B,
             0xebcb6a);
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.MOD_ID,"generic"));
@@ -135,8 +162,11 @@ public class RPGMinibossesEntities {
             ItemGroupEvents.modifyEntriesEvent(KEY).register((content) -> {
                 content.add(EGG);
             });
-            BiomeModifications.addSpawn(BiomeSelectors.spawnsOneOf(EntityType.WITCH), SpawnGroup.MONSTER, entry.entityType,2,1,1);
-            SpawnRestriction.register(entry.entityType, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, HostileEntity::canSpawnIgnoreLightLevel);
+
+
+            BiomeModifications.addSpawn(BiomeSelectors.spawnsOneOf(EntityType.WITCH), SpawnGroup.MONSTER, entry.entityType,1,1,3);
+
+            SpawnRestriction.register(entry.entityType, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, HostileEntity::canSpawnInDark);
             FabricDefaultAttributeRegistry.register(entry.entityType,entry.attributes);
 
         }
