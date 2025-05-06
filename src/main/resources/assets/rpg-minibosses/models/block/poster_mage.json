@@ -1,0 +1,6 @@
+{
+  "parent": "rpg-minibosses:block/poster",
+  "textures": {
+    "texture": "rpg-minibosses:block/poster_mage"
+  }
+}

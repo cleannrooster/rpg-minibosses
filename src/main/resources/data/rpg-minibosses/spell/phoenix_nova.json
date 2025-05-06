@@ -1,0 +1,168 @@
+{
+  "school": "spell_power:fire",
+  "range": 8.0,
+  "tier": 4,
+  "learn": {},
+  "active": {
+    "cast": {
+      "sound": {
+        "id": "spell_engine:generic_fire_casting"
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:flame",
+          "origin": "FEET",
+          "shape": "WIDE_PIPE",
+          "count": 1.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1
+        }
+      ]
+    }
+  },
+  "release": {
+    "particles": [
+      {
+        "particle_id": "spell_engine:flame",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 130.0,
+        "min_speed": 0.2,
+        "max_speed": 0.6
+      },
+      {
+        "particle_id": "minecraft:smoke",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 35.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:flame_medium_b",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 65.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:flame_medium_a",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 65.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:flame_medium_a",
+        "origin": "FEET",
+        "shape": "PILLAR",
+        "count": 100.0,
+        "min_speed": 0.3,
+        "max_speed": 0.5,
+        "extent": 7.5
+      },
+      {
+        "particle_id": "spell_engine:flame_medium_b",
+        "origin": "FEET",
+        "shape": "PILLAR",
+        "count": 50.0,
+        "min_speed": 0.1,
+        "max_speed": 0.5,
+        "extent": 7.5
+      },
+      {
+        "particle_id": "minecraft:smoke",
+        "origin": "FEET",
+        "shape": "PIPE",
+        "count": 50.0,
+        "min_speed": 0.1,
+        "max_speed": 0.2,
+        "extent": 8.0
+      }
+    ],
+    "sound": {
+      "id": "minecraft:entity.player.attack.knockback"
+    }
+  },
+  "target": {
+    "type": "AREA",
+    "area": {}
+  },
+  "deliver": {
+    "type": "CUSTOM",
+    "custom": {
+      "handler": "spellbladenext:dragon_slam"
+    }
+  },
+  "impacts": [
+    {
+      "school": "spell_power:fire",
+      "target_modifiers": [
+        {
+          "conditions": [
+            {
+              "entity_type": "#minecraft:freeze_immune_entity_types"
+            }
+          ],
+          "modifier": {
+            "critical_chance_bonus": 0.3
+          }
+        }
+      ],
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 1.6
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:flame_spark",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
+        },
+        {
+          "particle_id": "minecraft:smoke",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
+        }
+      ],
+      "sound": {
+        "id": "minecraft:entity.player.hurt_on_fire"
+      }
+    },
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "apply_to_caster": true,
+        "status_effect": {
+          "apply_mode": "SET",
+          "duration": 4,
+          "amplifier": 7,
+          "effect_id": "rpg-minibosses:feather",
+          "show_particles": false
+        }
+      }
+    }
+  ],
+  "cost": {
+    "cooldown": {
+      "duration": 12.0
+    },
+    "item": {
+      "id": "runes:fire_stone"
+    }
+  }
+}

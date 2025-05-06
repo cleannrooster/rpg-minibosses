@@ -16,22 +16,99 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.mob.PiglinEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
-public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob, CrossbowUser {
-    protected ArtilleristEntity(EntityType<? extends HostileEntity> entityType, World world) {
-        super(entityType, world);
-    }
+import java.util.List;
+import java.util.Optional;
 
+public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob, CrossbowUser {
+    List<Item> bonusList = List.of();
+
+    protected ArtilleristEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+        super(entityType, world);
+        super.bonusList = Registries.ITEM.stream().filter(item -> {return
+                (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                        ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
+                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
+                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
+                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/heavy_crossbow")))
+                        || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/long_bow")))
+                        || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/short_bow")))
+                        || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/rapid_crossbow"))));}).toList();
+
+}
+    protected ArtilleristEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+        super(entityType, world);
+        if(lesser) {
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                                ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_1_weapons"))))
+                                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/heavy_crossbow")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/long_bow")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/short_bow")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/rapid_crossbow"))));
+            }).toList();
+            this.getDataTracker().set(MinibossEntity.LESSER,true);
+
+        }
+        else{
+            super.bonusList = Registries.ITEM.stream().filter(item -> {return
+                    (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                            ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
+                            && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/heavy_crossbow")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/long_bow")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/short_bow")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/rapid_crossbow"))));}).toList();
+
+        }
+    }
+    protected ArtilleristEntity(EntityType<? extends PatrolEntity> entityType, World world,boolean lesser,float spawnCoeff) {
+        super(entityType, world,spawnCoeff);
+        if(lesser) {
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                                ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_1_weapons"))))
+                                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/heavy_crossbow")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/long_bow")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/short_bow")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/rapid_crossbow"))));
+            }).toList();
+            this.getDataTracker().set(MinibossEntity.LESSER,true);
+
+        }
+        else{
+            super.bonusList = Registries.ITEM.stream().filter(item -> {return
+                    (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                            ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
+                            && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/heavy_crossbow")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/long_bow")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/short_bow")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/rapid_crossbow"))));}).toList();
+
+        }
+    }
     public static final RawAnimation IDLESHOOT = RawAnimation.begin().thenLoop("animation.mob.idleshoot");
 
     public static final RawAnimation SHOOTWALK = RawAnimation.begin().thenLoop("animation.mob.shootwalk");
     public static final RawAnimation RELOAD = RawAnimation.begin().thenPlay("animation.unknown.merc.reload");
+    public static final RawAnimation RELOADLONGER = RawAnimation.begin().thenPlay("animation.unknown.merc.reloadlonger");
 
     @Override
     public MoveControl getMoveControl() {
@@ -51,12 +128,30 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
         builder.add(CHARGING, false);
+        builder.add(EXTRACHARGE, false);
+
+    }
+    public Item getDefaultItem(){
+        return Items.AIR;
+    }
+    public ItemStack getBackWeapon(){
+        ItemStack stack = new ItemStack(getDefaultItem());
+        if(this.getRandom().nextBoolean() && !bonusList.isEmpty()){
+            Item item = bonusList.get(this.getRandom().nextInt(bonusList.size()));
+            stack = new ItemStack(item);
+
+        }
+
+        return stack;
+
     }
     public ItemStack getMainWeapon(){
         return Items.CROSSBOW.getDefaultStack();
 
     }
-
+    public boolean skipMainHand(){
+        return true;
+    }
     @Override
     public void tick() {
 
@@ -65,15 +160,21 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     @Override
     protected void mobTick() {
+        super.mobTick();
+
         if(this.getTarget() != null) {
             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
         }
-        super.mobTick();
     }
 
     private PlayState predicateShoot(AnimationState<MinibossEntity> state) {
         if(this.getDataTracker().get(CHARGING)) {
-            return state.setAndContinue(RELOAD);
+            if(this.getDataTracker().get(EXTRACHARGE)) {
+                return state.setAndContinue(RELOADLONGER);
+
+            }else {
+                return state.setAndContinue(RELOAD);
+            }
 
         }
         if(CrossbowItem.isCharged(this.getMainHandStack())) {
@@ -112,10 +213,13 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         animationData.add(new AnimationController<MinibossEntity>(this,"shoot",
                 0,this::predicateShoot)
         );
-
+        animationData.add(
+                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
+                        .triggerableAnim("down", DOWNANIM));
     }
 
     public static final TrackedData<Boolean> CHARGING;
+    public static final TrackedData<Boolean> EXTRACHARGE;
 
 
     public void setCharging(boolean charging) {
@@ -123,7 +227,10 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     }
     static {
         CHARGING = DataTracker.registerData(ArtilleristEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        EXTRACHARGE = DataTracker.registerData(ArtilleristEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+
     }
+
     @Override
     public void postShoot() {
 

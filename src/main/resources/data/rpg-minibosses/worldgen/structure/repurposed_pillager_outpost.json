@@ -1,0 +1,52 @@
+{
+  "type": "minecraft:jigsaw",
+  "biomes": "#minecraft:has_structure/pillager_outpost",
+  "max_distance_from_center": 80,
+  "project_start_to_heightmap": "WORLD_SURFACE_WG",
+  "size": 7,
+  "start_height": {
+    "absolute": 0
+
+  },
+  "spawn_overrides": {
+    "monster": {
+      "bounding_box": "full",
+      "spawns": [
+        {
+          "type": "rpg-minibosses:minor_juggernaut",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+        {
+          "type": "rpg-minibosses:minor_trickster",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+        {
+          "type": "rpg-minibosses:minor_templar",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+        {
+          "type": "rpg-minibosses:minor_archmage_fire",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+        {
+          "type": "rpg-minibosses:minor_mercenary",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 2
+        }
+      ]
+    }
+  },
+  "start_pool": "rpg-minibosses:pillager_outpost/base_plates",
+  "step": "surface_structures",
+  "terrain_adaptation": "beard_thin",
+  "use_expansion_hack": true
+}

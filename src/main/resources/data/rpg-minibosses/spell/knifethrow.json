@@ -1,0 +1,88 @@
+{
+  "school": "spell_power:physical_melee",
+  "range": 32.0,
+  "tier": 3,
+  "learn": {},
+  "active": {
+    "cast": {
+      "duration": 6.0,
+      "sound": {
+        "id": "spell_engine:generic_frost_casting"
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:magic_frost_spell_ascend",
+          "origin": "FEET",
+          "shape": "WIDE_PIPE",
+          "count": 1.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1
+        }
+      ]
+    }
+  },
+  "deliver": {
+      "type": "PROJECTILE",
+      "projectile": {
+        "launch_properties": {
+          "velocity": 0.8
+        },
+        "projectile": {
+          "homing_angle": 2.0,
+          "perks": {
+            "bounce": 1
+          },
+          "client_data": {
+            "travel_particles": [ ],
+            "model": {
+              "model_id": "rpg-minibosses:projectile/iron_dagger",
+              "scale": 1,
+              "light_emission": "NONE",
+              "rotate_degrees_per_tick": 0,
+              "orientation": "TOWARDS_MOTION"
+            }
+          },
+          "travel_sound_interval": 8,
+          "travel_sound": {
+            "id": "minecraft:entity.player.attack.sweep"
+          }
+        }
+    },
+    "animation": "spell_engine:one_handed_throw_release_instant",
+    "sound": {
+      "id": "minecraft:entity.player.attack.sweep"
+    }
+  },
+  "impacts": [
+    {
+      "school": "PHYSICAL_MELEE",
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "knockback": 1,
+          "spell_power_coefficient": 1.2
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "sweep_attack",
+          "shape": "SPHERE",
+          "origin": "CENTER",
+          "count": 1
+        }
+      ],
+      "sound": {
+        "id": "minecraft:entity.player.attack.sweep"
+      }
+    }
+  ],
+  "cost": {
+    "cooldown": {
+      "duration": 4.0,
+      "proportional": true
+    },
+    "item": {
+      "id": "runes:fire_stone"
+    }
+  }
+}

@@ -13,6 +13,7 @@ import net.minecraft.entity.ai.goal.CrossbowAttackGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.EndermanEntity;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.CrossbowItem;
@@ -37,9 +38,11 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-public class ArtilleristCrossbowAttackGoal<T extends HostileEntity & RangedAttackMob & CrossbowUser> extends Goal {
+public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedAttackMob & CrossbowUser> extends Goal {
     public static final UniformIntProvider COOLDOWN_RANGE = TimeHelper.betweenSeconds(1, 2);
     public final T actor;
+    public int extraUseTime = 30;
+    public boolean isTakingLonger = false;
     public ArtilleristCrossbowAttackGoal.Stage stage;
     public final double speed;
     public boolean unload;
@@ -121,7 +124,11 @@ public class ArtilleristCrossbowAttackGoal<T extends HostileEntity & RangedAttac
                     this.actor.setCurrentHand(ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW));
 
                     this.stage = ArtilleristCrossbowAttackGoal.Stage.CHARGING;
-                    ((CrossbowUser)this.actor).setCharging(true);
+                    if(this.isTakingLonger) {
+                        this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
+                    }
+                        ((CrossbowUser)this.actor).setCharging(true);
+
                 }
             } else if (this.stage == ArtilleristCrossbowAttackGoal.Stage.CHARGING) {
                 if (!this.actor.isUsingItem()) {
@@ -129,7 +136,16 @@ public class ArtilleristCrossbowAttackGoal<T extends HostileEntity & RangedAttac
                 }
                 int i = this.actor.getItemUseTime();
                 ItemStack itemStack = this.actor.getActiveItem();
-                if (i >= CrossbowItem.getPullTime(itemStack, this.actor)) {
+
+                int useTime = CrossbowItem.getPullTime(itemStack, this.actor);
+                if(this.isTakingLonger){
+                    useTime += this.extraUseTime;
+                    if(i == 5){
+                        this.actor.resetIndicator();
+
+                    }
+                }
+                if (i >= useTime) {
                     this.actor.stopUsingItem();
                     this.stage = ArtilleristCrossbowAttackGoal.Stage.CHARGED;
                     ((CrossbowUser)this.actor).setCharging(false);
@@ -146,7 +162,15 @@ public class ArtilleristCrossbowAttackGoal<T extends HostileEntity & RangedAttac
             if(this.uses >= 6) {
                 this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
                 this.unload = this.actor.getRandom().nextInt(2) == 0;
+                if(this.unload){
+                    this.isTakingLonger = true;
+                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
+                }
+                else{
+                    this.isTakingLonger = false;
+                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,false);
 
+                }
                 uses = 0;
 
             }
@@ -166,7 +190,15 @@ public class ArtilleristCrossbowAttackGoal<T extends HostileEntity & RangedAttac
             if(this.uses >= 6) {
                 this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
                 this.unload = this.actor.getRandom().nextInt(2) == 0;
+                if(this.unload){
+                    this.isTakingLonger = true;
+                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
+                }
+                else{
+                    this.isTakingLonger = false;
+                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,false);
 
+                }
                 uses = 0;
             }else   if(this.actor.getRandom().nextInt(13) == 0){
                 loadProjectiles(this.actor, itemStack);

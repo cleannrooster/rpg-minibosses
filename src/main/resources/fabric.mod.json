@@ -2,8 +2,8 @@
 	"schemaVersion": 1,
 	"id": "rpg-minibosses",
 	"version": "${version}",
-	"name": "RPG Minibosses - Forsaken Adventurers",
-	"description": "Find petrified adventurers in the wild! Be careful of their abilities though...",
+	"name": "ANARCHY - RPG Minibosses",
+	"description": "Find petrified adventurers in the wild!",
 	"authors": [
 		"cleannrooster/Forg!"
 	],
@@ -32,8 +32,9 @@
 		"java": ">=21",
 		"fabric-api": "*",
 		"spell_power": ">=1.0.4+1.21.1",
-		"spell_engine": ">=1.5.0+1.21.1",
-		"extraspellattributes": ">=1.0.6+1.21.1"
+		"spell_engine": ">=1.6.0+1.21.1",
+		"extraspellattributes": ">=1.0.6+1.21.1",
+		"wizards": ">=2.4.2+1.21.1"
 	},
 	"suggests": {
 		"another-mod": "*"

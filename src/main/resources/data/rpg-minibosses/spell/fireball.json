@@ -27,8 +27,13 @@
       "launch_properties": {
         "velocity": 1.6
       },
+
       "projectile": {
         "divergence": 15.0,
+        "hitbox": {
+          "width": 2,
+          "height": 0.4
+        },
         "client_data": {
           "travel_particles": [
             {
@@ -70,7 +75,7 @@
           ],
           "model": {
             "model_id": "rpg-minibosses:projectile/flamewaveprojectile",
-            "scale": 2.0
+            "scale": 1.0
           }
         }
       }
@@ -94,8 +99,8 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 0.5,
-          "knockback": 0.0
+          "spell_power_coefficient": 0.6,
+          "knockback": 1.0
         }
       },
       "particles": [

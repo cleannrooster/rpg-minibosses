@@ -4,7 +4,17 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"DefaultLootMixin",
-		"SpellHelperMixin"
+		"PatrolSpawnerMixin"
+
+	],
+	"client": [
+		"EndSkyMixin",
+		"WorldRendererMixin",
+		"DimensionEffectsMixin",
+		"ClientWorldMixin",
+		"PropertiesMixin",
+		"RenderSystemMixin"
+
 	],
 	"injectors": {
 		"defaultRequire": 1

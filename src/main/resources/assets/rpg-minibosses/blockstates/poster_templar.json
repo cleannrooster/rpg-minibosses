@@ -1,0 +1,75 @@
+{
+  "variants": {
+
+    "face=ceiling,facing=east": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 270,
+      "y": 90
+    },
+
+    "face=ceiling,facing=north": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 270,
+      "y": 180
+
+    },
+
+    "face=ceiling,facing=south": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 270
+    },
+
+    "face=ceiling,facing=west": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 270,
+      "y": 270
+    },
+
+    "face=floor,facing=east": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 90,
+      "y": 270
+    },
+
+    "face=floor,facing=north": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 90,
+      "y": 180
+    },
+
+    "face=floor,facing=south": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 90
+    },
+
+    "face=floor,facing=west": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "x": 90,
+
+      "y": 90
+    },
+
+    "face=wall,facing=east": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "uvlock": true,
+      "y": 270
+    },
+
+    "face=wall,facing=north": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "uvlock": true,
+      "y": 180
+    },
+
+    "face=wall,facing=south": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "uvlock": true
+    },
+
+    "face=wall,facing=west": {
+      "model": "rpg-minibosses:block/poster_templar",
+      "uvlock": true,
+      "y": 90
+    }
+  }
+}

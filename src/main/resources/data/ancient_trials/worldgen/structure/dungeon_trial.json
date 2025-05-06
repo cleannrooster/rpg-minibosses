@@ -1,0 +1,83 @@
+{
+  "type": "minecraft:jigsaw",
+    "liquid_settings": "ignore_waterlogging",
+  "start_pool": "ancient_trials:desert_underground",
+  "size": 2,
+    "biomes": "#ancient_trials:has_structure/dungeon_trial",
+  "adapt_noise": true,
+ "start_height": {
+   "absolute": -48
+
+ },
+    "spawn_overrides": {
+    "monster": {
+      "bounding_box": "piece",
+      "spawns": [
+        {
+          "type": "rpg-minibosses:minor_juggernaut",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+        {
+          "type": "rpg-minibosses:minor_trickster",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+       {
+          "type": "rpg-minibosses:minor_templar",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:minor_archmage_fire",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:minor_mercenary",
+          "weight": 10,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:juggernaut",
+          "weight": 2,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:trickster",
+          "weight": 2,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:templar",
+          "weight": 2,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:archmage_fire",
+          "weight": 2,
+          "minCount": 1,
+          "maxCount": 1
+        },
+		{
+          "type": "rpg-minibosses:mercenary",
+          "weight": 2,
+          "minCount": 1,
+          "maxCount": 1
+        }
+      ]
+    }
+  },
+  "max_distance_from_center": 116,
+  "step": "underground_decoration",
+    "terrain_adaptation": "encapsulate",
+  "use_expansion_hack": false
+}

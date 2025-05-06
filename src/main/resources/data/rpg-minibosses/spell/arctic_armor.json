@@ -1,0 +1,160 @@
+{
+  "range": 32.0,
+  "school": "FROST",
+  "tier": 2,
+  "learn": { },
+  "type": "ACTIVE",
+
+  "active": {
+    "cast": {
+      "duration": 0.5,
+      "animation": "spell_engine:one_handed_area_charge",
+      "sound": {
+        "id": "spell_engine:generic_frost_casting",
+        "randomness": 0
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:snowflake",
+          "shape": "WIDE_PIPE",
+          "origin": "CENTER",
+          "count": 0.5,
+          "min_speed": 0.1,
+          "max_speed": 0.2
+        }
+      ]
+    }
+  },
+  "target": {
+    "type": "AREA",
+    "area": {
+      "vertical_range_multiplier": 0.5
+    }
+  },
+  "release": {
+    "animation": "spell_engine:one_handed_area_release",
+    "sound": {
+      "id": "spell_engine:generic_frost_release"
+    },
+    "particles": [
+      {
+        "particle_id": "spell_engine:snowflake",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 130.0,
+        "min_speed": 0.2,
+        "max_speed": 0.6
+      },
+      {
+        "particle_id": "spell_engine:frost_shard",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 130.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      }
+    ]
+  },
+  "impacts": [
+    {
+      "target_modifiers": [
+        {
+          "conditions": [
+            {
+              "entity_type": "#minecraft:freeze_hurts_extra_types"
+            }
+          ],
+          "modifier": {
+            "power_multiplier": 0.3
+          }
+        },
+        {
+          "conditions": [
+            {
+              "entity_type": "#minecraft:freeze_immune_entity_types"
+            }
+          ],
+          "modifier": {
+            "power_multiplier": -0.3
+          }
+        }
+      ],
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 1.0
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:magic_frost_impact_burst",
+          "shape": "SPHERE",
+          "origin": "CENTER",
+          "count": 30.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7
+        }
+      ],
+      "sound": {
+        "id": "wizards:frost_nova_damage_impact"
+      }
+    },
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "apply_to_caster": true,
+        "status_effect": {
+          "apply_mode": "SET",
+          "duration": 8,
+          "amplifier": 0,
+          "effect_id": "rpg-minibosses:arctic_armor",
+          "show_particles": false
+        }
+
+      },
+      "particles": [
+      {
+        "particle_id": "spell_engine:area_effect_714",
+        "shape": "SPHERE",
+        "origin": "FEET",
+        "follow_entity": true,
+        "count": 1.0,
+        "color_rgba": 9098480,
+        "max_age": 1.0,
+        "min_speed": 0,
+        "max_speed": 0
+      }
+    ]
+    }
+  ],
+  "area_impact": {
+    "radius": 6,
+    "area": {
+      "distance_dropoff": "NONE"
+    },
+    "particles": [
+      {
+        "particle_id": "spell_engine:snowflake",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 130.0,
+        "min_speed": 0.2,
+        "max_speed": 0.6
+      },
+      {
+        "particle_id": "spell_engine:frost_shard",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 130.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      }
+    ],
+    "sound": {
+      "id": "spell_engine:generic_frost_release"
+    }
+  },
+  "cost": {
+
+  }
+}

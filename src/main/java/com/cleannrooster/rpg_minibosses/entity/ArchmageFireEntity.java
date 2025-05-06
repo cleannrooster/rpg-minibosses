@@ -6,6 +6,7 @@ import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 import mod.azure.azurelib.core.animation.*;
 import mod.azure.azurelib.core.object.PlayState;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.tag.FabricTagKey;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.Entity;
@@ -22,10 +23,15 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
@@ -42,22 +48,82 @@ import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
 public class ArchmageFireEntity extends MinibossEntity  {
     private boolean performing;
     private int throwtimer = 20;
     private int jumptimer = 100;
     private int novatimer = 100;
     private int feathertimer = 160;
+    public List<Item> bonusList = new ArrayList<>();
 
-    protected ArchmageFireEntity(EntityType<? extends HostileEntity> entityType, World world) {
+    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world) {
         super(entityType, world);
+        super.bonusList = Registries.ITEM.stream().filter(item -> {return
+                (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                        ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
+                        || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
+                        || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
+                        && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
+    }
+    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+        super(entityType, world);
+        if(lesser) {
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                                ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_1_weapons"))))
+                                && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/damage_staff")));
+            }).toList();
+            this.getDataTracker().set(MinibossEntity.LESSER,true);
+
+        }
+        else{
+            super.bonusList = Registries.ITEM.stream().filter(item -> {return
+                    (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                            ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
+                            && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
+
+        }
+    }
+
+    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world,boolean lesser, float spawnCoeff) {
+        super(entityType, world,spawnCoeff);
+        if(lesser) {
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                                ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_1_weapons"))))
+                                && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/damage_staff")));
+            }).toList();
+            this.getDataTracker().set(MinibossEntity.LESSER,true);
+
+        }
+        else{
+            super.bonusList = Registries.ITEM.stream().filter(item -> {return
+                    (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
+                            ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
+                            && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
+
+        }
+    }
+    public boolean skipOffHand(){
+        return true;
     }
     public static final RawAnimation THROW1 = RawAnimation.begin().then("animation.mob.throw1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation THROW2 = RawAnimation.begin().then("animation.mob.throw2", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation WAVE_LEFTHAND = RawAnimation.begin().then("animation.mob.wave_lefthand", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation WALK_WAVE_LEFTHAND = RawAnimation.begin().then("animation.unknown.walk_wave_lefthand", Animation.LoopType.PLAY_ONCE);
 
-
+    public static Stream<Item> itemList;
     @Override
     public MoveControl getMoveControl() {
         return super.getMoveControl();
@@ -76,8 +142,13 @@ public class ArchmageFireEntity extends MinibossEntity  {
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
     }
+    public Item getDefaultItem(){
+        return Items.AIR;
+    }
     public ItemStack getMainWeapon(){
-        return ItemStack.EMPTY;
+        ItemStack stack = new ItemStack(getDefaultItem());
+
+        return stack;
 
     }
 
@@ -94,6 +165,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     protected void mobTick() {
+        super.mobTick();
+
         if(this.getTarget() != null ) {
             if( this.getTarget().distanceTo(this) > 8){
                 this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
@@ -147,48 +220,53 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.performing = true;
         }
         if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
-            if(this.getMoveControl().isMoving()){
-                ((ArchmageFireEntity)this).triggerAnim("walk_wave","walk_wave");
+            this.resetIndicator();
+            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
 
-            }
-            else{
-                ((ArchmageFireEntity)this).triggerAnim("wave","wave");
+                if (this.getMoveControl().isMoving()) {
+                    ((ArchmageFireEntity) this).triggerAnim("walk_wave", "walk_wave");
 
-            }
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                } else {
+                    ((ArchmageFireEntity) this).triggerAnim("wave", "wave");
 
-                this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.registryEntry, 40, 10));
-                this.performing = false;
+                }
+                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                    SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+
+                    this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.registryEntry, 40, 10));
+                    this.performing = false;
+
+                });
 
             });
-
             this.feathertimer = 0;
             this.performing = true;
         }
         if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 6) {
+            this.resetIndicator();
+            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
 
-            if(this.getMoveControl().isMoving()){
-                ((ArchmageFireEntity)this).triggerAnim("walk_wave","walk_wave");
+                if (this.getMoveControl().isMoving()) {
+                    ((ArchmageFireEntity) this).triggerAnim("walk_wave", "walk_wave");
 
-            }
-            else{
-                ((ArchmageFireEntity)this).triggerAnim("wave","wave");
-
-            }
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                        SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
-                    SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).get(),
-                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
+                } else {
+                    ((ArchmageFireEntity) this).triggerAnim("wave", "wave");
 
                 }
-                        ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")).release.particles);
-                        this.performing = false;
+                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-            }
-            );
+                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
+                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).get(),
+                                        SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+
+                            }
+                            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
+                            this.performing = false;
+
+                        }
+                );
+            });
             this.novatimer = 0;
             this.performing = true;
         }
@@ -198,7 +276,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
             feathertimer++;
             novatimer++;
         }
-        super.mobTick();
     }
 
 
@@ -215,7 +292,9 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         .triggerableAnim("wave", WAVE_LEFTHAND));    animationData.add(
                 new AnimationController<>(this, "walk_wave", event -> PlayState.CONTINUE)
                         .triggerableAnim("walk_wave", WALK_WAVE_LEFTHAND));
-
+        animationData.add(
+                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
+                        .triggerableAnim("down", DOWNANIM));
 
     }
 

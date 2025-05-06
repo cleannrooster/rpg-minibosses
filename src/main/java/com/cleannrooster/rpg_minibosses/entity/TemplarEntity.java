@@ -9,15 +9,21 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PatrolEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
@@ -36,6 +42,7 @@ import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.entity.SpellProjectile;
 import net.spell_engine.fx.ParticleHelper;
+import net.spell_engine.fx.SpellEngineParticles;
 import net.spell_engine.fx.SpellEngineSounds;
 import net.spell_engine.internals.SpellHelper;
 import net.spell_engine.internals.target.SpellTarget;
@@ -48,14 +55,86 @@ import net.spell_power.api.SpellSchools;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 public class TemplarEntity extends MinibossEntity{
     private boolean performing;
     private boolean is_staff = false;
     private boolean is_twirl = false;
-    protected TemplarEntity(EntityType<? extends HostileEntity> entityType, World world) {
+    List<Item> bonusList = List.of();
+    protected TemplarEntity(EntityType<? extends PatrolEntity> entityType, World world) {
         super(entityType, world);
+        super.bonusList = Registries.ITEM.stream().filter(item -> {
+            return
+                    (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_3_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_4_weapons")))
+                            || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_5_weapons"))))
+                            && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/claymore"))) ||
+                            new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/glaive"))))
+                    ;
+        }).toList();
     }
+    protected TemplarEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+        super(entityType, world);
+        if(lesser) {
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_2_weapons")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_1_weapons"))))
+                                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/claymore"))) ||
+                                new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/glaive"))))
+                        ;
+            }).toList();
+            this.getDataTracker().set(MinibossEntity.LESSER,true);
+        }
+        else{
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_3_weapons")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_4_weapons")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_5_weapons"))))
+                                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/claymore"))) ||
+                                new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/glaive"))))
+                        ;
+            }).toList();
+        }
+
+    }
+    protected TemplarEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser,float spawnCoeff) {
+        super(entityType, world,spawnCoeff);
+        if(lesser) {
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_2_weapons")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_1_weapons"))))
+                                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/claymore"))) ||
+                                new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/glaive"))))
+                        ;
+            }).toList();
+            this.getDataTracker().set(MinibossEntity.LESSER,true);
+        }
+        else{
+            super.bonusList = Registries.ITEM.stream().filter(item -> {
+                return
+                        (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_3_weapons")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_4_weapons")))
+                                || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_5_weapons"))))
+                                && (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/claymore"))) ||
+                                new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "weapon_type/glaive"))))
+                        ;
+            }).toList();
+        }
+
+    }
+    public boolean skipMainHand(){
+        return true;
+    }
+    @Override
+    public EquipmentSlot getPreferredEquipmentSlot(ItemStack stack) {
+        return EquipmentSlot.OFFHAND;
+    }
+
     public static final RawAnimation STAFF = RawAnimation.begin().thenPlay("animation.valkyrie.staff");
     public static final RawAnimation DASHRIGHT = RawAnimation.begin().thenPlay("animation.valkyrie.dashright");
     public static final RawAnimation DASHLEFT = RawAnimation.begin().thenPlay("animation.valkyrie.dashleft");
@@ -103,6 +182,9 @@ public class TemplarEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "swing2", event -> PlayState.CONTINUE)
                         .triggerableAnim("swing2", SWING2));
+        animationData.add(
+                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
+                        .triggerableAnim("down", DOWNANIM));
     }
 
             public void applyIntroEffect(){
@@ -111,8 +193,23 @@ public class TemplarEntity extends MinibossEntity{
     public RegistryEntry<StatusEffect> getIntroEffect(){
         return Effects.PETRIFIED.registryEntry;
     }
+    public Item getDefaultItem(){
+        return Items.AIR;
+    }
+    public ItemStack getBackWeapon(){
+        ItemStack stack = new ItemStack(getDefaultItem());
+        if(this.getRandom().nextBoolean() && !bonusList.isEmpty()){
+            Item item = bonusList.get(this.getRandom().nextInt(bonusList.size()));
+            stack = new ItemStack(item);
+
+        }
+        return stack;
+
+    }
     @Override
     protected void mobTick() {
+        super.mobTick();
+
         if(this.getTarget() != null) {
             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
         }
@@ -123,7 +220,6 @@ public class TemplarEntity extends MinibossEntity{
             dash_attack_timer++;
             cooldown++;
         }
-        super.mobTick();
 
         if(!this.getWorld().isClient() && dashtimer > 80 && !this.performing && this.getTarget() != null  ) {
             if(this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ) {
@@ -150,8 +246,9 @@ public class TemplarEntity extends MinibossEntity{
         if(!this.getWorld().isClient() && dash_attack_timer > 80 && !this.performing && this.getTarget() != null &&  this.distanceTo(this.getTarget()) > 4) {
             ((TemplarEntity)this).triggerAnim("dash_attack","dash_attack");
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-
-            this.setVelocity(this.getRotationVector().multiply(2*this.distanceTo(this.getTarget())/6));
+            Vec3d vec31 = new Vec3d(this.getTarget().getX() - this.getX(), 0, this.getTarget().getZ() - this.getZ());
+            Vec3d vec3 = new Vec3d(vec31.normalize().x * 1.5, 0.45, vec31.normalize().z * 1.5);
+            this.setVelocity(vec3);
 
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
                         this.performing = false;
@@ -190,9 +287,12 @@ public class TemplarEntity extends MinibossEntity{
             this.twirltimer = 0;
             this.performing = true;
             this.is_twirl = true;
+
         }
         else
         if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null ) {
+            this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
+
             ((TemplarEntity)this).triggerAnim("staff","staff");
             ((WorldScheduler) this.getWorld()).schedule(160, () -> {
                 this.performing = false;
@@ -280,7 +380,7 @@ public class TemplarEntity extends MinibossEntity{
         return entity.getWorld().raycast(new RaycastContext(start, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, entity));
     }
 
-    private static boolean raycastObstacleFree(Entity entity, Vec3d start, Vec3d end) {
+    static boolean raycastObstacleFree(Entity entity, Vec3d start, Vec3d end) {
         BlockHitResult hit = raycastObstacle(entity, start, end);
         return hit.getType() != HitResult.Type.BLOCK;
     }

@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "rpg-minibosses:poster_merc",
+    "rpg-minibosses:poster_rogue",
+    "rpg-minibosses:poster_mage",
+    "rpg-minibosses:poster_jugg",
+    "rpg-minibosses:poster_templar"
+  ]
+}
+

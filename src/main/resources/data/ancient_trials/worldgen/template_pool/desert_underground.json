@@ -1,0 +1,43 @@
+{
+  "fallback": "ancient_trials:desert_trial_fallback",
+  "elements": [
+      {
+      "weight": 50,
+      "element": {
+        "location": "ancient_trials:desert_underground_trial/excavation",
+        "processors": "minecraft:empty",
+		"projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+		{
+      "weight": 50,
+      "element": {
+        "location": "ancient_trials:desert_underground_trial/furnace",
+        "processors": "minecraft:empty",
+		"projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+	    {
+      "weight": 50,
+      "element": {
+        "location": "ancient_trials:desert_underground_trial/lavapit",
+        "processors": "minecraft:empty",
+		"projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    },
+      {
+      "weight": 10,
+      "element": {
+        "location": "ancient_trials:desert_underground_trial/blackstone",
+        "processors": "minecraft:empty",
+		"projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+
+	
+  ]
+}

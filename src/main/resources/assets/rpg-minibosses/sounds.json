@@ -1,0 +1,15 @@
+{
+  "explosion": {
+    "subtitle": "subtitles.rpg-minibosses.dark_matter_explosion",
+    "sounds": [
+      "rpg-minibosses:explosion"
+    ]
+  },
+  "boom": {
+    "subtitle": "subtitles.rpg-minibosses.anticipation",
+    "sounds": [
+      "rpg-minibosses:boom"
+    ]
+  }
+}
+

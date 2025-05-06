@@ -1,0 +1,162 @@
+{
+  "school": "spell_power:arcane",
+  "range": 32.0,
+  "tier": 3,
+  "learn": {},
+  "active": {
+    "cast": {
+      "duration": 6.0,
+      "sound": {
+        "id": "spell_engine:generic_frost_casting"
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:magic_frost_spell_ascend",
+          "origin": "FEET",
+          "shape": "WIDE_PIPE",
+          "count": 1.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1
+        }
+      ]
+    }
+  },
+  "deliver": {
+    "type": "PROJECTILE",
+    "projectile": {
+      "launch_properties": {
+        "velocity": 1.6
+      },
+      "projectile": {
+        "divergence": 15.0,
+        "hitbox": {
+          "width": 2,
+          "height": 2
+        },
+        "client_data": {
+          "travel_particles": [
+            {
+              "particle_id": "spell_engine:magic_arcane_spell_float",
+              "origin": "CENTER",
+              "shape": "SPHERE",
+              "count": 3.0,
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            },
+            {
+              "particle_id": "spell_engine:magic_arcane_spark_float",
+              "origin": "CENTER",
+              "shape": "SPHERE",
+              "count": 1.0,
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            },
+            {
+              "particle_id": "minecraft:smoke",
+              "origin": "CENTER",
+              "shape": "SPHERE",
+              "count": 2.0,
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          ],
+          "model": {
+            "model_id": "wizards:projectile/arcane_missile",
+            "scale": 2.0
+          }
+        }
+      }
+    }
+  },
+  "impacts": [
+    {
+      "school": "spell_power:arcane",
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 1.6,
+          "knockback": 1.0
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:magic_arcane_impact_burst",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
+        },
+        {
+          "particle_id": "spell_engine:magic_arcane_spark_burst",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
+        }
+      ]
+    }
+  ],
+  "area_impact": {
+    "radius": 8.0,
+    "area": {
+      "distance_dropoff": "SQUARED"
+    },
+    "particles": [
+      {
+        "particle_id": "spell_engine:magic_arcane_spell_float",
+        "shape": "SPHERE",
+        "origin": "CENTER",
+        "count": 450,
+        "min_speed": 0.7,
+        "max_speed": 0.8
+      },
+      {
+        "particle_id": "spell_engine:magic_arcane_spell_ascend",
+        "shape": "SPHERE",
+        "origin": "CENTER",
+        "count": 450,
+        "min_speed": 0.7,
+        "max_speed": 0.8
+      }
+    ,
+      {
+        "particle_id": "spell_engine:magic_arcane_spark_ascend",
+        "shape": "SPHERE",
+        "origin": "CENTER",
+        "count": 150,
+        "min_speed": 0.4,
+        "max_speed": 0.4
+      }
+    ,
+      {
+        "particle_id": "spell_engine:magic_arcane_stripe_float",
+        "shape": "SPHERE",
+        "origin": "CENTER",
+        "count": 150,
+        "min_speed": 0.4,
+        "max_speed": 0.4
+      }
+    ],
+    "sound": {
+      "id": "block.glass.break"
+    }
+  },
+  "cost": {
+    "cooldown": {
+      "duration": 4.0,
+      "proportional": true
+    },
+    "item": {
+      "id": "runes:fire_stone"
+    }
+  }
+}
