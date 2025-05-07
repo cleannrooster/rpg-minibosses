@@ -155,6 +155,19 @@
           "show_particles": false
         }
       }
+    },
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "status_effect": {
+          "apply_mode": "SET",
+          "duration": 4,
+          "amplifier": 7,
+          "effect_id": "rpg-minibosses:phoenix",
+          "show_particles": false
+        },
+        "apply_to_caster": true
+      }
     }
   ],
   "cost": {

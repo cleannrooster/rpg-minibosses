@@ -3,7 +3,6 @@ package com.cleannrooster.rpg_minibosses.mixin;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -22,18 +21,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 public abstract class WorldRendererMixin {
     @Shadow
-    public abstract void renderEndSky(MatrixStack matrices);
-    @Shadow
     public abstract boolean hasBlindnessOrDarkness(Camera camera);
         @Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
-    private void renderLayer_RPGMINI(RenderLayer renderLayer, double x, double y, double z, Matrix4f matrix4f, Matrix4f positionMatrix, CallbackInfo info) {
-        if (!FabricLoader.getInstance().isModLoaded("distanthorizons") &&  MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
-            MatrixStack matrixStack = new MatrixStack();
-            matrixStack.multiplyPositionMatrix(matrix4f);
+        private void renderLayerRPG(RenderLayer renderLayer, MatrixStack matrices, double cameraX, double cameraY, double cameraZ, Matrix4f positionMatrix, CallbackInfo info) {
+        if (!FabricLoader.getInstance().isModLoaded("distanthorizons") &&  MinecraftClient.getInstance().player != null && !Synchronized.effectsOf(MinecraftClient.getInstance().player).isEmpty() && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+
 
             info.cancel();
         }
     }
+    /*    @Shadow
+
     @Inject(at = @At("HEAD"), method = "renderSky", cancellable = true)
     public void renderSkyrpg(Matrix4f matrix4f, Matrix4f projectionMatrix, float tickDelta, Camera camera, boolean thickFog, Runnable fogCallback, CallbackInfo info) {
         if (  MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
@@ -48,18 +46,18 @@ public abstract class WorldRendererMixin {
                 }
             }
         }
-    }
+    }*/
         @Inject(at = @At("HEAD"), method = "renderEntity", cancellable = true)
     private void renderEntity_RPGMINI(Entity entity, double cameraX, double cameraY, double cameraZ, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo info) {
-        if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+        if (MinecraftClient.getInstance().player != null && !Synchronized.effectsOf(MinecraftClient.getInstance().player).isEmpty() && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
             if(entity instanceof LivingEntity living && !(entity instanceof PlayerEntity player || entity instanceof MagusPrimeEntity magusPrimeEntity)) {
                 info.cancel();
             }
         }
     }
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
-    public void renderClouds_RPGMINI(MatrixStack matrices, Matrix4f matrix4f, Matrix4f matrix4f2, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
-        if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+    public void renderCloudsRPG(MatrixStack matrices, Matrix4f projectionMatrix, float tickDelta, double cameraX, double cameraY, double cameraZ,CallbackInfo info) {
+        if (MinecraftClient.getInstance().player != null && !Synchronized.effectsOf(MinecraftClient.getInstance().player).isEmpty() && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
             info.cancel();
         }
     }

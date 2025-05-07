@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:lavos_horn",
+          "conditions": [
+            {
+              "condition": "minecraft:random_chance",
+              "chance": 0.125
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "random_sequence": "minecraft:entities/trickster"
+}

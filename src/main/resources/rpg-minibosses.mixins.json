@@ -1,7 +1,7 @@
 {
 	"required": true,
 	"package": "com.cleannrooster.rpg_minibosses.mixin",
-	"compatibilityLevel": "JAVA_21",
+	"compatibilityLevel": "JAVA_17",
 	"mixins": [
 		"DefaultLootMixin",
 		"PatrolSpawnerMixin"
@@ -11,9 +11,9 @@
 		"EndSkyMixin",
 		"WorldRendererMixin",
 		"DimensionEffectsMixin",
-		"ClientWorldMixin",
 		"PropertiesMixin",
-		"RenderSystemMixin"
+		"RenderSystemMixin",
+		"TargetHelperMixin"
 
 	],
 	"injectors": {

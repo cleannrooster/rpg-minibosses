@@ -5,14 +5,17 @@ import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.AI.MinibossRevengeGoal;
 import com.cleannrooster.rpg_minibosses.entity.AI.UniversalAngerGoalMiniboss;
 import com.google.common.base.Predicates;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
+import mod.azure.azurelib.animatable.GeoEntity;
 import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
 import mod.azure.azurelib.core.animation.AnimatableManager;
 import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
+import mod.azure.azurelib.util.AzureLibUtil;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
+import net.minecraft.advancement.Advancement;
+import net.minecraft.advancement.AdvancementManager;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.LookControl;
 import net.minecraft.entity.ai.goal.*;
@@ -34,6 +37,7 @@ import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.DamageTypeTags;
@@ -47,10 +51,11 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
 import net.spell_engine.api.effect.Synchronized;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
+import net.spell_engine.internals.SpellRegistry;
+import net.spell_engine.particle.ParticleHelper;
 import net.spell_engine.utils.SoundHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,13 +82,13 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             ((TranslatableTextContent)this.getType().getName().getContent()).getKey()+".name.3",
             ((TranslatableTextContent)this.getType().getName().getContent()).getKey()+".name.4");
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(HAS_ROLLED, false);
-        builder.add(LESSER, false);
-        builder.add(NAME, -1);
-        builder.add(DOWN, false);
-        builder.add(INDICATOR, 40);
+    protected void initDataTracker() {
+        super.initDataTracker();
+        this.dataTracker.startTracking(HAS_ROLLED, false);
+        this.dataTracker.startTracking(LESSER, false);
+        this.dataTracker.startTracking(NAME, -1);
+        this.dataTracker.startTracking(DOWN, false);
+        this.dataTracker.startTracking(INDICATOR, 40);
 
     }
 
@@ -127,6 +132,11 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
 
     public float spawnCoeff = 1;
     public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
+
+    public EquipmentSlot getPreferredMinibossEquipmentSlot(ItemStack stack) {
+        return EquipmentSlot.MAINHAND;
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
 
@@ -141,7 +151,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
 
         }
         public void playBoom(){
-            SoundHelper.playSound(this.getWorld(), this,new Sound( RPGMinibosses.ANTICIPATION_SOUND.getId().toString()));
+            SoundHelper.playSoundEvent(this.getWorld(), this, RPGMinibosses.ANTICIPATION_SOUND);
         }
     public void resetIndicator(){
         this.getDataTracker().set(INDICATOR,0);
@@ -152,6 +162,44 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     }
     public static ArrayList<Item> itemList = new ArrayList<>();
 
+
+
+    @Override
+    public boolean canSpawn(WorldView world) {
+        if(RPGMinibossesEntities.config.enableAdvancementRequirement) {
+            if (this.getWorld().getPlayers().stream().anyMatch(player -> {
+                var satisfied = false;
+                var condition = false;
+                for (String string : RPGMinibossesEntities.config.advancements.keySet()) {
+                    if (this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string)) != null && ((ServerPlayerEntity) player).getAdvancementTracker().getProgress(this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string))) != null && RPGMinibossesEntities.config.distance > player.distanceTo(this)) {
+                        satisfied = (RPGMinibossesEntities.config.advancements.get(string).equals(true) && ((ServerPlayerEntity) player).getAdvancementTracker().getProgress(this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string))).isDone())
+                                || (RPGMinibossesEntities.config.advancements.get(string).equals(false) && !((ServerPlayerEntity) player).getAdvancementTracker().getProgress(this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string))).isDone());
+                        if (!satisfied && RPGMinibossesEntities.config.allRequired) {
+                            condition = false;
+                            break;
+                        }
+                        else if (satisfied){
+                            condition = true;
+                        }
+                    }
+                }
+                if(RPGMinibossesEntities.config.debug) {
+                    System.out.println(satisfied);
+                    System.out.println(condition);
+                }
+
+                return condition;
+            })) {
+                return super.canSpawn(world);
+            } else {
+                return false;
+            }
+        }
+        else{
+            return super.canSpawn(world);
+        }
+    }
+
     @Override
     public void onSpawnPacket(EntitySpawnS2CPacket packet) {
         super.onSpawnPacket(packet);
@@ -159,8 +207,8 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     }
     public void generateAndEquipLoot(EquipmentSlot slot, int attempts){
         for(int i = 0; i < attempts; i++) {
-            RegistryKey<LootTable> registryKey = EntityType.ENDER_DRAGON.getLootTableId();
-            LootTable lootTable = this.getWorld().getServer().getReloadableRegistries().getLootTable(registryKey);
+            Identifier registryKey = EntityType.ENDER_DRAGON.getLootTableId();
+            LootTable lootTable = this.getWorld().getServer().getLootManager().getLootTable(registryKey);
             LootContextParameterSet.Builder builder = (new LootContextParameterSet.Builder((ServerWorld) this.getWorld())).add(LootContextParameters.THIS_ENTITY, this).add(LootContextParameters.ORIGIN, this.getPos()).add(LootContextParameters.DAMAGE_SOURCE, this.getDamageSources().generic());
 
 
@@ -172,8 +220,8 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
 
         }
         for(int i = 0; i < attempts; i++) {
-            RegistryKey<LootTable> registryKey = this.getLootTableId();
-            LootTable lootTable = this.getWorld().getServer().getReloadableRegistries().getLootTable(registryKey);
+            Identifier registryKey = EntityType.ENDER_DRAGON.getLootTableId();
+            LootTable lootTable = this.getWorld().getServer().getLootManager().getLootTable(registryKey);
             LootContextParameterSet.Builder builder = (new LootContextParameterSet.Builder((ServerWorld) this.getWorld())).add(LootContextParameters.THIS_ENTITY, this).add(LootContextParameters.ORIGIN, this.getPos()).add(LootContextParameters.DAMAGE_SOURCE, this.getDamageSources().generic());
 
 
@@ -212,7 +260,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             (this).triggerAnim("down","down");
 
             this.getDataTracker().set(DOWN,true);
-            this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE ,100,9,false,false));
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE ,100,99,false,false));
             return;
         }
 
@@ -269,12 +317,12 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             }
         }
         if(!this.getDataTracker().get(HAS_ROLLED) && this.getServer() != null) {
-            if(!skipMainHand()) {
+            /*if(!skipMainHand()) {
                 this.generateAndEquipLoot(EquipmentSlot.MAINHAND, 8);
             }
             if(!skipOffHand()) {
                 this.generateAndEquipLoot(EquipmentSlot.OFFHAND, 8);
-            }
+            }*/
             if(getMainHandStack().isEmpty()){
                 this.equipStack(EquipmentSlot.MAINHAND,this.getMainWeapon());
             }
@@ -326,10 +374,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         return 100F;
     }
 
-    @Override
-    protected void dropEquipment(ServerWorld world, DamageSource source, boolean causedByPlayer) {
-        super.dropEquipment(world, source, causedByPlayer);
-    }
+
 
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
@@ -341,7 +386,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
                 }
             }
             playIntro(player);
-            return ActionResult.SUCCESS_NO_ITEM_USED;
+            return ActionResult.SUCCESS;
 
         }
 
@@ -351,11 +396,11 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         return "text.rpg-minibosses.petrified";
     }
     public boolean notPetrified(){
-       return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value());
+       return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect());
     }
     @Override
     public boolean isInvulnerable() {
-        return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.isInvulnerable();
+        return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect()) && super.isInvulnerable();
     }
 
     @Override
@@ -386,7 +431,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             }
             return false;
         }
-        return  (  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.damage(source, amount));
+        return  (  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect()) && super.damage(source, amount));
     }
 
 
@@ -415,8 +460,8 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
 
     public void playReleaseParticlesAndSound(){
         if(!this.getWorld().isClient()) {
-            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-            SoundHelper.playSound(this.getWorld(), this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.sound);
+            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+            SoundHelper.playSound(this.getWorld(), this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.sound);
         }
     }
     public int delay(){
@@ -425,8 +470,8 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     public void applyIntroEffect(){
         this.addStatusEffect(new StatusEffectInstance(getIntroEffect(),-1,2,false,false));
     }
-    public RegistryEntry<StatusEffect> getIntroEffect(){
-        return Effects.PETRIFIED.registryEntry;
+    public StatusEffect getIntroEffect(){
+        return Effects.PETRIFIED.effect;
     }
 
     @Override

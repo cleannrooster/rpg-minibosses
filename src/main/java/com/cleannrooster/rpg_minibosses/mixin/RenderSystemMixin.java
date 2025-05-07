@@ -21,16 +21,5 @@ public abstract class RenderSystemMixin {
     @Shadow
     private static float shaderGameTime;
 
-    @Inject(at = @At("HEAD"), method = "setShaderGameTime", cancellable = true)
-    private static void setShaderGameTimeRPG(long time, float tickDelta, CallbackInfo info) {
-        float f = ((float)(time % 24000L) + tickDelta) / 24000.0F;
-        if (!isOnRenderThread()) {
-            recordRenderCall(() -> {
-                shaderGameTime = 18000;
-            });
-        } else {
-            shaderGameTime = 18000;
-        }
 
-    }
 }

@@ -13,7 +13,7 @@ import net.minecraft.util.Identifier;
 import static com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities.KEY;
 
 public class RPGMinibossesBlocks {
-    public static Block MERCPOSTERBLOCK;
+/*    public static Block MERCPOSTERBLOCK;
     public static BlockItem MERCPOSTERBLOCKITEM;
 
     public static Block MAGEPOSTERBLOCK;
@@ -50,5 +50,5 @@ public class RPGMinibossesBlocks {
             content.add(ROGUEPOSTERBLOCKITEM);
 
         });
-    }
+    }*/
 }

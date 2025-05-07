@@ -40,11 +40,12 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
+import net.spell_engine.api.spell.SpellInfo;
 import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellRegistry;
+import net.spell_engine.internals.WorldScheduler;
+import net.spell_engine.particle.ParticleHelper;
 import net.spell_engine.utils.TargetHelper;
-import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellDamageSource;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
@@ -156,9 +157,7 @@ public class JuggernautEntity extends MinibossEntity{
             public void applyIntroEffect(){
         super.applyIntroEffect();
     }
-    public RegistryEntry<StatusEffect> getIntroEffect(){
-        return Effects.PETRIFIED.registryEntry;
-    }
+
     @Override
     protected void mobTick() {
         super.mobTick();
@@ -172,13 +171,13 @@ public class JuggernautEntity extends MinibossEntity{
 
                 ((JuggernautEntity) this).triggerAnim("slam", "slam");
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                        SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
-                                SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
+                    ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
+                        SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")),Identifier.of(RPGMinibosses.MOD_ID, "pound")),
+                                 new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
                     }
-                    this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
+                    this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE, 1, 1);
                     this.performing = false;
 
                 });
@@ -193,7 +192,7 @@ public class JuggernautEntity extends MinibossEntity{
                 ((JuggernautEntity) this).triggerAnim("twohandwave", "twohandwave");
 
                 ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
 
                     ((JuggernautEntity) this).triggerAnim("twohandspin", "twohandspin");
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
@@ -208,19 +207,19 @@ public class JuggernautEntity extends MinibossEntity{
                 });
 
                 ((WorldScheduler) this.getWorld()).schedule(40 * 2, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
 
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
 
                 });
                 ((WorldScheduler) this.getWorld()).schedule(40 * 3, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
 
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
 
                 });
                 ((WorldScheduler) this.getWorld()).schedule(40 * 4, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
 
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
 
@@ -240,13 +239,13 @@ public class JuggernautEntity extends MinibossEntity{
                 });
 
                 ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                        SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
-                                SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
+                    ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
+                        SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")),Identifier.of(RPGMinibosses.MOD_ID, "pound")) ,
+                                 new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
                     }
-                    this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
+                    this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE,1,1);
                     this.performing = false;
 
                 });

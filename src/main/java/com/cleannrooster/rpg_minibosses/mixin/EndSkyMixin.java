@@ -29,7 +29,7 @@ public class EndSkyMixin  {
 
     @Inject(at = @At("HEAD"), method = "getSkyRenderer", cancellable = true)
     private static void getSkyRendererRPGMINIBOSSES(RegistryKey<World> key, CallbackInfoReturnable<DimensionRenderingRegistry.SkyRenderer> callbackInfo) {
-        if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
+        if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().player != null && !Synchronized.effectsOf(MinecraftClient.getInstance().player).isEmpty() && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
             callbackInfo.setReturnValue(SKY_RENDERERS.get(World.END));
 
         }

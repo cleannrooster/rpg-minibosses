@@ -2,7 +2,6 @@ package com.cleannrooster.rpg_minibosses.block;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
-import net.minecraft.block.enums.BlockFace;
 import net.minecraft.block.enums.BlockHalf;
 import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.fluid.FluidState;
@@ -27,6 +26,10 @@ import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 
 public class PosterBlock extends WallMountedBlock {
+    public PosterBlock(Settings settings) {
+        super(settings);
+    }
+/*
     public static final MapCodec<PosterBlock> CODEC = createCodec(PosterBlock::new);
     public static final int MAX_LAYERS = 8;
 
@@ -41,7 +44,7 @@ public class PosterBlock extends WallMountedBlock {
     }
 
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(new Property[]{FACING,  FACE});
+        this.dataTracker.startTracking(new Property[]{FACING,  FACE});
     }
 
     protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
@@ -229,6 +232,7 @@ public class PosterBlock extends WallMountedBlock {
         EAST_SHAPE = Block.createCuboidShape(0, 0, 3, 2.0, 16, 13);
     }
 
+*/
 
 
 }

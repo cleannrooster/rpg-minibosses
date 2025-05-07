@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.item;
 
 
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
@@ -9,7 +10,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
@@ -56,7 +56,7 @@ public class SummonHorn<T extends LivingEntity> extends GoatHornItem {
                         magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,player.getPos());
                         world.spawnEntity(magus);
 
-                        stack.damage(1,player, EquipmentSlot.MAINHAND);
+                        stack.damage(1,player, (c) ->{});
                         player.sendMessage(Text.translatable("Magus has been unleashed!"));
 
                         return;
@@ -69,10 +69,6 @@ public class SummonHorn<T extends LivingEntity> extends GoatHornItem {
         }
     }
 
-    @Override
-    public SoundEvent getBreakSound() {
-        return super.getBreakSound();
-    }
 
     static @Nullable BlockPos getSafePositionAroundPlayer2(World level, BlockPos pos, int range) {
         if (range == 0) {
@@ -129,9 +125,9 @@ public class SummonHorn<T extends LivingEntity> extends GoatHornItem {
 
         return null;
     }
-    public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+    public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context) {
         tooltip.add(Text.translatable("Use to summon Forsaken Magus, if available."));
 
-        super.appendTooltip(stack, context, tooltip, type);
+        super.appendTooltip(stack, world, tooltip, context);
     }
 }

@@ -1,10 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import com.cleannrooster.spellblades.entity.CycloneEntity;
-import com.cleannrooster.spellblades.items.Orb;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
+import mod.azure.azurelib.animatable.GeoEntity;
 import mod.azure.azurelib.core.animatable.GeoAnimatable;
 import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
 import mod.azure.azurelib.core.animation.AnimatableManager;
@@ -12,6 +9,7 @@ import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
+import mod.azure.azurelib.util.AzureLibUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -27,12 +25,10 @@ import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.registry.SpellRegistry;
+import net.spell_engine.api.spell.SpellInfo;
 import net.spell_engine.internals.SpellHelper;
-import net.spell_engine.internals.casting.SpellCasterEntity;
-import net.spell_engine.internals.target.EntityRelations;
-import net.spell_engine.internals.target.SpellTarget;
-import net.spell_engine.utils.WorldScheduler;
+import net.spell_engine.internals.SpellRegistry;
+import net.spell_engine.internals.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import static com.cleannrooster.spellblades.SpellbladesAndSuch.MOD_ID;
 
 
 public class OrbEntity extends Entity implements GeoEntity, Ownable {
@@ -73,9 +68,9 @@ public class OrbEntity extends Entity implements GeoEntity, Ownable {
 
 
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
-        builder.add(COLOR, 1);
-        builder.add(OWNER, -1);
+    protected void initDataTracker() {
+        this.dataTracker.startTracking(COLOR, 1);
+        this.dataTracker.startTracking(OWNER, -1);
 
     }
 
@@ -106,12 +101,11 @@ public class OrbEntity extends Entity implements GeoEntity, Ownable {
         if(!this.getWorld().isClient() &&!this.performing && this.age % 10 == 0 && this.getOwner() instanceof LivingEntity livingEntity){
             Identifier id = Identifier.of(RPGMinibosses.MOD_ID,"dark_matter");
 
-            Spell spell = SpellRegistry.from(this.getWorld()).get(id);
-            Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
+            Spell spell = SpellRegistry.getSpell(id);
 
             List<LivingEntity> list = this.getWorld().getEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),this.getBoundingBox(), target -> target != this.getOwner());
             for(LivingEntity living : list){
-                SpellHelper.performImpacts(this.getWorld(),livingEntity,living,living,spellReference.get(),spellReference.get().value().impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower( SpellSchools.SOUL,livingEntity)).position(this.getPos()));
+                SpellHelper.performImpacts(this.getWorld(),livingEntity,living,living,new SpellInfo(spell,id),new SpellHelper.ImpactContext().power(SpellPower.getSpellPower( SpellSchools.SOUL,livingEntity)).position(this.getPos()));
             }
         }
         if(this.age == 240 && !this.getWorld().isClient()){

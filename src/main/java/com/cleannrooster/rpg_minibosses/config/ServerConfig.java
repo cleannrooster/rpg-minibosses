@@ -4,6 +4,8 @@ import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
+import java.util.LinkedHashMap;
+
 @Config(name = "server_v4")
 public class ServerConfig  implements ConfigData {
     public ServerConfig(){}
@@ -199,4 +201,20 @@ public class ServerConfig  implements ConfigData {
     public int patrolCooldown =  12000;
     @Comment("Patrol Cooldown Random Addition (Ticks != 0)")
     public int patrolAdded = 1200;
+    @Comment("Debug NPC spawning requirements.")
+    public boolean debug = false;
+    @Comment("Make NPCs only spawn near players that have fulfilled advancement requirements")
+
+    public boolean enableAdvancementRequirement = false;
+    @Comment("List of Advancements and their required state for mobs to spawn near a player. Format: id,boolean")
+    public LinkedHashMap<String, Boolean> advancements = new LinkedHashMap<String, Boolean>() {
+        {
+            this.put("examplemod:exampleadvancement", false);
+
+        }};
+    @Comment("All advancements and states required to be fulfilled for a mob to spawn.")
+    public boolean allRequired = false;
+    @Comment("Distance to enforce advancement requirement.")
+    public float distance = 128;
+
 }

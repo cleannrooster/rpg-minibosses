@@ -3,22 +3,21 @@ package com.cleannrooster.rpg_minibosses.entity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses.*;
 
+import com.cleannrooster.rpg_minibosses.config.ConfigSync;
 import com.cleannrooster.rpg_minibosses.config.ServerConfig;
 import com.cleannrooster.rpg_minibosses.config.ServerConfigWrapper;
 import com.extraspellattributes.ReabsorptionInit;
-import com.google.common.base.Predicates;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.autoconfig.serializer.PartitioningSerializer;
-import net.fabric_extras.structure_pool.api.StructurePoolAPI;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.minecraft.block.entity.Spawner;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.AboveGroundTargeting;
@@ -34,6 +33,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.SpawnEggItem;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -51,9 +51,6 @@ import net.minecraft.world.gen.structure.BasicTempleStructure;
 import net.minecraft.world.gen.structure.OceanMonumentStructure;
 import net.minecraft.world.gen.structure.StructureType;
 import net.minecraft.world.spawner.PatrolSpawner;
-import net.minecraft.world.spawner.SpecialSpawner;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
 import net.spell_engine.rpg_series.config.Defaults;
 import net.spell_power.api.SpellSchools;
 
@@ -70,12 +67,18 @@ import static net.minecraft.registry.Registries.ENTITY_TYPE;
 public class RPGMinibossesEntities {
     public static final ArrayList<Entry> entries = new ArrayList<>();
     public static final ArrayList<Entry> minibosses = new ArrayList<>();
+    private static PacketByteBuf configSerialized = PacketByteBufs.create();
 
     public static ServerConfig config;
     static{
         AutoConfig.register(ServerConfigWrapper.class, PartitioningSerializer.wrap(JanksonConfigSerializer::new));
+
         config = AutoConfig.getConfigHolder(ServerConfigWrapper.class).getConfig().server;
 
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            sender.sendPacket(ConfigSync.ID, configSerialized);
+        });
+        configSerialized = ConfigSync.write(config);
     }
 
 
@@ -128,7 +131,6 @@ public class RPGMinibossesEntities {
     public static double normalMovementSpeed = 0.23000000417232513;
     public static final Entry<JuggernautEntity> JUGGERNAUT_ENTITY_ENTRY = new Entry<JuggernautEntity>("juggernaut",
             (entityType,world) -> new JuggernautEntity(entityType,world,false,config.juggernautGreater), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(ReabsorptionInit.DEFIANCE,config.juggernautGreaterDefiance)
@@ -142,7 +144,6 @@ public class RPGMinibossesEntities {
             0xebcb6a,false);
     public static final Entry<ArtilleristEntity> ARTILLERIST_ENTITY_ENTRY = new Entry<ArtilleristEntity>("mercenary",
             (entityType,world) -> new ArtilleristEntity(entityType,world,false,config.mercenaryGreater), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryGreaterArmor)
@@ -155,7 +156,6 @@ public class RPGMinibossesEntities {
 
     public static final Entry<TricksterEntity> TRICKSTER_ENTITY_ENTRY = new Entry<TricksterEntity>("trickster",
             (entityType,world) -> new TricksterEntity(entityType,world,false,config.rogueGreater),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,6)
@@ -170,7 +170,6 @@ public class RPGMinibossesEntities {
             0xebcb6a,false);
     public static final Entry<JuggernautEntity> M_JUGGERNAUT_ENTITY_ENTRY = new Entry<JuggernautEntity>("minor_juggernaut",
             (entityType,world) -> new JuggernautEntity(entityType,world,true,config.juggernautLesser), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(ReabsorptionInit.DEFIANCE,config.juggernautLesserDefiance)
@@ -184,7 +183,6 @@ public class RPGMinibossesEntities {
             0xebcb6a,true);
     public static final Entry<ArtilleristEntity> M_ARTILLERIST_ENTITY_ENTRY = new Entry<ArtilleristEntity>("minor_mercenary",
             (entityType,world) -> new ArtilleristEntity(entityType,world,true,config.mercenaryLesser), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,config.mercenaryLesserMaxHealth)
             .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryLesserArmor)
@@ -197,7 +195,6 @@ public class RPGMinibossesEntities {
 
     public static final Entry<TricksterEntity> M_TRICKSTER_ENTITY_ENTRY = new Entry<TricksterEntity>("minor_trickster",
             (entityType,world) -> new TricksterEntity(entityType,world,true,config.rogueLesser),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
@@ -218,11 +215,10 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.magusMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.magusMaxHealth)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.magusKnockbackResistance)
-            .add(SpellSchools.FIRE.attributeEntry,config.magusFirePower)
-            .add(SpellSchools.ARCANE.attributeEntry,config.magusArcanePower)
-            .add(SpellSchools.FROST.attributeEntry,config.magusFrostPower)
-            .add(SpellSchools.LIGHTNING.attributeEntry,config.magusLightningPower)
-            .add(SpellSchools.SOUL.attributeEntry,config.magusSoulPower),
+            .add(SpellSchools.FIRE.attribute,config.magusFirePower)
+            .add(SpellSchools.ARCANE.attribute,config.magusFrostPower)
+            .add(SpellSchools.LIGHTNING.attribute,config.magusLightningPower)
+            .add(SpellSchools.SOUL.attribute,config.magusSoulPower),
 
             0x09356B,
             0xebcb6a,false);
@@ -230,19 +226,17 @@ public class RPGMinibossesEntities {
 
     public static final Entry<ArchmageFireEntity> ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("archmage_fire",
             (entityType,world) -> new ArchmageFireEntity(entityType,world,false,config.fireMageGreater),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.fireMageGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageGreaterMaxHealth)
-            .add(SpellSchools.FIRE.attributeEntry,config.fireMageFirePower),
+            .add(SpellSchools.FIRE.attribute,config.fireMageFirePower),
             0x09356B,
             0xebcb6a,false);
     public static final Entry<TemplarEntity> TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("templar",
             (entityType,world) -> new TemplarEntity(entityType,world,false,config.templarGreater),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarGreaterAttackDamage)
@@ -250,24 +244,22 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_ARMOR,config.templarGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarGreaterMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,100F)
-            .add(SpellSchools.HEALING.attributeEntry,config.templarGreaterHealingPower),
+            .add(SpellSchools.HEALING.attribute,config.templarGreaterHealingPower),
             0x09356B,
             0xebcb6a,false);
     public static final Entry<ArchmageFireEntity> M_ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("minor_archmage_fire",
             (entityType,world) -> new ArchmageFireEntity(entityType,world,true,config.fireMageLesser),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.fireMageLesserArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageLesserMaxHealth)
-            .add(SpellSchools.FIRE.attributeEntry,config.fireMageLesserFirePower),
+            .add(SpellSchools.FIRE.attribute,config.fireMageLesserFirePower),
             0x09356B,
             0xebcb6a,true);
     public static final Entry<TemplarEntity> M_TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("minor_templar",
             (entityType,world) -> new TemplarEntity(entityType,world,true,config.templarLesser),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarLesserAttackDamage)
@@ -275,7 +267,7 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_ARMOR,config.templarLesserArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.templarLesserMaxHealth)
-            .add(SpellSchools.HEALING.attributeEntry,config.templarLesserHealingPower),
+            .add(SpellSchools.HEALING.attribute,config.templarLesserHealingPower),
             0x09356B,
             0xebcb6a,true);
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.MOD_ID,"generic"));
@@ -289,7 +281,7 @@ public class RPGMinibossesEntities {
                     ENTITY_TYPE,
                     Identifier.of(MOD_ID, entry.id().getPath()),
                     FabricEntityTypeBuilder.<MinibossEntity>create(SpawnGroup.MONSTER, entry.entityFactory())
-                            .dimensions(EntityDimensions.changing(0.6F, 1.8F).withEyeHeight(1.62F)) // dimensions in Minecraft units of the render
+                            .dimensions(EntityDimensions.changing(0.6F, 1.8F)) // dimensions in Minecraft units of the render
                             .trackRangeBlocks(128)
                             .trackedUpdateRate(1)
                             .build()
@@ -313,7 +305,7 @@ public class RPGMinibossesEntities {
 
             }
 
-            SpawnRestriction.register((EntityType<? extends PatrolEntity>)entry.entityType, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, PatrolEntity::canSpawn);
+            SpawnRestriction.register((EntityType<? extends PatrolEntity>)entry.entityType, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, PatrolEntity::canSpawn);
 
             FabricDefaultAttributeRegistry.register(entry.entityType, entry.attributes);
 

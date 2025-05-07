@@ -27,14 +27,13 @@
 		"rpg-minibosses.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.5",
-		"minecraft": ">=1.21.0",
-		"java": ">=21",
+		"fabricloader": ">=0.14.21",
+		"minecraft": "~1.20.1",
+		"spell_engine": ">=0.15.4",
+		"extraspellattributes": "*",
+		"java": ">=17",
 		"fabric-api": "*",
-		"spell_power": ">=1.0.4+1.21.1",
-		"spell_engine": ">=1.6.0+1.21.1",
-		"extraspellattributes": ">=1.0.6+1.21.1",
-		"wizards": ">=2.4.2+1.21.1"
+		"azurelib": ">=1.0.29"
 	},
 	"suggests": {
 		"another-mod": "*"

@@ -80,7 +80,7 @@ public class JuggernautLeapSlamGoal extends Goal {
         if (!EntityPredicates.EXCEPT_CREATIVE_OR_SPECTATOR.test(livingEntity)) {
             this.mob.setTarget((LivingEntity)null);
         }
-        this.mob.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
+        this.mob.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE,1,1);
         this.mob.setAttacking(false);
         this.mob.getNavigation().stop();
     }

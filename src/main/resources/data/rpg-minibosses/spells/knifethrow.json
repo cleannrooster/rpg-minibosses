@@ -1,0 +1,63 @@
+{
+  "school": "PHYSICAL_MELEE",
+  "range": 12,
+  "learn": {
+    "tier": 1
+  },
+  "cast": {
+    "duration": 0,
+    "animation": "spell_engine:one_handed_throw_charge",
+    "particles": [ ]
+  },
+  "release": {
+    "target": {
+      "type": "PROJECTILE",
+      "projectile": {
+        "launch_properties": {
+          "velocity": 0.8
+        },
+        "projectile": {
+          "homing_angle": 2.0,
+          "perks": {
+            "bounce": 1
+          },
+          "client_data": {
+            "travel_particles": [ ],
+            "model": {
+              "model_id": "rpg-minibosses:projectile/iron_dagger",
+              "scale": 1,
+              "light_emission": "NONE",
+              "rotate_degrees_per_tick": 0,
+              "orientation": "TOWARDS_MOTION"
+            }
+          },
+          "travel_sound_interval": 8,
+          "travel_sound": {
+            "id": "minecraft:entity.player.attack.sweep"
+          }
+        }
+      }
+    },
+    "animation": "spell_engine:one_handed_throw_release_instant",
+    "sound": {
+      "id": "minecraft:entity.player.attack.sweep"
+    }
+  },
+  "impact": [
+    {
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 1
+        }
+      },
+      "sound": {
+        "id": "minecraft:entity.player.attack.sweep"
+      }
+    }
+  ],
+  "cost": {
+    "exhaust": 0.3,
+    "cooldown_duration": 9
+  }
+}

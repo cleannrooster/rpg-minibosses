@@ -4,6 +4,7 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import mod.azure.azurelib.core.animation.*;
 import mod.azure.azurelib.core.object.PlayState;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
@@ -17,9 +18,11 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PatrolEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -35,21 +38,17 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import net.spell_engine.api.spell.ExternalSpellSchools;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.fx.ParticleBatch;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.entity.SpellProjectile;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.fx.SpellEngineSounds;
+import net.spell_engine.api.spell.ParticleBatch;
+import net.spell_engine.api.spell.Sound;
+import net.spell_engine.api.spell.SpellInfo;
+import net.spell_engine.client.sound.SpellCastingSound;
 import net.spell_engine.internals.SpellHelper;
-import net.spell_engine.internals.target.SpellTarget;
+import net.spell_engine.internals.SpellRegistry;
+import net.spell_engine.internals.WorldScheduler;
 import net.spell_engine.network.Packets;
+import net.spell_engine.particle.ParticleHelper;
 import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
-import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 
@@ -131,7 +130,7 @@ public class TemplarEntity extends MinibossEntity{
         return true;
     }
     @Override
-    public EquipmentSlot getPreferredEquipmentSlot(ItemStack stack) {
+    public EquipmentSlot getPreferredMinibossEquipmentSlot(ItemStack stack) {
         return EquipmentSlot.OFFHAND;
     }
 
@@ -189,9 +188,6 @@ public class TemplarEntity extends MinibossEntity{
 
             public void applyIntroEffect(){
         super.applyIntroEffect();
-    }
-    public RegistryEntry<StatusEffect> getIntroEffect(){
-        return Effects.PETRIFIED.registryEntry;
     }
     public Item getDefaultItem(){
         return Items.AIR;
@@ -273,12 +269,12 @@ public class TemplarEntity extends MinibossEntity{
                     }
             );
             ((WorldScheduler) this.getWorld()).schedule(70, () ->{
-                ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).release.particles);
-                for(Entity entity : TargetHelper.targetsFromArea(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).range,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).target.area, entity ->{ return entity != this;})) {
+                ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).area_impact.particles);
+                for(Entity entity : TargetHelper.targetsFromArea(this,SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).range,SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).release.target.area, entity ->{ return entity != this;})) {
 
 
-                    SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).get(),
-                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.HEALING, this)).position(this.getPos()));
+                    SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")),Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")),
+                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.HEALING, this)).position(this.getPos()));
 
                 }
                 this.is_twirl = false;
@@ -291,7 +287,7 @@ public class TemplarEntity extends MinibossEntity{
         }
         else
         if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null ) {
-            this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
+            this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK,1,1);
 
             ((TemplarEntity)this).triggerAnim("staff","staff");
             ((WorldScheduler) this.getWorld()).schedule(160, () -> {
@@ -300,28 +296,34 @@ public class TemplarEntity extends MinibossEntity{
 
                     }
             );
-            var spell = SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "divine_fall"));
+            var spell = SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "divine_fall"));
+            var id = Identifier.of(RPGMinibosses.MOD_ID, "divine_fall");
             this.getNavigation().stop();
             for(int i = 0 ; i < 5; i++) {
                 ((WorldScheduler) this.getWorld()).schedule(20*(i+1), () -> {
                             if (this.getTarget() != null) {
 
-                                SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0);
-                                SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
+                                SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), TargetHelper.TargetingMode.DIRECT);
+                                SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_healing_release"));
                                 Vec3d pos = this.getTarget().getBoundingBox().getCenter();
                                 ((WorldScheduler) this.getWorld()).schedule(25, () -> {
 
-                                            for (Entity entity : this.getWorld().getOtherEntities(this, Box.of(pos, 6, 6, 6))) {
-                                                if (entity instanceof LivingEntity living && raycastObstacleFree(living, pos, living.getBoundingBox().getCenter())) {
-                                                    SpellHelper.performImpacts(this.getWorld(), this, this.getTarget(), this.getTarget(), spell.get(), spell.get().value().impacts,
-                                                            context, false);
+                                            if (this.getTarget() != null) {
+
+
+                                                for (Entity entity : this.getWorld().getOtherEntities(this, Box.of(pos, 6, 6, 6))) {
+                                                    if (entity instanceof LivingEntity living && raycastObstacleFree(living, pos, living.getBoundingBox().getCenter())) {
+                                                        SpellHelper.performImpacts(this.getWorld(), this, this.getTarget(), this.getTarget(), new SpellInfo(spell, id),
+                                                                context, false);
+                                                    }
+                                                }
+                                                sendBatches(this.getTarget(), SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).area_impact.particles, pos,1, PlayerLookup.tracking(this.getTarget()) ,true);
+                                                if(this.getTarget() instanceof PlayerEntity player) {
+                                                 sendBatches(this.getTarget(), SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).area_impact.particles, pos,1, List.of((ServerPlayerEntity) player),true);
+
                                                 }
                                             }
-
-                                            sendBatches(pos, this, spell.get().value().area_impact.particles, 1, PlayerLookup.tracking(this), false);
-
                                         }
-
                                 );
                             }
                 }
@@ -332,6 +334,7 @@ public class TemplarEntity extends MinibossEntity{
             this.is_staff = true;
             this.performing = true;
         }
+
         if(this.is_twirl && this.getTarget() != null && !this.getWorld().isClient()){
             if(this.age % 4 == 0) {
                 ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
@@ -344,7 +347,7 @@ public class TemplarEntity extends MinibossEntity{
         }
 
     }
-    public static void sendBatches(Vec3d target, Entity trackedEntity, ParticleBatch[] batches, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
+    public static void sendBatches(Entity trackedEntity, ParticleBatch[] batches, Vec3d pos, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
         if (batches != null && batches.length != 0) {
             int sourceEntityId = trackedEntity.getId();
             Packets.ParticleBatches.SourceType sourceType = Packets.ParticleBatches.SourceType.COORDINATE;
@@ -354,27 +357,48 @@ public class TemplarEntity extends MinibossEntity{
 
             for(int var10 = 0; var10 < var9; ++var10) {
                 ParticleBatch batch = var8[var10];
-                Vec3d sourceLocation = Vec3d.ZERO;
-                sourceLocation =target;
+                Vec3d sourceLocation = pos;
+
 
                 spawns.add(new Packets.ParticleBatches.Spawn(includeSourceEntity ? sourceEntityId : 0, trackedEntity.getYaw(), trackedEntity.getPitch(), sourceLocation, batch));
             }
 
-            Packets.ParticleBatches packet = new Packets.ParticleBatches(sourceType, countMultiplier, spawns);
+            PacketByteBuf packet = (new Packets.ParticleBatches(sourceType, spawns)).write(countMultiplier);
             if (trackedEntity instanceof ServerPlayerEntity) {
                 ServerPlayerEntity serverPlayer = (ServerPlayerEntity)trackedEntity;
-                if (ServerPlayNetworking.canSend(serverPlayer, Packets.ParticleBatches.ID)) {
-                    ServerPlayNetworking.send(serverPlayer, packet);
-                }
+                sendWrittenBatchesToPlayer(serverPlayer, packet);
             }
 
             trackers.forEach((serverPlayerx) -> {
-                if (ServerPlayNetworking.canSend(serverPlayerx, Packets.ParticleBatches.ID)) {
-                    ServerPlayNetworking.send(serverPlayerx, packet);
-                }
-
+                sendWrittenBatchesToPlayer(serverPlayerx, packet);
             });
         }
+    }
+    private static Vec3d origin(Entity entity, ParticleBatch.Origin origin) {
+        switch (origin) {
+            case FEET:
+                return entity.getPos().add(0.0, (double)(entity.getHeight() * 0.1F), 0.0);
+            case CENTER:
+                return entity.getPos().add(0.0, (double)(entity.getHeight() * 0.5F), 0.0);
+            case LAUNCH_POINT:
+                if (entity instanceof LivingEntity livingEntity) {
+                    return SpellHelper.launchPoint(livingEntity);
+                }
+
+                return entity.getPos().add(0.0, (double)(entity.getHeight() * 0.5F), 0.0);
+            default:
+                return entity.getPos();
+        }
+    }
+    private static void sendWrittenBatchesToPlayer(ServerPlayerEntity serverPlayer, PacketByteBuf packet) {
+        try {
+            if (ServerPlayNetworking.canSend(serverPlayer, Packets.ParticleBatches.ID)) {
+                ServerPlayNetworking.send(serverPlayer, Packets.ParticleBatches.ID, packet);
+            }
+        } catch (Exception var3) {
+            var3.printStackTrace();
+        }
+
     }
     private static BlockHitResult raycastObstacle(Entity entity, Vec3d start, Vec3d end) {
         return entity.getWorld().raycast(new RaycastContext(start, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, entity));

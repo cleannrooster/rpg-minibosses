@@ -14,11 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(value = DimensionEffects.class, priority = Integer.MAX_VALUE)
 
 public class DimensionEffectsMixin {
-    @Inject(at = @At("HEAD"), method = "getSkyType", cancellable = true)
+/*    @Inject(at = @At("HEAD"), method = "getSkyType", cancellable = true)
     private void getSkyType_RPGMINI(CallbackInfoReturnable<DimensionEffects.SkyType>callbackInfoReturnable) {
         if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
 
             callbackInfoReturnable.setReturnValue(DimensionEffects.SkyType.END);
         }
-    }
+    }*/
 }

@@ -6,6 +6,7 @@ import mod.azure.azurelib.core.animation.Animation;
 import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
+import net.minecraft.client.sound.Sound;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -32,13 +33,12 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineSounds;
+import net.spell_engine.api.spell.SpellInfo;
 import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellRegistry;
+import net.spell_engine.internals.WorldScheduler;
+import net.spell_engine.particle.ParticleHelper;
 import net.spell_engine.utils.SoundHelper;
-import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 
@@ -171,7 +171,7 @@ public class TricksterEntity extends MinibossEntity{
         }
 
         if(pommelTick == 120){
-            this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
+            this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT,1,1);
 
         }
         if(!this.getWorld().isClient()){
@@ -199,11 +199,11 @@ public class TricksterEntity extends MinibossEntity{
                         if (this.getTarget() != null) {
                             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.getTarget().getEyePos());
                         }
-                        SoundHelper.playSound(this.getWorld(), this, new Sound(Identifier.of("minecraft:entity.player.attack.sweep")));
-                        SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).get(),
+                        SoundHelper.playSound(this.getWorld(), this, new net.spell_engine.api.spell.Sound("minecraft:entity.player.attack.sweep"));
+                        SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")),Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")),
                                 new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
-                        ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
+                        ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
 
                         ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                             this.triggerAnim("throw2", "throw2");
@@ -211,12 +211,12 @@ public class TricksterEntity extends MinibossEntity{
                             if (this.getTarget() != null) {
                                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.getTarget().getEyePos());
                             }
-                            SoundHelper.playSound(this.getWorld(), this, new Sound(Identifier.of("minecraft:entity.player.attack.sweep")));
+                            SoundHelper.playSound(this.getWorld(), this, new net.spell_engine.api.spell.Sound("minecraft:entity.player.attack.sweep"));
 
-                            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).get(),
+                            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")),Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")),
                                     new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
-                            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
+                            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
 
                         });
 
@@ -254,7 +254,7 @@ public class TricksterEntity extends MinibossEntity{
             );
             this.dashtimer = 0;
             this.performing = true;
-            this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
+            this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT,1,1);
             return false;
         }
         return super.damage(source, amount);

@@ -1,0 +1,63 @@
+{
+  "school": "PHYSICAL_MELEE",
+  "range": 8,
+  "learn": {
+    "tier": 2
+  },
+  "cast": {
+    "duration": 8,
+    "animation": "cleannarsenal:battering_rumble",
+    "channel_ticks": 10,
+    "sound": {
+      "id": "spell_engine:generic_frost_casting",
+      "randomness": 0
+    }
+  },
+  "release": {
+    "custom_impact": true,
+    "sound": {
+      "id": "entity.iron_golem.hurt"
+    },
+    "target": {
+      "type": "AREA",
+      "area": {
+        "vertical_range_multiplier": 0.5
+      }
+    },"particles": [
+      {
+        "particle_id": "smoke",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 60.0,
+        "min_speed": 0.2,
+        "max_speed": 0.6
+      },
+      {
+        "particle_id": "cloud",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 80.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      }
+    ]
+  },
+  "impact": [
+    {
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "knockback": 1.2,
+          "spell_power_coefficient": 0.8
+        }
+      },
+
+      "sound": {
+        "id": "entity.iron_golem.hurt"
+      }
+    }
+  ],
+  "cost": {
+    "cooldown_duration": 8
+  }
+}

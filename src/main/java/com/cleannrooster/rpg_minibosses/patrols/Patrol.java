@@ -146,7 +146,7 @@ public class Patrol {
                 }
 
                 patrolEntity.setPosition((double) pos.getX(), (double) pos.getY(), (double) pos.getZ());
-                patrolEntity.initialize(world, world.getLocalDifficulty(pos), SpawnReason.PATROL, (EntityData) null);
+                patrolEntity.initialize(world, world.getLocalDifficulty(pos), SpawnReason.PATROL, (EntityData) null,null);
                 world.spawnEntityAndPassengers(patrolEntity);
                 return true;
             } else {

@@ -1,5 +1,5 @@
 {
-  "school": "spell_power:frost",
+  "school": "spell_power:arcane",
   "range": 8.0,
   "tier": 4,
   "learn": {},
@@ -23,7 +23,7 @@
   "release": {
     "particles": [
       {
-        "particle_id": "spell_engine:snowflake",
+        "particle_id": "spell_engine:flame",
         "shape": "CIRCLE",
         "origin": "CENTER",
         "count": 130.0,
@@ -31,15 +31,31 @@
         "max_speed": 0.6
       },
       {
-        "particle_id": "spell_engine:frost_shard",
+        "particle_id": "minecraft:smoke",
         "shape": "CIRCLE",
         "origin": "CENTER",
-        "count": 130.0,
+        "count": 35.0,
         "min_speed": 0.5,
         "max_speed": 0.9
       },
       {
-        "particle_id": "spell_engine:snowflake",
+        "particle_id": "spell_engine:magic_arcane_spell_float",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 65.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:magic_arcane_spell_ascend",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 65.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:magic_arcane_spell_ascend",
         "origin": "FEET",
         "shape": "PILLAR",
         "count": 100.0,
@@ -48,22 +64,13 @@
         "extent": 7.5
       },
       {
-        "particle_id": "spell_engine:frost_shard",
+        "particle_id": "spell_engine:magic_arcane_spark_ascend",
         "origin": "FEET",
         "shape": "PILLAR",
         "count": 50.0,
         "min_speed": 0.1,
         "max_speed": 0.5,
         "extent": 7.5
-      },
-      {
-        "particle_id": "minecraft:smoke",
-        "origin": "FEET",
-        "shape": "PIPE",
-        "count": 50.0,
-        "min_speed": 0.1,
-        "max_speed": 0.2,
-        "extent": 8.0
       }
     ],
     "sound": {
@@ -82,38 +89,16 @@
   },
   "impacts": [
     {
-      "school": "spell_power:frost",
-      "target_modifiers": [
-        {
-          "conditions": [
-            {
-              "entity_type": "#minecraft:freeze_hurts_extra_types"
-            }
-          ],
-          "modifier": {
-            "power_multiplier": 0.3
-          }
-        },
-        {
-          "conditions": [
-            {
-              "entity_type": "#minecraft:freeze_immune_entity_types"
-            }
-          ],
-          "modifier": {
-            "power_multiplier": -0.3
-          }
-        }
-      ],
+      "school": "spell_power:arcane",
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 1.2
+          "spell_power_coefficient": 1.4
         }
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_frost_impact_burst",
+          "particle_id": "spell_engine:magic_arcane_impact_burst",
           "origin": "CENTER",
           "shape": "CIRCLE",
           "rotation": "LOOK",
@@ -123,7 +108,7 @@
           "angle": 360.0
         },
         {
-          "particle_id": "spell_engine:frost_shard",
+          "particle_id": "minecraft:magic_arcane_spark_burst",
           "origin": "CENTER",
           "shape": "CIRCLE",
           "rotation": "LOOK",
@@ -140,14 +125,14 @@
     {
       "action": {
         "type": "STATUS_EFFECT",
-        "apply_to_caster": true,
         "status_effect": {
           "apply_mode": "SET",
-          "duration": 4,
-          "amplifier": 4,
-          "effect_id": "minecraft:slowness",
+          "duration": 10,
+          "amplifier": 2,
+          "effect_id": "wizards:arcane_charge",
           "show_particles": false
-        }
+        },
+        "apply_to_caster": true
       }
     }
   ],

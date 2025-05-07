@@ -2,10 +2,7 @@ package com.cleannrooster.rpg_minibosses.client.entity.model;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.OrbEntity;
-import com.cleannrooster.spellblades.SpellbladesAndSuch;
-import com.cleannrooster.spellblades.entity.CycloneEntity;
-import com.cleannrooster.spellblades.items.Orb;
-import mod.azure.azurelib.common.api.client.model.GeoModel;
+import mod.azure.azurelib.model.GeoModel;
 import net.minecraft.util.Identifier;
 
 public class OrbModel<T extends OrbEntity> extends GeoModel<OrbEntity> {

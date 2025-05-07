@@ -19,7 +19,6 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.spell_engine.api.effect.CustomModelStatusEffect;
 import net.spell_engine.api.render.CustomModels;
-import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.internals.casting.SpellCasterClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

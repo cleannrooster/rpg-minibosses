@@ -12,9 +12,8 @@ base {
 
 repositories {
 	maven { url 'https://jitpack.io' }
-	maven { url 'https://maven.kosmx.dev/' }
 	maven { url 'https://maven.shedaniel.me/' }
-	maven { url 'https://maven.azuredoom.com/mods' }
+	maven { url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/' }
 	maven { url 'https://maven.terraformersmc.com/' }
 	maven {
 		name = 'Modrinth'
@@ -22,6 +21,27 @@ repositories {
 		content {
 			includeGroup 'maven.modrinth'
 		}
+	}
+	maven {url 'https://maven.azuredoom.com/mods'}
+	maven { url 'https://maven.kosmx.dev/' }
+	maven { url 'https://maven.shedaniel.me/' }
+	maven { url 'https://jitpack.io' }
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+		content {
+			includeGroup 'maven.modrinth'
+		}
+	}
+	maven {
+		url "https://www.cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
+	maven {
+		name = "TerraformersMC"
+		url = "https://maven.terraformersmc.com/"
 	}
 	maven {
 		name = "Ladysnake Libs"
@@ -43,25 +63,26 @@ dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
-	modCompileOnly fileTree(dir: "run/mods", includes: ['*.jar'])
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation include("com.github.ZsoltMolnarrr:TinyConfig:${project.tiny_config_version}")
 
-	// Dependencies
-	include(implementation("com.github.ZsoltMolnarrr:TinyConfig:${project.tiny_config_version}"))
-	modImplementation("maven.modrinth:structure-pool-api:${project.structure_pool_api_version}")
-	modImplementation("maven.modrinth:runes:${project.runes_version}")
-	modImplementation "mod.azure.azurelib:azurelib-fabric-1.21.1:2.3.19"
+	modImplementation "mod.azure.azurelib:azurelib-fabric-1.20.1:1.0.29"
 
-	modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}")
-	modImplementation("maven.modrinth:spell-power:${project.spell_power_version}")
-//    modImplementation(files("run/mods/dev/spell_engine-${project.spell_engine_version}.jar"))
-//    modImplementation(files("run/mods/dev/spell_power-${project.spell_power_version}.jar"))
-	modImplementation("dev.emi:trinkets:${project.trinkets_version}")
+	modImplementation("maven.modrinth:spell-power:${project.spell_power_version}-fabric")
+	modImplementation("maven.modrinth:runes:${project.runes_version}-fabric")
+	// Uncomment the following line to enable the deprecated Fabric API modules.
+	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 	modImplementation("dev.kosmx.player-anim:player-animation-lib-fabric:${project.player_anim_version}")
-	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}")
+	modApi("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	modCompileOnly fileTree(dir: "run/mods", includes: ['*.jar'])
+
+	include(implementation("com.github.LlamaLad7:MixinExtras:${project.mixin_extras_version}"))
+	modImplementation("dev.emi:trinkets:${project.trinkets_version}")
 }
 
 processResources {
@@ -73,7 +94,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 17
 }
 
 java {
@@ -82,8 +103,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {

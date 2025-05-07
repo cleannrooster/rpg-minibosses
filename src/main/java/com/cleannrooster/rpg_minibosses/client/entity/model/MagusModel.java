@@ -2,9 +2,8 @@ package com.cleannrooster.rpg_minibosses.client.entity.model;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
-import mod.azure.azurelib.common.api.client.model.GeoModel;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.client.util.RenderUtils;
+import mod.azure.azurelib.model.GeoModel;
+import mod.azure.azurelib.util.RenderUtils;
 import net.minecraft.client.render.entity.model.ModelWithArms;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Arm;

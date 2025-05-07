@@ -3,7 +3,7 @@ package com.cleannrooster.rpg_minibosses.client.entity.model;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
-import mod.azure.azurelib.common.api.client.model.GeoModel;
+import mod.azure.azurelib.model.GeoModel;
 import net.minecraft.client.render.entity.model.ModelWithArms;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Arm;

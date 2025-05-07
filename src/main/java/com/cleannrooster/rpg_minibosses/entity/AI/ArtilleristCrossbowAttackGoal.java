@@ -2,24 +2,22 @@ package com.cleannrooster.rpg_minibosses.entity.AI;
 
 import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ChargedProjectilesComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.RangedAttackMob;
-import net.minecraft.entity.ai.goal.CrossbowAttackGoal;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.EndermanEntity;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PatrolEntity;
+import net.minecraft.entity.mob.PiglinEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
-import net.minecraft.item.CrossbowItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.item.*;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -32,7 +30,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
-import net.spell_engine.utils.WorldScheduler;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -40,15 +37,16 @@ import java.util.List;
 
 public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedAttackMob & CrossbowUser> extends Goal {
     public static final UniformIntProvider COOLDOWN_RANGE = TimeHelper.betweenSeconds(1, 2);
-    public final T actor;
-    public int extraUseTime = 30;
-    public boolean isTakingLonger = false;
-    public ArtilleristCrossbowAttackGoal.Stage stage;
-    public final double speed;
-    public boolean unload;
-    public final float squaredRange;
-    public int seeingTargetTicker;
-    private int uses = 0;
+    private final T actor;
+    private ArtilleristCrossbowAttackGoal.Stage stage;
+    private final double speed;
+    private final float squaredRange;
+    private int seeingTargetTicker;
+    private int chargedTicksLeft;
+    private int cooldown;
+
+    public int clip = 7;
+    private boolean unload;
 
     public ArtilleristCrossbowAttackGoal(T actor, double speed, float range) {
         this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
@@ -82,7 +80,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
         if (this.actor.isUsingItem()) {
             this.actor.clearActiveItem();
             ((CrossbowUser)this.actor).setCharging(false);
-            this.actor.getActiveItem().set(DataComponentTypes.CHARGED_PROJECTILES, ChargedProjectilesComponent.DEFAULT);
+            CrossbowItem.setCharged(this.actor.getActiveItem(), false);
         }
 
     }
@@ -99,11 +97,14 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
             if (bl != bl2) {
                 this.seeingTargetTicker = 0;
             }
+
             if (bl) {
                 ++this.seeingTargetTicker;
             } else {
                 --this.seeingTargetTicker;
             }
+
+
             double d = this.actor.squaredDistanceTo(livingEntity);
             boolean bl3 = (d > (double)this.squaredRange || this.seeingTargetTicker < 5) ;
             if (bl3) {
@@ -111,7 +112,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 if(this.stage == Stage.CHARGING){
                     modifier *= 0.5F;
                 }
-                    this.actor.getNavigation().startMovingTo(livingEntity, this.speed*modifier);
+                this.actor.getNavigation().startMovingTo(livingEntity, this.speed*modifier);
             } else {
                 this.actor.getNavigation().stop();
                 if(livingEntity.distanceTo(this.actor) < 8 && this.stage != Stage.CHARGING){
@@ -119,100 +120,64 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 }
 
             }
+            this.actor.getLookControl().lookAt(livingEntity, 30.0F, 30.0F);
             if (this.stage == ArtilleristCrossbowAttackGoal.Stage.UNCHARGED) {
                 if (!bl3) {
                     this.actor.setCurrentHand(ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW));
-
                     this.stage = ArtilleristCrossbowAttackGoal.Stage.CHARGING;
-                    if(this.isTakingLonger) {
-                        this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
+                    ((CrossbowUser)this.actor).setCharging(true);
+                    this.unload = this.actor.getRandom().nextInt(3) == 0;
+                    if(unload) {
+                        this.actor.resetIndicator();
                     }
-                        ((CrossbowUser)this.actor).setCharging(true);
-
                 }
             } else if (this.stage == ArtilleristCrossbowAttackGoal.Stage.CHARGING) {
                 if (!this.actor.isUsingItem()) {
                     this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
                 }
+
                 int i = this.actor.getItemUseTime();
                 ItemStack itemStack = this.actor.getActiveItem();
-
-                int useTime = CrossbowItem.getPullTime(itemStack, this.actor);
-                if(this.isTakingLonger){
-                    useTime += this.extraUseTime;
-                    if(i == 5){
-                        this.actor.resetIndicator();
-
-                    }
-                }
-                if (i >= useTime) {
+                if (i >= CrossbowItem.getPullTime(itemStack)) {
                     this.actor.stopUsingItem();
                     this.stage = ArtilleristCrossbowAttackGoal.Stage.CHARGED;
+                    this.chargedTicksLeft = 10 + this.actor.getRandom().nextInt(10);
                     ((CrossbowUser)this.actor).setCharging(false);
                 }
-                if (bl3) {
-                    return;
-                }
             } else if (this.stage == ArtilleristCrossbowAttackGoal.Stage.CHARGED) {
+                --this.chargedTicksLeft;
+                if (this.chargedTicksLeft == 0) {
                     this.stage = ArtilleristCrossbowAttackGoal.Stage.READY_TO_ATTACK;
-
-            }
-            Hand hand = ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW);
-            ItemStack itemStack = this.actor.getStackInHand(hand);
-            if(this.uses >= 6) {
-                this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
-                this.unload = this.actor.getRandom().nextInt(2) == 0;
-                if(this.unload){
-                    this.isTakingLonger = true;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
+                    this.clip = 7;
                 }
-                else{
-                    this.isTakingLonger = false;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,false);
+            } else if (this.stage == ArtilleristCrossbowAttackGoal.Stage.READY_TO_ATTACK && bl) {
+                if(this.actor.age % 20 == 0 || (this.unload && this.actor.age % 2 == 0)) {
+                    ((RangedAttackMob) this.actor).attack(livingEntity, 1.0F);
+                    ItemStack itemStack2 = this.actor.getStackInHand(ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW));
+                    if(this.actor.getRandom().nextInt(13) == 0){
+                        loadProjectiles(this.actor, itemStack2);
+                        CrossbowItem.setCharged(itemStack2, true);
 
+                        clip = 7;
+
+                        teleportTo(livingEntity);
+                    }else {
+                        if (this.clip <= 0) {
+
+                            CrossbowItem.setCharged(itemStack2, false);
+                            this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
+                            this.unload = false;
+                        } else {
+                            loadProjectiles(this.actor, itemStack2);
+
+                            CrossbowItem.setCharged(itemStack2, true);
+                        }
+                    }
+                    clip--;
                 }
-                uses = 0;
-
             }
 
-            if (CrossbowItem.isCharged(itemStack) && bl &&  !this.actor.getDataTracker().get(ArtilleristEntity.CHARGING) &&  (this.actor.age % 2 == 0 && unload || this.actor.age % 20 == 0)) {
-                shoot(livingEntity, 1.6F);
-            }
         }
-    }
-    private  void shoot(LivingEntity entity, float speed) {
-        Hand hand = ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW);
-        ItemStack itemStack = this.actor.getStackInHand(hand);
-        Item var6 = itemStack.getItem();
-        if (var6 instanceof CrossbowItem crossbowItem) {
-            crossbowItem.shootAll(this.actor.getWorld(), this.actor, hand, itemStack, speed, (float)(14 - this.actor.getWorld().getDifficulty().getId() * 4), entity);
-
-            if(this.uses >= 6) {
-                this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
-                this.unload = this.actor.getRandom().nextInt(2) == 0;
-                if(this.unload){
-                    this.isTakingLonger = true;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
-                }
-                else{
-                    this.isTakingLonger = false;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,false);
-
-                }
-                uses = 0;
-            }else   if(this.actor.getRandom().nextInt(13) == 0){
-                loadProjectiles(this.actor, itemStack);
-
-                uses = 0;
-
-                teleportTo(entity);
-            }
-            else {
-                loadProjectiles(this.actor, itemStack);
-                uses++;
-            }
-        }
-        this.actor.postShoot();
     }
     boolean teleportTo(Entity entity) {
         Vec3d vec3d = new Vec3d(this.actor.getX() - entity.getX(), this.actor.getBodyY(0.5) - entity.getEyeY(), this.actor.getZ() - entity.getZ());
@@ -250,78 +215,64 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
         }
     }
 
-
     private static boolean loadProjectiles(LivingEntity shooter, ItemStack crossbow) {
-        List<ItemStack> list = load(crossbow, shooter.getProjectileType(crossbow), shooter);
-        if (!list.isEmpty()) {
-            crossbow.set(DataComponentTypes.CHARGED_PROJECTILES, ChargedProjectilesComponent.of(list));
-            return true;
-        } else {
+        int i = EnchantmentHelper.getLevel(Enchantments.MULTISHOT, crossbow);
+        int j = i == 0 ? 1 : 3;
+        boolean bl = shooter instanceof PlayerEntity && ((PlayerEntity)shooter).getAbilities().creativeMode;
+        ItemStack itemStack = shooter.getProjectileType(crossbow);
+        ItemStack itemStack2 = itemStack.copy();
+
+        for(int k = 0; k < j; ++k) {
+            if (k > 0) {
+                itemStack = itemStack2.copy();
+            }
+
+            if (itemStack.isEmpty() && bl) {
+                itemStack = new ItemStack(Items.ARROW);
+                itemStack2 = itemStack.copy();
+            }
+
+            if (!loadProjectile(shooter, crossbow, itemStack, k > 0, bl)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    private static boolean loadProjectile(LivingEntity shooter, ItemStack crossbow, ItemStack projectile, boolean simulated, boolean creative) {
+        if (projectile.isEmpty()) {
             return false;
-        }
-    }
-    protected static List<ItemStack> load(ItemStack stack, ItemStack projectileStack, LivingEntity shooter) {
-        if (projectileStack.isEmpty()) {
-            return List.of();
         } else {
-            World var5 = shooter.getWorld();
-            int var10000;
-            if (var5 instanceof ServerWorld) {
-                ServerWorld serverWorld = (ServerWorld)var5;
-                var10000 = EnchantmentHelper.getProjectileCount(serverWorld, stack, shooter, 1);
-            } else {
-                var10000 = 1;
-            }
-
-            int i = var10000;
-            List<ItemStack> list = new ArrayList(i);
-            ItemStack itemStack = projectileStack.copy();
-
-            for(int j = 0; j < i; ++j) {
-                ItemStack itemStack2 = getProjectile(stack, j == 0 ? projectileStack : itemStack, shooter, j > 0);
-                if (!itemStack2.isEmpty()) {
-                    list.add(itemStack2);
-                }
-            }
-
-            return list;
-        }
-    }
-    protected static ItemStack getProjectile(ItemStack stack, ItemStack projectileStack, LivingEntity shooter, boolean multishot) {
-        int var10000;
-        label28: {
-            if (!multishot && !shooter.isInCreativeMode()) {
-                World var6 = shooter.getWorld();
-                if (var6 instanceof ServerWorld) {
-                    ServerWorld serverWorld = (ServerWorld)var6;
-                    var10000 = EnchantmentHelper.getAmmoUse(serverWorld, stack, projectileStack, 1);
-                    break label28;
-                }
-            }
-
-            var10000 = 0;
-        }
-
-        int i = var10000;
-        if (i > projectileStack.getCount()) {
-            return ItemStack.EMPTY;
-        } else {
+            boolean bl = creative && projectile.getItem() instanceof ArrowItem;
             ItemStack itemStack;
-            if (i == 0) {
-                itemStack = projectileStack.copyWithCount(1);
-                itemStack.set(DataComponentTypes.INTANGIBLE_PROJECTILE, Unit.INSTANCE);
-                return itemStack;
-            } else {
-                itemStack = projectileStack.split(i);
-                if (projectileStack.isEmpty() && shooter instanceof PlayerEntity) {
-                    PlayerEntity playerEntity = (PlayerEntity)shooter;
-                    playerEntity.getInventory().removeOne(projectileStack);
+            if (!bl && !creative && !simulated) {
+                itemStack = projectile.split(1);
+                if (projectile.isEmpty() && shooter instanceof PlayerEntity) {
+                    ((PlayerEntity)shooter).getInventory().removeOne(projectile);
                 }
-
-                return itemStack;
+            } else {
+                itemStack = projectile.copy();
             }
+
+            putProjectile(crossbow, itemStack);
+            return true;
         }
     }
+    private static void putProjectile(ItemStack crossbow, ItemStack projectile) {
+        NbtCompound nbtCompound = crossbow.getOrCreateNbt();
+        NbtList nbtList;
+        if (nbtCompound.contains("ChargedProjectiles", 9)) {
+            nbtList = nbtCompound.getList("ChargedProjectiles", 10);
+        } else {
+            nbtList = new NbtList();
+        }
+
+        NbtCompound nbtCompound2 = new NbtCompound();
+        projectile.writeNbt(nbtCompound2);
+        nbtList.add(nbtCompound2);
+        nbtCompound.put("ChargedProjectiles", nbtList);
+    }
+
     private boolean isUncharged() {
         return this.stage == ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
     }

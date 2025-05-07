@@ -14,8 +14,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.WorldProperties;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
@@ -33,7 +31,7 @@ public class DarkMatter extends CustomEffect{
     }
 
     @Override
-    public void playApplySound(LivingEntity entity, int amplifier) {
+    public void onApplied(LivingEntity entity, AttributeContainer attributes, int amplifier) {
         if (!entity.getWorld().isClient) {
             entity.getWorld().playSound(
                     null, // Player - if non-null, will play sound for every nearby player *except* the specified player
@@ -44,8 +42,10 @@ public class DarkMatter extends CustomEffect{
                     1f // Pitch multiplier, 1 is normal, 0.5 is half pitch, etc
             );
         }
-        super.playApplySound(entity, amplifier);
+        super.onApplied(entity, attributes, amplifier);
     }
+
+
 
 
 

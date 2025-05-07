@@ -2,11 +2,9 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
-import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 import mod.azure.azurelib.core.animation.*;
 import mod.azure.azurelib.core.object.PlayState;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.tag.FabricTagKey;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.Entity;
@@ -36,15 +34,15 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.spell_engine.api.spell.Sound;
 import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineSounds;
+import net.spell_engine.api.spell.SpellInfo;
 import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellRegistry;
+import net.spell_engine.internals.WorldScheduler;
+import net.spell_engine.particle.ParticleHelper;
 import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
-import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
 
@@ -139,9 +137,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
     public boolean isTwoHand() {
         return false;
     }
-    protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
-    }
+
     public Item getDefaultItem(){
         return Items.AIR;
     }
@@ -194,11 +190,11 @@ public class ArchmageFireEntity extends MinibossEntity  {
             if(this.getTarget() != null) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
             }
-            SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).get(),
+            SoundHelper.playSound(this.getWorld(),this, new Sound("spell_engine:generic_fire_release"));
+            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")),Identifier.of(RPGMinibosses.MOD_ID,"fireball")),
                     new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
-            ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
+            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 ((ArchmageFireEntity)this).triggerAnim("throw2","throw2");
@@ -206,12 +202,12 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 if(this.getTarget() != null) {
                     this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
                 }
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                SoundHelper.playSound(this.getWorld(),this, new Sound("spell_engine:generic_fire_release"));
 
-                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).get(),
+                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")),Identifier.of(RPGMinibosses.MOD_ID,"fireball")),
                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
-                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
+                ParticleHelper.sendBatches(this,SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
 
             });
 
@@ -231,9 +227,9 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                    SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
-                    this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.registryEntry, 40, 10));
+                    this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.effect, 40, 10));
                     this.performing = false;
 
                 });
@@ -254,14 +250,14 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                            SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
-                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).get(),
-                                        SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
+                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")),Identifier.of(RPGMinibosses.MOD_ID,"fire_nova")),
+                                         new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
                             }
-                            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
+                            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
                             this.performing = false;
 
                         }

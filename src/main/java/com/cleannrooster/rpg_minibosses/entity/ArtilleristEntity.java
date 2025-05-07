@@ -11,7 +11,6 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.ai.RangedAttackMob;
 import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.AttackGoal;
-import net.minecraft.entity.ai.goal.CrossbowAttackGoal;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
@@ -19,6 +18,8 @@ import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.mob.PiglinEntity;
 import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.entity.projectile.ProjectileEntity;
+import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.CrossbowItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -26,6 +27,7 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 
@@ -125,10 +127,10 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     public boolean isTwoHand() {
         return false;
     }
-    protected void initDataTracker(DataTracker.Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(CHARGING, false);
-        builder.add(EXTRACHARGE, false);
+    protected void initDataTracker() {
+        super.initDataTracker();
+        this.dataTracker.startTracking(CHARGING, false);
+        this.dataTracker.startTracking(EXTRACHARGE, false);
 
     }
     public Item getDefaultItem(){
@@ -225,6 +227,9 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     public void setCharging(boolean charging) {
         this.dataTracker.set(CHARGING, charging);
     }
+
+
+
     static {
         CHARGING = DataTracker.registerData(ArtilleristEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         EXTRACHARGE = DataTracker.registerData(ArtilleristEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -235,8 +240,13 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     public void postShoot() {
 
     }
-    public void shootAt(LivingEntity target, float pullProgress) {
+
+    public void attack(LivingEntity target, float pullProgress) {
         this.shoot(this, 1.6F);
+    }
+
+    public void shoot(LivingEntity target, ItemStack crossbow, ProjectileEntity projectile, float multiShotSpray) {
+        this.shoot(this, target, projectile, multiShotSpray, 1.6F);
     }
 
 }
