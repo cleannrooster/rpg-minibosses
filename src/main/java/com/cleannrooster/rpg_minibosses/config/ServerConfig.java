@@ -153,7 +153,8 @@ public class ServerConfig  implements ConfigData {
     public  float greaterScale = 1.2F;
 
 
-
+    @Comment("Forsaken Magus enabled ")
+    public  boolean magus = true;
     @Comment("Forsaken Magus maxHealth ")
     public  float magusMaxHealth = 400F;
     @Comment("Forsaken Magus Armor ")

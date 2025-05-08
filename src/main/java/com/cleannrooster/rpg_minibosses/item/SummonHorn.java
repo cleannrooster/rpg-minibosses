@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.item;
 
 
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
+import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.EntityType;
@@ -42,29 +43,35 @@ public class SummonHorn<T extends LivingEntity> extends GoatHornItem {
 
         super.onStoppedUsing(stack, world, user, remainingUseTicks);
         if(world instanceof ServerWorld level1  && user instanceof PlayerEntity player) {
-
-            if ( level1.getEntitiesByType(TypeFilter.instanceOf(MagusPrimeEntity.class), archmagus -> archmagus.distanceTo(player) < 200).isEmpty()) {
-                for (int i = 0; i < 10; i++) {
-                    BlockPos vec3 = getSafePositionAroundPlayer2(world, player.getSteppingPos(), 10);
-                    if (vec3 != null &&world.isSkyVisible(vec3.up()) &&  !world.isClient()) {
-                        T magus = this.entityType.create(world);
-                        magus.setPosition(vec3.getX(), vec3.getY(), vec3.getZ());
-
-
+            if (RPGMinibossesEntities.config.magus) {
+                if (level1.getEntitiesByType(TypeFilter.instanceOf(MagusPrimeEntity.class), archmagus -> archmagus.distanceTo(player) < 200).isEmpty()) {
+                    for (int i = 0; i < 10; i++) {
+                        BlockPos vec3 = getSafePositionAroundPlayer2(world, player.getSteppingPos(), 10);
+                        if (vec3 != null && world.isSkyVisible(vec3.up()) && !world.isClient()) {
+                            T magus = this.entityType.create(world);
+                            magus.setPosition(vec3.getX(), vec3.getY(), vec3.getZ());
 
 
-                        magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,player.getPos());
-                        world.spawnEntity(magus);
+                            magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, player.getPos());
+                            world.spawnEntity(magus);
 
-                        stack.damage(1,player, (c) ->{});
-                        player.sendMessage(Text.translatable("Magus has been unleashed!"));
+                            stack.damage(1, player, (c) -> {
+                            });
+                            player.sendMessage(Text.translatable("Magus has been unleashed!"));
 
-                        return;
+                            return;
+                        }
                     }
+                    player.sendMessage(Text.translatable("Magus has no room at your location"));
+                } else {
+                    player.sendMessage(Text.translatable("Magus is already present within 200 blocks."));
                 }
-                player.sendMessage(Text.translatable("Magus has no room at your location"));
-            } else {
-                player.sendMessage(Text.translatable("Magus is already present within 200 blocks."));
+            }
+            else{
+                stack.damage(1, player, (c) -> {
+                });
+                player.sendMessage(Text.translatable("text.rpg-minibosses.lavos_horn"),true);
+                player.addExperience(400);
             }
         }
     }
@@ -126,7 +133,12 @@ public class SummonHorn<T extends LivingEntity> extends GoatHornItem {
         return null;
     }
     public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context) {
-        tooltip.add(Text.translatable("Use to summon Forsaken Magus, if available."));
+        if(RPGMinibossesEntities.config.magus) {
+            tooltip.add(Text.translatable("Use to summon Forsaken Magus, if available."));
+        }
+        else {
+            tooltip.add(Text.translatable("text.rpg-minibosses.lavos_horn_2"));
+        }
 
         super.appendTooltip(stack, world, tooltip, context);
     }
