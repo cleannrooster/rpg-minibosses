@@ -35,8 +35,10 @@ import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.DamageTypeTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.stat.Stats;
@@ -188,7 +190,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     public void checkAndEquipLoot(ItemStack stack,EquipmentSlot slot){
         if(this.bonusList.contains(stack.getItem())){
 
-            if(!this.hasStackEquipped(slot)){
+            if(!this.hasStackEquipped(slot) && !(TagKey.of(RegistryKeys.ITEM,Identifier.of("artificers","rifle")) != null && stack.isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("artificers","rifle"))))){
                 this.equipStack(slot,stack);
             }
         }
