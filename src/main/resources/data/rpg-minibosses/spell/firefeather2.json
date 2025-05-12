@@ -108,7 +108,7 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 0.4,
+          "spell_power_coefficient": 0.2,
           "knockback": 0.0
         }
       },
@@ -136,6 +136,14 @@
       ],
       "sound": {
         "id": "minecraft:entity.player.hurt_on_fire"
+      }
+    },
+    {
+      "action": {
+        "type": "FIRE",
+        "fire": {
+          "duration": 3
+        }
       }
     }
   ],

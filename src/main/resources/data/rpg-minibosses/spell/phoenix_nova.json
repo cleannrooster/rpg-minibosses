@@ -114,7 +114,7 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 1.6
+          "spell_power_coefficient": 1.2
         }
       },
       "particles": [
@@ -153,6 +153,14 @@
           "amplifier": 7,
           "effect_id": "rpg-minibosses:feather",
           "show_particles": false
+        }
+      }
+    },
+    {
+      "action": {
+        "type": "FIRE",
+        "fire": {
+          "duration": 3
         }
       }
     }

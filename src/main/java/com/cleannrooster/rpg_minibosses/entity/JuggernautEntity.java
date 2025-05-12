@@ -184,7 +184,7 @@ public class JuggernautEntity extends MinibossEntity{
                 });
 
             });
-            this.slamtimer = 0;
+            this.slamtimer = 140 - (int)(140*this.getCooldownCoeff());
             this.performing = true;
         }
         if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
@@ -226,7 +226,7 @@ public class JuggernautEntity extends MinibossEntity{
 
                 });
 
-            this.spintimer = 0;
+            this.spintimer = 460 - (int)(460*this.getCooldownCoeff());
             this.performing = true;
         }
         if(!this.getWorld().isClient() && leapTimer > 160 && !this.performing && this.getTarget() != null && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
@@ -251,7 +251,7 @@ public class JuggernautEntity extends MinibossEntity{
 
                 });
             });
-            this.leapTimer = 0;
+            this.leapTimer = 160 - (int)(160*this.getCooldownCoeff());
             this.performing = true;
 
         }

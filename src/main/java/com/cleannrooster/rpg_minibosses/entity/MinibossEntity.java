@@ -49,6 +49,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldView;
 import net.spell_engine.api.effect.Synchronized;
 import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
@@ -190,7 +191,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     public void checkAndEquipLoot(ItemStack stack,EquipmentSlot slot){
         if(this.bonusList.contains(stack.getItem())){
 
-            if(!this.hasStackEquipped(slot) && !(TagKey.of(RegistryKeys.ITEM,Identifier.of("artificers","rifle")) != null && stack.isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("artificers","rifle"))))){
+            if(!this.hasStackEquipped(slot)){
                 this.equipStack(slot,stack);
             }
         }
@@ -206,6 +207,17 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         return ItemStack.EMPTY;
 
     }
+    public double getCooldownCoeff(){
+        double g = 1;
+        if(!this.getWorld().isClient() && this.getTarget() != null){
+            for(MinibossEntity entity : ((ServerWorld)this.getWorld()).getEntitiesByType(TypeFilter.instanceOf(MinibossEntity.class),minibossEntity ->
+                    minibossEntity != this &&
+                    minibossEntity.distanceTo(this) < 32)){
+                g++;
+            }
+        }
+        return Math.max(0.1,Math.max(1,Math.pow(g,0.58496250072D))+0.5*this.getRandom().nextGaussian());
+    }
 
     @Override
     public void onDeath(DamageSource damageSource) {
@@ -214,7 +226,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             (this).triggerAnim("down","down");
 
             this.getDataTracker().set(DOWN,true);
-            this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE ,100,9,false,false));
+            this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE ,40,9,false,false));
             return;
         }
 
@@ -241,6 +253,41 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             return;
         }
         super.move(movementType, movement);
+    }
+    @Override
+    public boolean canSpawn(WorldView world) {
+        if(RPGMinibossesEntities.config.enableAdvancementRequirement) {
+            if (this.getWorld().getPlayers().stream().anyMatch(player -> {
+                var satisfied = false;
+                var condition = false;
+                for (String string : RPGMinibossesEntities.config.advancements.keySet()) {
+                    if (this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string)) != null && ((ServerPlayerEntity) player).getAdvancementTracker().getProgress(this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string))) != null && RPGMinibossesEntities.config.distance > player.distanceTo(this)) {
+                        satisfied = (RPGMinibossesEntities.config.advancements.get(string).equals(true) && ((ServerPlayerEntity) player).getAdvancementTracker().getProgress(this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string))).isDone())
+                                || (RPGMinibossesEntities.config.advancements.get(string).equals(false) && !((ServerPlayerEntity) player).getAdvancementTracker().getProgress(this.getWorld().getServer().getAdvancementLoader().get(Identifier.tryParse(string))).isDone());
+                        if (!satisfied && RPGMinibossesEntities.config.allRequired) {
+                            condition = false;
+                            break;
+                        }
+                        else if (satisfied){
+                            condition = true;
+                        }
+                    }
+                }
+                if(RPGMinibossesEntities.config.debug) {
+                    System.out.println(satisfied);
+                    System.out.println(condition);
+                }
+
+                return condition;
+            })) {
+                return super.canSpawn(world);
+            } else {
+                return false;
+            }
+        }
+        else{
+            return super.canSpawn(world);
+        }
     }
 
     @Override

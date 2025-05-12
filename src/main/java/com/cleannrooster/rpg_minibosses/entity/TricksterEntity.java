@@ -167,7 +167,7 @@ public class TricksterEntity extends MinibossEntity{
             ((TricksterEntity)this).triggerAnim("roll","roll");
                 this.addVelocity(this.getRotationVector().multiply(2F));
 
-            this.rolltimer = 0;
+            this.rolltimer = 80 - (int)(80*this.getCooldownCoeff());
         }
 
         if(pommelTick == 120){
@@ -221,7 +221,7 @@ public class TricksterEntity extends MinibossEntity{
                         });
 
                     });
-                    this.throwtimer = 0;
+                    this.throwtimer = 80 - (int)(80*this.getCooldownCoeff());
                     this.performing = true;
                 }
 
@@ -270,7 +270,7 @@ public class TricksterEntity extends MinibossEntity{
                 living.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS,10,10));
 
             }
-            pommelTick = 0;
+            pommelTick = 120 - (int)(120*this.getCooldownCoeff());
             return super.tryAttack(target);
         }
         else if(swingBool){

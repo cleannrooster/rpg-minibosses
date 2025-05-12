@@ -161,7 +161,8 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
             ItemStack itemStack = this.actor.getStackInHand(hand);
             if(this.uses >= 6) {
                 this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
-                this.unload = this.actor.getRandom().nextInt(2) == 0;
+
+                this.unload = this.actor.getRandom().nextInt((int)Math.ceil(2*this.actor.getCooldownCoeff())) == 0;
                 if(this.unload){
                     this.isTakingLonger = true;
                     this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);

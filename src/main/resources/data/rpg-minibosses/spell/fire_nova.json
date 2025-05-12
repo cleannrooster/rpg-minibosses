@@ -87,7 +87,7 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 1.2
+          "spell_power_coefficient": 1.0
         }
       },
       "particles": [
@@ -117,10 +117,11 @@
       }
     },
     {
-      "school": "spell_power:physical_melee",
       "action": {
-        "type": "DAMAGE",
-        "damage": {}
+        "type": "FIRE",
+        "fire": {
+          "duration": 3
+        }
       }
     }
   ],

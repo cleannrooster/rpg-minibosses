@@ -238,7 +238,7 @@ public class TemplarEntity extends MinibossEntity{
 
                     }
             );
-            this.dashtimer = 0;
+            this.dashtimer = 140 - (int)(140*this.getCooldownCoeff());
             this.performing = true;
 
         }
@@ -260,7 +260,7 @@ public class TemplarEntity extends MinibossEntity{
 
                 ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
             });
-            this.dash_attack_timer = 0;
+            this.dash_attack_timer = 80 - (int)(80*this.getCooldownCoeff());
             this.performing = true;
         }
         else
@@ -284,7 +284,7 @@ public class TemplarEntity extends MinibossEntity{
                 this.is_twirl = false;
 
             });
-            this.twirltimer = 0;
+            this.twirltimer = 180 - (int)(180*this.getCooldownCoeff());
             this.performing = true;
             this.is_twirl = true;
 
@@ -328,7 +328,7 @@ public class TemplarEntity extends MinibossEntity{
                 );
 
             }
-            this.stafftimer = 0;
+            this.stafftimer = 300 - (int)(300*this.getCooldownCoeff());
             this.is_staff = true;
             this.performing = true;
         }
