@@ -234,7 +234,7 @@ public class TemplarEntity extends MinibossEntity{
 
                     }
             );
-            this.dashtimer = 0;
+            this.dashtimer = 80 - (int)(80*this.getCooldownCoeff());
             this.performing = true;
 
         }
@@ -280,7 +280,7 @@ public class TemplarEntity extends MinibossEntity{
                 this.is_twirl = false;
 
             });
-            this.twirltimer = 0;
+            this.twirltimer = 180 - (int)(180*this.getCooldownCoeff());;
             this.performing = true;
             this.is_twirl = true;
 
@@ -330,7 +330,7 @@ public class TemplarEntity extends MinibossEntity{
                 );
 
             }
-            this.stafftimer = 0;
+            this.stafftimer = 300 - (int)(300*this.getCooldownCoeff());
             this.is_staff = true;
             this.performing = true;
         }

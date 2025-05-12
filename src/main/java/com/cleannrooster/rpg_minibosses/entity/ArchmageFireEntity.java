@@ -183,9 +183,9 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.setPosition(this.getPos().add(0, 0.2, 0));
             this.setOnGround(false);
             this.setVelocity(vec3);
-            this.jumptimer = 0;
+            this.jumptimer = 160 - (int)(160*this.getCooldownCoeff());
         }
-        if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && throwtimer > 60 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
             ((ArchmageFireEntity)this).triggerAnim("throw1","throw1");
             if(this.getTarget() != null) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
@@ -212,7 +212,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             });
 
 
-            this.throwtimer = 0;
+            this.throwtimer = 60 - (int)(60*this.getCooldownCoeff());
             this.performing = true;
         }
         if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
@@ -235,7 +235,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 });
 
             });
-            this.feathertimer = 0;
+            this.feathertimer = 320 - (int)(320*this.getCooldownCoeff());;
             this.performing = true;
         }
         if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 6) {
@@ -263,7 +263,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         }
                 );
             });
-            this.novatimer = 0;
+            this.novatimer = 220 - (int)(220*this.getCooldownCoeff());;
             this.performing = true;
         }
         if(!this.getWorld().isClient()){

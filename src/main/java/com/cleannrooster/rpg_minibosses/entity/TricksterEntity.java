@@ -252,7 +252,7 @@ public class TricksterEntity extends MinibossEntity{
 
                     }
             );
-            this.dashtimer = 0;
+            this.dashtimer = 80 - (int)(80*this.getCooldownCoeff());;
             this.performing = true;
             this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT,1,1);
             return false;
@@ -270,7 +270,7 @@ public class TricksterEntity extends MinibossEntity{
                 living.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS,10,10));
 
             }
-            pommelTick = 0;
+            pommelTick = 120 - (int)(120*this.getCooldownCoeff());;
             return super.tryAttack(target);
         }
         else if(swingBool){

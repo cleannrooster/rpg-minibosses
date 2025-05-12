@@ -523,37 +523,39 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
             this.resetIndicator();
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
+                if (this.getTarget() != null) {
 
-                (this).triggerAnim("casting", "casting");
-                this.getDataTracker().set(CASTINGBOOL, true);
-                this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK,1,1);
-                ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-                String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
-                List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
-                players.forEach(player -> {
-                    player.sendMessage(Text.translatable("Barrier change / Only " + SOUL.id.getPath().toUpperCase() + " damages."), true);
-                });
+                    (this).triggerAnim("casting", "casting");
+                    this.getDataTracker().set(CASTINGBOOL, true);
+                    this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK, 1, 1);
+                    ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
+                    String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
+                    List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
+                    players.forEach(player -> {
+                        player.sendMessage(Text.translatable("Barrier change / Only " + SOUL.id.getPath().toUpperCase() + " damages."), true);
+                    });
 
-                ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                            if (this.getTarget() != null) {
-                                this.performing = false;
-                                this.getDataTracker().set(CASTINGBOOL, false);
-                                this.spellSchool = SOUL;
-                                for (ServerPlayerEntity player : PlayerLookup.tracking(this)) {
-                                    player.addStatusEffect(new StatusEffectInstance(Effects.DARK_MATTER.effect, 200, 0));
+                    ((WorldScheduler) this.getWorld()).schedule(40, () -> {
+                                if (this.getTarget() != null) {
+                                    this.performing = false;
+                                    this.getDataTracker().set(CASTINGBOOL, false);
+                                    this.spellSchool = SOUL;
+                                    for (ServerPlayerEntity player : PlayerLookup.tracking(this)) {
+                                        player.addStatusEffect(new StatusEffectInstance(Effects.DARK_MATTER.effect, 200, 0));
 
 
+                                    }
+                                    OrbEntity orb = new OrbEntity(RPGMinibosses.ORBENTITY, this.getWorld());
+                                    orb.setOwner(this);
+                                    orb.setPosition(this.getTarget().getPos());
+                                    this.getWorld().spawnEntity(orb);
+
+                                    this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.effect, -1, 0));
                                 }
-                                OrbEntity orb = new OrbEntity(RPGMinibosses.ORBENTITY, this.getWorld());
-                                orb.setOwner(this);
-                                orb.setPosition(this.getTarget().getPos());
-                                this.getWorld().spawnEntity(orb);
 
-                                this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.effect, -1, 0));
                             }
-
-                        }
-                );
+                    );
+                }
 
             });
             this.casting_timer = 0;
@@ -565,21 +567,23 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
             this.resetIndicator();
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
+                if (this.getTarget() != null) {
 
-                (this).triggerAnim("casting", "casting");
-                this.getDataTracker().set(CASTINGBOOL, true);
-                this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK,1,1);
-                ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-                String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
-                this.performSpell("long", delivery);
+                    (this).triggerAnim("casting", "casting");
+                    this.getDataTracker().set(CASTINGBOOL, true);
+                    this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK, 1, 1);
+                    ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
+                    String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
+                    this.performSpell("long", delivery);
 
-                ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                            this.performing = false;
-                            this.getDataTracker().set(CASTINGBOOL, false);
+                    ((WorldScheduler) this.getWorld()).schedule(40, () -> {
+                                this.performing = false;
+                                this.getDataTracker().set(CASTINGBOOL, false);
 
 
-                        }
-                );
+                            }
+                    );
+                }
 
             });
             this.casting_timer = 0;

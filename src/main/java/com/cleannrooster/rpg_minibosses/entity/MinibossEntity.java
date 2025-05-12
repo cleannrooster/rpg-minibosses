@@ -252,6 +252,17 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         return ItemStack.EMPTY;
 
     }
+    public double getCooldownCoeff(){
+        double g = 1;
+        if(!this.getWorld().isClient() && this.getTarget() != null){
+            for(MinibossEntity entity : ((ServerWorld)this.getWorld()).getEntitiesByType(TypeFilter.instanceOf(MinibossEntity.class),minibossEntity ->
+                    minibossEntity != this &&
+                            minibossEntity.distanceTo(this) < 32)){
+                g++;
+            }
+        }
+        return Math.max(0.1,Math.max(1,Math.pow(g,0.58496250072D))+0.5*this.getRandom().nextGaussian());
+    }
 
     @Override
     public void onDeath(DamageSource damageSource) {
