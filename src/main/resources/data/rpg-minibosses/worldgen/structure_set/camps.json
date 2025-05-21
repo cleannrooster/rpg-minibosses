@@ -7,13 +7,21 @@
     },
     "frequency": 0.2,
     "frequency_reduction_method": "legacy_type_1",
-    "salt": 163214526,
+    "salt": 161245326,
     "separation": 8,
-    "spacing": 48
+    "spacing": 32
   },
   "structures": [
     {
-      "structure": "rpg-minibosses:repurposed_pillager_outpost",
+      "structure": "rpg-minibosses:plains_camp",
+      "weight": 1
+    },
+    {
+      "structure": "rpg-minibosses:snowy_camp",
+      "weight": 1
+    },
+    {
+      "structure": "rpg-minibosses:desert_camp",
       "weight": 1
     }
   ]
