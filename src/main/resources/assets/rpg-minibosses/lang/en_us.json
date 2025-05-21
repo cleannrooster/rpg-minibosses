@@ -96,7 +96,7 @@
   "text.rpg-minibosses.petrified2": "Perhaps further investigation will do something...",
   "text.rpg-minibosses.spare": "Right-click to spare the adventurer",
 
-  "effect.rpg-minibosses.feather": "Lesser Phoenix Down",
+  "effect.rpg-minibosses.feather": "Phoenix Down",
   "effect.rpg-minibosses.petrified": "Petrified",
   "effect.rpg-minibosses.arctic_armor": "Arctic Armor",
   "effect.rpg-minibosses.shrapnel": "Shrapnel",
@@ -104,6 +104,9 @@
   "effect.rpg-minibosses.dark_matter": "Dark Matter",
   "structure.ancient_trials.dungeon_trial": "Ancient Trial Dungeon",
   "structure.rpg-minibosses.wanted": "Wanted Board",
+  "structure.rpg-minibosses.snowy_camp": "Snowy Vagrant Camp",
+  "structure.rpg-minibosses.desert_camp": "Sandy Vagrant Camp",
+  "structure.rpg-minibosses.plains_camp": "Pristine Vagrant Camp",
 
   "subtitles.rpg-minibosses.anticipation" : "Anticipation"
 }

@@ -27,7 +27,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 @Mixin(ClientWorld.class)
 public abstract class ClientWorldMixin {
-    @Shadow
+    /*@Shadow
     private  ClientWorld.Properties clientWorldProperties;
 
 
@@ -36,5 +36,5 @@ public abstract class ClientWorldMixin {
         if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
             callbackInfoReturnable.setReturnValue(new DimensionEffects.End());
         }
-    }
+    }*/
 }

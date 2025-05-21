@@ -17,14 +17,14 @@ import java.util.function.BooleanSupplier;
 
 @Mixin(ClientWorld.Properties.class)
 public abstract class PropertiesMixin {
-    @Shadow
+  /*  @Shadow
     private long timeOfDay;
     @Inject(at = @At("HEAD"), method = "getTimeOfDay", cancellable = true)
     public void getTimeOfDayRPG(CallbackInfoReturnable<Long> callbackInfoReturnable) {
         if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
                 callbackInfoReturnable.setReturnValue(18000L);
         }
-    }
+    }*/
 
 
 }
