@@ -1,7 +1,6 @@
 package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
 
-import com.cleannrooster.hexblade.entity.Magus;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
 import mod.azure.azurelib.common.api.client.model.GeoModel;
