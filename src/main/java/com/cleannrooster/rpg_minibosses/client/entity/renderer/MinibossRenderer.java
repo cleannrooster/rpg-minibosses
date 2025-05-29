@@ -3,7 +3,10 @@ package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
+import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
+import com.cleannrooster.rpg_minibosses.entity.TemplarEntity;
 import mod.azure.azurelib.cache.object.BakedGeoModel;
 import mod.azure.azurelib.cache.object.GeoBone;
 import mod.azure.azurelib.core.object.Color;
@@ -57,14 +60,27 @@ public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityMod
 
     @Override
     public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        if(bone.getName().equals("head")) {
-            poseStack.push();
-            RenderUtils.translateMatrixToBone(poseStack, bone);
-            RenderUtils.translateToPivotPoint(poseStack, bone);
-            RenderUtils.rotateMatrixAroundBone(poseStack, bone);
-            RenderUtils.scaleMatrixForBone(poseStack, bone);
-            poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
-            poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.getYaw() - animatable.headYaw, -75, 75)));
+        var bool = ((bone.getName().equals("rightArm")));
+        var bool2 = ((bone.getName().equals("leftArm")));
+        var bool3 = animatable instanceof JuggernautEntity || animatable instanceof TemplarEntity;
+
+        if (bone.getName().equals("head") || bool || bool2) {
+                    poseStack.push();
+                    RenderUtils.translateMatrixToBone(poseStack, bone);
+                    RenderUtils.translateToPivotPoint(poseStack, bone);
+                    RenderUtils.rotateMatrixAroundBone(poseStack, bone);
+                    RenderUtils.scaleMatrixForBone(poseStack, bone);
+
+                    if (!bool) {
+                        poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(- animatable.getYaw(partialTick)+90, -75, 75)));
+                        poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+
+                    } else if (!bool3 && !(animatable instanceof ArtilleristEntity && ((ArtilleristEntity) animatable).getDataTracker().get(ArtilleristEntity.CHARGING))) {
+
+                        poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( animatable.getYaw(partialTick)-90, -75, 75)));
+
+                    }
+
 
             if (bone.isTrackingMatrices()) {
                 Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());

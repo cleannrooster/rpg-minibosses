@@ -13,9 +13,13 @@ import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
 import mod.azure.azurelib.util.AzureLibUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementManager;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.LookControl;
 import net.minecraft.entity.ai.goal.*;
@@ -91,8 +95,51 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         this.dataTracker.startTracking(INDICATOR, 40);
 
     }
+  /*  public void lookAt(EntityAnchorArgumentType.EntityAnchor anchorPoint, Vec3d target) {
+        Vec3d vec3d = anchorPoint.positionAt(this);
+        double d = target.x - vec3d.x;
+        double e = target.y - vec3d.y;
+        double f = target.z - vec3d.z;
+        double g = Math.sqrt(d * d + f * f);
+        double pitch = MathHelper.wrapDegrees((float)(-(MathHelper.atan2(e, g) * 57.2957763671875)));
+        double yaw = MathHelper.wrapDegrees((float)(MathHelper.atan2(f, d) * 57.2957763671875) - 90.0F);
+        this.setPitch((float) (this.prevPitch+(pitch-this.prevPitch)*0.4));
+        this.setYaw((float) ( this.prevYaw+(yaw-this.prevYaw)*0.4));
+
+        this.setHeadYaw(this.getYaw());
+        this.prevPitch = this.getPitch();
+        this.prevYaw = this.getYaw();
+        this.prevHeadYaw = this.headYaw;
+        this.bodyYaw = this.headYaw;
+        this.prevBodyYaw = this.bodyYaw;
+    }*/
 
 
+
+    @Environment(value = EnvType.CLIENT)
+    public static void setRotationFromVelocity(Entity entity) {
+        Vec3d vec3d = entity.getVelocity();
+        if (vec3d.lengthSquared() != 0.0 && entity instanceof PathAwareEntity pathAwareEntity) {
+
+            vec3d = pathAwareEntity.getVelocity().multiply(-1);
+            double d = vec3d.horizontalLength();
+            float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
+            yaw = MathHelper.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
+
+
+
+            while(entity.getYaw() - entity.prevYaw < -180.0F) {
+                entity.prevYaw -= 360.0F;
+            }
+
+            while(entity.getYaw() - entity.prevYaw >= 180.0F) {
+                entity.prevYaw += 360.0F;
+            }
+
+            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(MinecraftClient.getInstance().getTickDelta(), (((PathAwareEntity) entity).prevBodyYaw), yaw));
+            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
+        }
+    }
     @Override
     public Text getName() {
         if(this.getDataTracker().get(NAME) != -1){
@@ -343,8 +390,11 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         if(this.getWorld() instanceof ServerWorld){
             this.tickIndicator();
         }
+        if(this.getWorld().isClient() && !(this instanceof TemplarEntity)){
+            setRotationFromVelocity(this);
+        }
     }
-
+    public int rotationTick = 0;
     public boolean hasPatrolLeader = false;
 
     @Override
@@ -640,9 +690,9 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             this.x = x;
             this.y = y;
             this.z = z;
-            this.maxYawChange = maxYawChange;
-            this.maxPitchChange = maxPitchChange;
-            this.lookAtTimer = 2;
+            this.maxYawChange = 120;
+            this.maxPitchChange = 120;
+            this.lookAtTimer = 8;
         }
 
         public void tick() {
@@ -654,15 +704,23 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             if (this.lookAtTimer > 0) {
                 --this.lookAtTimer;
                 this.getTargetYaw().ifPresent((yaw) -> {
-                    this.entity.headYaw = this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange);
+                    this.entity.setYaw(this.changeAngle(this.entity.prevYaw, yaw, this.maxYawChange));
+                    this.entity.setHeadYaw(this.changeAngle(this.entity.prevYaw, yaw, this.maxYawChange));
+                    this.entity.prevYaw = this.entity.getYaw();
+                    this.entity.prevHeadYaw = this.entity.headYaw;
+                    this.entity.bodyYaw = this.entity.headYaw;
+                    this.entity.prevBodyYaw = this.entity.bodyYaw;
                 });
                 this.getTargetPitch().ifPresent((pitch) -> {
                     this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
-                });
-            } else {
-                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
-            }
+                    this.entity.prevPitch = this.entity.getPitch();
 
+                });
+            }else {
+                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
+                this.entity.prevHeadYaw = this.entity.headYaw;
+
+            }
             this.clampHeadYaw();
         }
 

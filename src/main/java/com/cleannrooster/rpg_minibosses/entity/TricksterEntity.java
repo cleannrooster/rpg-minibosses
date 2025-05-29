@@ -162,7 +162,9 @@ public class TricksterEntity extends MinibossEntity{
     @Override
     protected void mobTick() {
         super.mobTick();
-
+        if (this.getTarget() != null) {
+            this.getLookControl().lookAt(this.getTarget(),30,30);
+        }
         if(!this.getWorld().isClient() && rolltimer > 80 &&  this.getTarget() != null && this.isAttacking()) {
             ((TricksterEntity)this).triggerAnim("roll","roll");
                 this.addVelocity(this.getRotationVector().multiply(2F));
