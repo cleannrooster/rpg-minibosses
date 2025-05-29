@@ -160,11 +160,12 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     @Override
     protected void mobTick() {
-        super.mobTick();
 
         if(this.getTarget() != null) {
             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
         }
+        super.mobTick();
+
     }
 
     private PlayState predicateShoot(AnimationState<MinibossEntity> state) {

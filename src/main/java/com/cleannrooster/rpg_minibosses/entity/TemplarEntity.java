@@ -7,10 +7,7 @@ import mod.azure.azurelib.core.object.PlayState;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
@@ -156,6 +153,8 @@ public class TemplarEntity extends MinibossEntity{
         return true;
     }
 
+
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
@@ -208,7 +207,10 @@ public class TemplarEntity extends MinibossEntity{
     }
     @Override
     protected void mobTick() {
-        super.mobTick();
+
+
+
+
 
         if(this.getTarget() != null) {
             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
@@ -216,6 +218,7 @@ public class TemplarEntity extends MinibossEntity{
         if(!this.getWorld().isClient()) {
             stafftimer++;
             twirltimer++;
+            defensetimer++;
             dashtimer++;
             dash_attack_timer++;
             cooldown++;
@@ -332,18 +335,25 @@ public class TemplarEntity extends MinibossEntity{
             this.is_staff = true;
             this.performing = true;
         }
+
+
         if(this.is_twirl && this.getTarget() != null && !this.getWorld().isClient()){
             if(this.age % 4 == 0) {
                 ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
             }
         }
-        else
         if(this.is_staff){
             this.getNavigation().stop();
 
         }
 
+        super.mobTick();
+
     }
+    public int defensetime = 80;
+
+    public int defensetimer;
+
     public static void sendBatches(Vec3d target, Entity trackedEntity, ParticleBatch[] batches, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
         if (batches != null && batches.length != 0) {
             int sourceEntityId = trackedEntity.getId();

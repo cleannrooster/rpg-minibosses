@@ -165,7 +165,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     protected void mobTick() {
-        super.mobTick();
 
         if(this.getTarget() != null ) {
             if( this.getTarget().distanceTo(this) > 8){
@@ -276,6 +275,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
             feathertimer++;
             novatimer++;
         }
+        super.mobTick();
+
     }
 
 

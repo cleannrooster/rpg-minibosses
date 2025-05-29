@@ -13,8 +13,14 @@ import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.GlfwUtil;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.LookControl;
+import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -26,6 +32,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.*;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.loot.LootTable;
@@ -64,8 +71,9 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         super(entityType, world);
         this.experiencePoints = 100;
         this.lookControl = new MinibossLookControl(this);
-
+        this.moveControl = new MinibossMoveConrol(this);
     }
+
 
     protected MinibossEntity(EntityType<? extends PatrolEntity> entityType, World world, float spawnCoeff) {
         super(entityType, world);
@@ -96,9 +104,35 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         if(this.getDataTracker().get(NAME) != -1){
             return Text.translatable(this.NAMES.get(this.getDataTracker().get(NAME)));
         }
+
         return super.getName();
     }
+    @Environment(value = EnvType.CLIENT)
+    public static void setRotationFromVelocity(Entity entity) {
+        Vec3d vec3d = entity.getVelocity();
+        if (vec3d.lengthSquared() != 0.0 && entity instanceof PathAwareEntity pathAwareEntity) {
 
+            vec3d = pathAwareEntity.getVelocity().multiply(-1);
+            double d = vec3d.horizontalLength();
+            float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
+                yaw = Math.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
+
+            entity.setYaw(yaw);
+
+
+
+            while(entity.getYaw() - entity.prevYaw < -180.0F) {
+                entity.prevYaw -= 360.0F;
+            }
+
+            while(entity.getYaw() - entity.prevYaw >= 180.0F) {
+                entity.prevYaw += 360.0F;
+            }
+
+            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(MinecraftClient.getInstance().gameRenderer.getCamera().getLastTickDelta(), entity.prevYaw, entity.getYaw()));
+
+        }
+    }
     private boolean isLesser(){
         return this.getDataTracker().get(MinibossEntity.LESSER);
 
@@ -332,6 +366,9 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         super.tick();
         if(this.getWorld() instanceof ServerWorld){
             this.tickIndicator();
+        }
+        if(this.getWorld().isClient() && !(this instanceof TemplarEntity)){
+            setRotationFromVelocity(this);
         }
     }
 
@@ -596,7 +633,23 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     public UUID getAngryAt() {
         return this.angryAt;
     }
+    public class MinibossMoveConrol extends MoveControl{
 
+        public MinibossMoveConrol(MobEntity entity) {
+            super(entity);
+        }
+
+        @Override
+        public void tick() {
+
+            super.tick();
+
+        }
+        public boolean isStrafing(){
+            return this.state.equals(State.STRAFE);
+        }
+
+    }
 
 
     public class MinibossLookControl extends LookControl {
@@ -607,7 +660,6 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         protected double x;
         protected double y;
         protected double z;
-
         public MinibossLookControl(MobEntity entity) {
             super(entity);
             this.entity = entity;
