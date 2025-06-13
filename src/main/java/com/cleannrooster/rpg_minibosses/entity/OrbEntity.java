@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import static com.cleannrooster.spellblades.SpellbladesAndSuch.MOD_ID;
 
 
 public class OrbEntity extends Entity implements GeoEntity, Ownable {

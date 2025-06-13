@@ -81,6 +81,7 @@
   "item.rpg-minibosses.poster_mage": "Wanted Poster (Fire Mage)",
   "item.rpg-minibosses.poster_rogue": "Wanted Poster (Rogue)",
   "item.rpg-minibosses.poster_templar": "Wanted Poster (Templar)",
+  "item.rpg-minibosses.tabula_rasa": "Tabula Rasa",
 
   "stat.rpg-minibosses.benevolence": "Benevolence",
   "stat.rpg-minibosses.infamy": "Infamy",
@@ -90,8 +91,19 @@
   "block.rpg-minibosses.poster_mage": "Wanted Poster (Fire Mage)",
   "block.rpg-minibosses.poster_rogue": "Wanted Poster (Rogue)",
   "block.rpg-minibosses.poster_templar": "Wanted Poster (Templar)",
+  "item.rpg-minibosses.abberraths_hooves": "Abberath's Hooves",
+  "item.rpg-minibosses.whispering_ice": "Whispering Ice",
+
+  "spell.rpg-minibosses.abberrath_nova.name": "Abberath's Fury",
+  "spell.rpg-minibosses.abberrath_nova.description": "Release a Fire Nova every time you sprint 4 meters, dealing {damage} fire damage.",
+  "spell.rpg-minibosses.ice_storm.name": "Ice Storm",
+  "spell.rpg-minibosses.ice_storm.description": "Conjure an Ice Storm over a target location, lasting 4 seconds. Each projectile deals {damage} Frost Damage.",
+  "text.rpg-minibosses.abberraths_hooves": "The Goat King's stampede turned all into ash.",
+  "text.rpg-minibosses.whispering_ice": "Your darkest thoughts are the cracks through which The Nightmare crawls.",
 
   "itemGroup.rpg-minibosses.eggs": "ANARCHY",
+  "itemGroup.rpg-minibosses.armors": "ANARCHY Armors",
+
   "text.rpg-minibosses.petrified": "This long forgotten adventurer seems to be petrified...",
   "text.rpg-minibosses.petrified2": "Perhaps further investigation will do something...",
   "text.rpg-minibosses.spare": "Right-click to spare the adventurer",

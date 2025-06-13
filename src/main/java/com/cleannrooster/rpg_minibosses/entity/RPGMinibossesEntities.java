@@ -130,13 +130,15 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new JuggernautEntity(entityType,world,false,config.juggernautGreater), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(ReabsorptionInit.DEFIANCE,config.juggernautGreaterDefiance)
             .add(EntityAttributes.GENERIC_ARMOR,config.juggernautGreaterArmor)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautGreaterAttackDamage)
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.juggernautGreaterMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.juggernautGreaterMaxHealth)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
+
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.juggernautGreaterKnockbackResistance),
             0x09356B,
             0xebcb6a,false);
@@ -144,10 +146,11 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new ArtilleristEntity(entityType,world,false,config.mercenaryGreater), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.mercenaryGreaterMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryGreaterMaxHealth)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(ReabsorptionInit.DEFIANCE,config.mercenaryGreaterDefiance),
 
             0x09356B,
@@ -157,7 +160,7 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new TricksterEntity(entityType,world,false,config.rogueGreater),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,6)
             .add(EntityAttributes.GENERIC_ARMOR,config.rogueGreaterArmor)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueGreaterAttackDamage)
@@ -165,6 +168,8 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueGreaterMovementSpeed)
             .add(ReabsorptionInit.SPELLSUPPRESS,100+config.rogueGreaterSuppress)
             .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueGreaterEvasion)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
+
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueGreaterMaxHealth),
             0x09356B,
             0xebcb6a,false);
@@ -172,13 +177,15 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new JuggernautEntity(entityType,world,true,config.juggernautLesser), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(ReabsorptionInit.DEFIANCE,config.juggernautLesserDefiance)
             .add(EntityAttributes.GENERIC_ARMOR,config.juggernautLesserArmor)
+
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautLesserAttackDamage)
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.juggernautLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.juggernautLesserMaxHealth)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.juggernautLesserKnockbackResistance),
             0x09356B,
             0xebcb6a,true);
@@ -186,10 +193,12 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new ArtilleristEntity(entityType,world,true,config.mercenaryLesser), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,config.mercenaryLesserMaxHealth)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryLesserArmor)
+
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed* config.mercenaryLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryLesserMaxHealth)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(ReabsorptionInit.DEFIANCE,config.mercenaryLesserDefiance),
 
             0x09356B,
@@ -199,13 +208,15 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new TricksterEntity(entityType,world,true,config.rogueLesser),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueLesserAttackDamage)
             .add(EntityAttributes.GENERIC_ARMOR,config.rogueLesserArmor)
+
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueLesserMovementSpeed)
             .add(ReabsorptionInit.SPELLSUPPRESS,100F+config.rogueLesserSuppress)
             .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueLesserEvasion)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueLesserMaxHealth),
             0x09356B,
             0xebcb6a,true);
@@ -232,11 +243,13 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new ArchmageFireEntity(entityType,world,false,config.fireMageGreater),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
+
             .add(EntityAttributes.GENERIC_ARMOR,config.fireMageGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageGreaterMaxHealth)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(SpellSchools.FIRE.attributeEntry,config.fireMageFirePower),
             0x09356B,
             0xebcb6a,false);
@@ -244,12 +257,14 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new TemplarEntity(entityType,world,false,config.templarGreater),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarGreaterAttackDamage)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,1)
             .add(EntityAttributes.GENERIC_ARMOR,config.templarGreaterArmor)
+
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarGreaterMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,100F)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(SpellSchools.HEALING.attributeEntry,config.templarGreaterHealingPower),
             0x09356B,
             0xebcb6a,false);
@@ -257,24 +272,28 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new ArchmageFireEntity(entityType,world,true,config.fireMageLesser),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.fireMageLesserArmor)
+
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageLesserMaxHealth)
-            .add(SpellSchools.FIRE.attributeEntry,config.fireMageLesserFirePower),
+            .add(SpellSchools.FIRE.attributeEntry,config.fireMageLesserFirePower)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
             0xebcb6a,true);
     public static final Entry<TemplarEntity> M_TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("minor_templar",
             (entityType,world) -> new TemplarEntity(entityType,world,true,config.templarLesser),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,16)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarLesserAttackDamage)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,1)
             .add(EntityAttributes.GENERIC_ARMOR,config.templarLesserArmor)
+
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.templarLesserMaxHealth)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(SpellSchools.HEALING.attributeEntry,config.templarLesserHealingPower),
             0x09356B,
             0xebcb6a,true);

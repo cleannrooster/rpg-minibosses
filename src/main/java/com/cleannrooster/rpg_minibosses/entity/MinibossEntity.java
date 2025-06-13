@@ -15,13 +15,19 @@ import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.GlfwUtil;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.control.JumpControl;
 import net.minecraft.entity.ai.control.LookControl;
 import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.ai.pathing.PathNodeMaker;
+import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -44,17 +50,22 @@ import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.*;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldView;
 import net.spell_engine.api.effect.Synchronized;
@@ -66,6 +77,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static java.lang.Math.max;
+
 public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable {
     protected MinibossEntity(EntityType<? extends PatrolEntity> entityType, World world) {
         super(entityType, world);
@@ -75,10 +88,12 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     }
 
 
+
     protected MinibossEntity(EntityType<? extends PatrolEntity> entityType, World world, float spawnCoeff) {
         super(entityType, world);
         this.experiencePoints = 100;
         this.spawnCoeff = spawnCoeff;
+        this.moveControl = new MinibossMoveConrol(this);
 
         this.lookControl = new MinibossLookControl(this);
     }
@@ -115,22 +130,20 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             vec3d = pathAwareEntity.getVelocity().multiply(-1);
             double d = vec3d.horizontalLength();
             float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
-                yaw = Math.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
-
-            entity.setYaw(yaw);
+            yaw = MathHelper.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
 
 
 
-            while(entity.getYaw() - entity.prevYaw < -180.0F) {
-                entity.prevYaw -= 360.0F;
+            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw < -180.0F) {
+                ((PathAwareEntity) entity).prevBodyYaw -= 360.0F;
             }
 
-            while(entity.getYaw() - entity.prevYaw >= 180.0F) {
-                entity.prevYaw += 360.0F;
+            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw >= 180.0F) {
+                ((PathAwareEntity) entity).prevBodyYaw += 360.0F;
             }
 
-            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(MinecraftClient.getInstance().gameRenderer.getCamera().getLastTickDelta(), entity.prevYaw, entity.getYaw()));
-
+            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
+            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
         }
     }
     private boolean isLesser(){
@@ -156,6 +169,11 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     public List<Item> bonusList;
 
     public static final RawAnimation WALK = RawAnimation.begin().thenLoop("animation.unknown.walk");
+    public static final RawAnimation WALK_B = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards");
+    public static final RawAnimation WALK_B_2h = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards2_2h");
+    public static final RawAnimation WALK_B_T = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards_transition").thenPlay("animation.unknown.walk_backwards");
+    public static final RawAnimation WALK_B_2h_T = RawAnimation.begin().thenPlay("animation.unknown.walk_backwards2_2h2_transition").thenLoop("animation.unknown.walk_backwards2_2h");
+
     public static final RawAnimation WALK2H = RawAnimation.begin().thenLoop("animation.unknown.walk_2h");
 
     public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("animation.mob.idle");
@@ -338,6 +356,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
                 this.getDataTracker().set(NAME,this.getRandom().nextInt(4));
             }
         }
+
         if(this.age % 20 == 0 && this.getRandom().nextInt(19) == 0 && this.getWorld() instanceof ServerWorld serverWorld && serverWorld.getPlayers().stream().anyMatch(player -> this.distanceTo(player) < 6 && this.canSee(player))){
             for(MinibossEntity boss : this.getWorld().getEntitiesByType(TypeFilter.instanceOf(MinibossEntity.class),this.getBoundingBox().expand(8), Predicates.alwaysTrue())) {
                 if (!boss.notPetrified()) {
@@ -370,7 +389,10 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         if(this.getWorld().isClient() && !(this instanceof TemplarEntity)){
             setRotationFromVelocity(this);
         }
+
     }
+
+
 
     public boolean hasPatrolLeader = false;
 
@@ -388,6 +410,7 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     protected void mobTick() {
 
         super.mobTick();
+
     }
     @Override
     public void tickMovement() {
@@ -398,7 +421,9 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             }
             return;
         }
+
         super.tickMovement();
+
     }
     public boolean skipMainHand(){
         return false;
@@ -554,12 +579,30 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
     public boolean isTwoHand(){
         return false;
     }
+
+
+
+
+    @Override
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        this.playSound(SoundEvents.ITEM_ARMOR_EQUIP_CHAIN.value(),  0.05F, 0.8F);
+
+        super.playStepSound(pos, state);
+    }
+
     private PlayState predicate2(AnimationState<MinibossEntity> state) {
         if(state.isMoving()){
+
             if(this.isTwoHand()){
+                if( this.getVelocity().length() > 0.06F && this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0.2 ){
+                    return state.setAndContinue(WALK_B_2h_T);
+                }
                 return state.setAndContinue(WALK2H);
 
 
+            }
+            if(this.getVelocity().length() > 0.06F && this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0.2 ){
+                return state.setAndContinue(WALK_B_T);
             }
             return state.setAndContinue(WALK);
 
@@ -629,6 +672,10 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
         this.angryAt = angryAt;
     }
 
+    @Override
+    protected float getJumpVelocity(float strength) {
+        return 1.5F*super.getJumpVelocity(strength);
+    }
     @Nullable
     public UUID getAngryAt() {
         return this.angryAt;
@@ -639,18 +686,101 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             super(entity);
         }
 
-        @Override
         public void tick() {
+            float n;
+            if (this.state == MoveControl.State.STRAFE) {
+                float f = (float)this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                float g = (float)this.speed * f;
+                float h = this.forwardMovement;
+                float i = this.sidewaysMovement;
+                float j = MathHelper.sqrt(h * h + i * i);
+                if (j < 1.0F) {
+                    j = 1.0F;
+                }
 
-            super.tick();
+                j = g / j;
+                h *= j;
+                i *= j;
+                float k = MathHelper.sin(this.entity.getYaw() * 0.017453292F);
+                float l = MathHelper.cos(this.entity.getYaw() * 0.017453292F);
+                float m = h * l - i * k;
+                n = i * l + h * k;
+                if (!this.isPosWalkable(m, n) && this.state == MoveControl.State.JUMPING) {
+                    this.forwardMovement = 1.0F;
+                    this.sidewaysMovement = 0.0F;
+                }
+                BlockPos blockPos = this.entity.getBlockPos();
+                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
+                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
+                if (isOnGround() && (horizontalCollision || this.entity.getWorld().getBlockState(BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getMovement().subtract(0,this.entity.getMovement().getY(),0).multiply(20)))).isSolidBlock(this.entity.getWorld(),BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getMovement().subtract(0,this.entity.getMovement().getY(),0).multiply(20))))) ) {
+                    this.entity.getJumpControl().setActive();
+                    this.state = MoveControl.State.JUMPING;
+                }
+
+                this.entity.setMovementSpeed(g);
+                this.entity.setForwardSpeed(this.forwardMovement);
+                this.entity.setSidewaysSpeed(this.sidewaysMovement);
+                this.state = MoveControl.State.WAIT;
+            } else if (this.state == MoveControl.State.MOVE_TO) {
+                this.state = MoveControl.State.WAIT;
+                double d = this.targetX - this.entity.getX();
+                double e = this.targetZ - this.entity.getZ();
+                double o = this.targetY - this.entity.getY();
+                double p = d * d + o * o + e * e;
+                if (p < 2.500000277905201E-7) {
+                    this.entity.setForwardSpeed(0.0F);
+                    return;
+                }
+
+                n = (float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F;
+                this.entity.setYaw(this.wrapDegrees(this.entity.getYaw(), n, 90.0F));
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                BlockPos blockPos = this.entity.getBlockPos();
+                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
+                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
+                if (o > 0 && d * d + e * e < (double)Math.max(1.0F, this.entity.getWidth()) || !voxelShape.isEmpty() && this.entity.getY() < voxelShape.getMax(Direction.Axis.Y) + (double)blockPos.getY() && !blockState.isIn(BlockTags.DOORS) && !blockState.isIn(BlockTags.FENCES)) {
+                    this.entity.getJumpControl().setActive();
+                    this.state = MoveControl.State.JUMPING;
+                }
+            } else if (this.state == MoveControl.State.JUMPING) {
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+
+                if (this.entity.isOnGround()) {
+                    this.state = MoveControl.State.WAIT;
+                }
+            } else {
+                this.entity.setForwardSpeed(0.0F);
+            }
 
         }
+        private boolean isPosWalkable(float x, float z) {
+            EntityNavigation entityNavigation = this.entity.getNavigation();
+            if (entityNavigation != null) {
+                PathNodeMaker pathNodeMaker = entityNavigation.getNodeMaker();
+                if (pathNodeMaker != null && pathNodeMaker.getDefaultNodeType(this.entity, BlockPos.ofFloored(this.entity.getX() + (double)x, (double)this.entity.getBlockY(), this.entity.getZ() + (double)z)) != PathNodeType.WALKABLE) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void strafeTo(float forward, float sideways,float speed) {
+            super.strafeTo(forward, sideways);
+            this.speed = speed;
+
+        }
+
+        @Override
+        public double getSpeed() {
+            return super.getSpeed();
+        }
+
         public boolean isStrafing(){
             return this.state.equals(State.STRAFE);
         }
 
     }
-
 
     public class MinibossLookControl extends LookControl {
         protected final MobEntity entity;
@@ -685,32 +815,28 @@ public class MinibossEntity extends PatrolEntity implements GeoEntity, Angerable
             this.x = x;
             this.y = y;
             this.z = z;
-            this.maxYawChange = maxYawChange;
-            this.maxPitchChange = maxPitchChange;
-            this.lookAtTimer = 2;
+            this.maxYawChange = 30;
+            this.maxPitchChange = 30;
+            this.lookAtTimer = 8;
         }
 
         public void tick() {
-            if (this.shouldStayHorizontal()) {
-                this.entity.setPitch(0.0F);
-            }
-
-
             if (this.lookAtTimer > 0) {
-                --this.lookAtTimer;
+
                 this.getTargetYaw().ifPresent((yaw) -> {
-                    this.entity.headYaw = this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange);
+                    this.entity.setHeadYaw(this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange));
+                    this.entity.prevHeadYaw = this.entity.headYaw;
                 });
                 this.getTargetPitch().ifPresent((pitch) -> {
                     this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
-                });
-            } else {
+                    this.entity.prevPitch = this.entity.getPitch();
+
+                });  } else {
                 this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
             }
 
             this.clampHeadYaw();
-        }
-
+    }
         protected void clampHeadYaw() {
             if (!this.entity.getNavigation().isIdle()) {
                 this.entity.headYaw = MathHelper.clampAngle(this.entity.headYaw, this.entity.bodyYaw, (float)this.entity.getMaxHeadRotation());

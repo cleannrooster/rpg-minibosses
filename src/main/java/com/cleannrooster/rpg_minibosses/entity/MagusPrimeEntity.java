@@ -1,6 +1,5 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
-import com.cleannrooster.hexblade.entity.Magus;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.google.common.base.Predicates;
@@ -14,6 +13,8 @@ import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
 import mod.azure.azurelib.sblforked.api.core.behaviour.custom.look.LookAtAttackTarget;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SnowBlock;
@@ -21,8 +22,14 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.ai.control.JumpControl;
 import net.minecraft.entity.ai.control.LookControl;
+import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.ai.pathing.PathNodeMaker;
+import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.entity.damage.DamageSource;
@@ -34,10 +41,12 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.*;
+import net.minecraft.entity.passive.RabbitEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -51,6 +60,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -88,12 +98,21 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
         super(entityType, world);
         this.bossBar = (ServerBossBar)(new ServerBossBar(this.getDisplayName(), BossBar.Color.PURPLE, BossBar.Style.PROGRESS)).setDarkenSky(true);
         this.experiencePoints = 500;
+        this.moveControl = new MinibossMoveConrol(this);
 
         this.lookControl = new MinibossLookControl(this);
     }
+
+
+
+
+
+
     public static final TrackedData<Boolean> CASTINGBOOL;
 
     public static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.magus.idle");
+    public static final RawAnimation IDLE_M = RawAnimation.begin().thenLoop("animation.magus.walk_1");
+
     public static final RawAnimation IDLE2 = RawAnimation.begin().thenPlay("animation.magus.idle2");
 
     public static final RawAnimation GLOVE = RawAnimation.begin().thenPlay("animation.magus.glovepull");
@@ -101,6 +120,9 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
     public static final RawAnimation CAST_QUICK = RawAnimation.begin().thenPlay("animation.magus.cast.quick");
 
     public static final RawAnimation CASTING = RawAnimation.begin().thenPlay("animation.magus.casting");
+    public static final RawAnimation CAST_QUICK_M = RawAnimation.begin().thenPlay("animation.magus.cast.quick2");
+
+    public static final RawAnimation CASTING_M = RawAnimation.begin().thenPlay("animation.magus.casting2");
     public static final RawAnimation INTRO = RawAnimation.begin().thenPlay("animation.magus.intro");
 
     public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
@@ -130,22 +152,43 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
                 new AnimationController<>(this, "dash", event -> PlayState.CONTINUE)
                         .triggerableAnim("dash", DASH));
         animationData.add(
+                new AnimationController<>(this, "castquickm", event -> PlayState.CONTINUE)
+                        .triggerableAnim("castquickm", CAST_QUICK));
+        animationData.add(
                 new AnimationController<>(this, "castquick", event -> PlayState.CONTINUE)
-                        .triggerableAnim("castquick", CAST_QUICK));
+                        .triggerableAnim("castquick", CAST_QUICK_M));
         animationData.add(
                 new AnimationController<>(this, "casting", event -> PlayState.CONTINUE)
                         .triggerableAnim("casting", CASTING));
+        animationData.add(
+                new AnimationController<>(this, "castingm", event -> PlayState.CONTINUE)
+                        .triggerableAnim("castingm", CASTING_M));
         animationData.add(
                 new AnimationController<>(this, "intro", event -> PlayState.CONTINUE)
                         .triggerableAnim("intro", INTRO));
     }
 
     private PlayState predicate2(AnimationState<MagusPrimeEntity> state) {
-
+        if(state.isMoving()){
+            return state.setAndContinue(IDLE_M);
+        }
         return state.setAndContinue(IDLE);
 
     }
+    private PlayState predicate3(AnimationState<MagusPrimeEntity> state) {
+        if(state.isMoving()){
+            state.setAndContinue(CASTING_M);
+        }
+        return state.setAndContinue(CASTING);
 
+    }
+    private PlayState predicate4(AnimationState<MagusPrimeEntity> state) {
+        if(state.isMoving()){
+            state.setAndContinue(CAST_QUICK_M);
+        }
+        return state.setAndContinue(CAST_QUICK);
+
+    }
     @Override
     public int getSafeFallDistance() {
         return 100;
@@ -290,6 +333,7 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
                 }
             }
         }
+
         if(this.firstUpdate) {
             if (!this.getWorld().isClient()) {
                 (this).triggerAnim("intro", "intro");
@@ -324,7 +368,13 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
         super.tick();
         if(!this.getWorld().isClient){
             tickIndicator();
+
         }
+        if(this.getWorld().isClient){
+            setRotationFromVelocity(this);
+
+        }
+
     }
 
     @Override
@@ -336,7 +386,9 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
             }
             return;
         }
+
         super.tickMovement();
+
     }
 
 
@@ -424,7 +476,13 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
 
 
     }*/
-    public void performSpell(String string,String string2){
+
+    @Override
+    protected float getJumpVelocity(float strength) {
+        return 1.5F*super.getJumpVelocity(strength);
+    }
+
+    public void performSpell(String string, String string2){
         Spell spell = null;
         if(string.equals("short")) {
             if(string2.equals("projectile")) {
@@ -561,7 +619,216 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
     public static ParticleBatch SHIELDPARTICLES_BLUE;
     public static ParticleBatch SHIELDPARTICLES_RED;
 
+    public class MinibossMoveConrol extends MoveControl {
 
+        public MinibossMoveConrol(MobEntity entity) {
+            super(entity);
+        }
+
+        public void tick() {
+            float n;
+            if (this.state == MoveControl.State.STRAFE) {
+                float f = (float)this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                float g = (float)this.speed * f;
+                float h = this.forwardMovement;
+                float i = this.sidewaysMovement;
+                float j = MathHelper.sqrt(h * h + i * i);
+                if (j < 1.0F) {
+                    j = 1.0F;
+                }
+
+                j = g / j;
+                h *= j;
+                i *= j;
+                float k = MathHelper.sin(this.entity.getYaw() * 0.017453292F);
+                float l = MathHelper.cos(this.entity.getYaw() * 0.017453292F);
+                float m = h * l - i * k;
+                n = i * l + h * k;
+                if (!this.isPosWalkable(m, n) && this.state == MoveControl.State.JUMPING) {
+                    this.forwardMovement = 1.0F;
+                    this.sidewaysMovement = 0.0F;
+                }
+
+                this.entity.setMovementSpeed(g);
+                this.entity.setForwardSpeed(this.forwardMovement);
+                this.entity.setSidewaysSpeed(this.sidewaysMovement);
+                BlockPos blockPos = this.entity.getBlockPos();
+                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
+                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
+
+                this.state = MoveControl.State.WAIT;
+
+                if (isOnGround() && (horizontalCollision || this.entity.getWorld().getBlockState(BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getMovement().subtract(0,this.entity.getMovement().getY(),0).multiply(20)))).isSolidBlock(this.entity.getWorld(),BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getMovement().subtract(0,this.entity.getMovement().getY(),0).multiply(20))))) ) {
+                    this.entity.getJumpControl().setActive();
+                    this.state = MoveControl.State.JUMPING;
+                }
+            } else if (this.state == MoveControl.State.MOVE_TO) {
+                this.state = MoveControl.State.WAIT;
+                double d = this.targetX - this.entity.getX();
+                double e = this.targetZ - this.entity.getZ();
+                double o = this.targetY - this.entity.getY();
+                double p = d * d + o * o + e * e;
+                if (p < 2.500000277905201E-7) {
+                    this.entity.setForwardSpeed(0.0F);
+                    return;
+                }
+
+                n = (float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F;
+                this.entity.setYaw(this.wrapDegrees(this.entity.getYaw(), n, 90.0F));
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                BlockPos blockPos = this.entity.getBlockPos();
+                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
+                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
+                if (o > 0 && d * d + e * e < (double)Math.max(1.0F, this.entity.getWidth()) || !voxelShape.isEmpty() && this.entity.getY() < voxelShape.getMax(Direction.Axis.Y) + (double)blockPos.getY() && !blockState.isIn(BlockTags.DOORS) && !blockState.isIn(BlockTags.FENCES)) {
+                    this.entity.getJumpControl().setActive();
+                    this.state = MoveControl.State.JUMPING;
+                }
+            } else if (this.state == MoveControl.State.JUMPING) {
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                if (this.entity.isOnGround()) {
+                    this.state = MoveControl.State.WAIT;
+                }
+            } else {
+                this.entity.setForwardSpeed(0.0F);
+            }
+
+        }
+        private boolean isPosWalkable(float x, float z) {
+            EntityNavigation entityNavigation = this.entity.getNavigation();
+            if (entityNavigation != null) {
+                PathNodeMaker pathNodeMaker = entityNavigation.getNodeMaker();
+                if (pathNodeMaker != null && pathNodeMaker.getDefaultNodeType(this.entity, BlockPos.ofFloored(this.entity.getX() + (double)x, (double)this.entity.getBlockY(), this.entity.getZ() + (double)z)) != PathNodeType.WALKABLE) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void strafeTo(float forward, float sideways, float speed) {
+            super.strafeTo(forward, sideways);
+            this.speed = speed;
+
+        }
+
+        @Override
+        public double getSpeed() {
+            return super.getSpeed();
+        }
+
+        public boolean isStrafing(){
+            return this.state.equals(State.STRAFE);
+        }
+
+    }
+
+    public class MinibossLookControl extends LookControl {
+        protected final MobEntity entity;
+        protected float maxYawChange;
+        protected float maxPitchChange;
+        protected int lookAtTimer;
+        protected double x;
+        protected double y;
+        protected double z;
+        public MinibossLookControl(MobEntity entity) {
+            super(entity);
+            this.entity = entity;
+        }
+
+        public void lookAt(Vec3d direction) {
+            this.lookAt(direction.x, direction.y, direction.z);
+        }
+
+        public void lookAt(Entity entity) {
+            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ());
+        }
+
+        public void lookAt(Entity entity, float maxYawChange, float maxPitchChange) {
+            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ(), maxYawChange, maxPitchChange);
+        }
+
+        public void lookAt(double x, double y, double z) {
+            this.lookAt(x, y, z, (float)this.entity.getMaxLookYawChange(), (float)this.entity.getMaxLookPitchChange());
+        }
+
+        public void lookAt(double x, double y, double z, float maxYawChange, float maxPitchChange) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.maxYawChange = 30;
+            this.maxPitchChange = 30;
+            this.lookAtTimer = 8;
+        }
+
+        public void tick() {
+            if (this.lookAtTimer > 0) {
+
+                this.getTargetYaw().ifPresent((yaw) -> {
+                    this.entity.setHeadYaw(this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange));
+                    this.entity.setYaw((this.changeAngle(this.entity.getYaw(),yaw,this.maxYawChange)));
+                    this.entity.prevHeadYaw = this.entity.headYaw;
+                });
+                this.getTargetPitch().ifPresent((pitch) -> {
+                    this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
+                    this.entity.prevPitch = this.entity.getPitch();
+
+                });  } else {
+                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
+            }
+
+            this.clampHeadYaw();
+        }
+        protected void clampHeadYaw() {
+            if (!this.entity.getNavigation().isIdle()) {
+                this.entity.headYaw = MathHelper.clampAngle(this.entity.headYaw, this.entity.bodyYaw, (float)this.entity.getMaxHeadRotation());
+            }
+
+        }
+
+        protected boolean shouldStayHorizontal() {
+            return false;
+        }
+
+        public boolean isLookingAtSpecificPosition() {
+            return this.lookAtTimer > 0;
+        }
+
+        public double getLookX() {
+            return this.x;
+        }
+
+        public double getLookY() {
+            return this.y;
+        }
+
+        public double getLookZ() {
+            return this.z;
+        }
+
+        protected Optional<Float> getTargetPitch() {
+            double d = this.x - this.entity.getX();
+            double e = this.y - this.entity.getEyeY();
+            double f = this.z - this.entity.getZ();
+            double g = Math.sqrt(d * d + f * f);
+            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(g) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(-(MathHelper.atan2(e, g) * 57.2957763671875)));
+        }
+
+        protected Optional<Float> getTargetYaw() {
+            double d = this.x - this.entity.getX();
+            double e = this.z - this.entity.getZ();
+            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(d) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F);
+        }
+
+        protected float changeAngle(float from, float to, float max) {
+            float f = MathHelper.subtractAngles(from, to);
+            float g = MathHelper.clamp(f, -max, max);
+            return from + g;
+        }
+
+        private static double getLookingHeightFor(Entity entity) {
+            return entity instanceof LivingEntity ? entity.getEyeY() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0;
+        }
+    }
     @Override
     protected void mobTick() {
 
@@ -569,8 +836,9 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
             return;
         }
         if(this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget());
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
+            if(this.distanceTo(this.getTarget())< 8){
+                ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
+            }
         }
         if(!this.getWorld().isClient() && this.getHealth()/this.getMaxHealth() < 0.25F && darkmatter > 400 && !this.performing && this.getTarget() != null ) {
             this.resetIndicator();
@@ -621,7 +889,13 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if(this.getTarget() != null) {
-                    (this).triggerAnim("casting", "casting");
+                    if(this.moveControl.isMoving()){
+                        (this).triggerAnim("castingm","castingm");
+
+                    }
+                    else {
+                        (this).triggerAnim("casting", "casting");
+                    }
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
@@ -644,7 +918,13 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
             this.performing = true;
         }
         if(!this.getWorld().isClient() && quickcast_timer > 80 && !this.performing && this.getTarget() != null ) {
-            (this).triggerAnim("castquick","castquick");
+            if(this.moveControl.isMoving()){
+                (this).triggerAnim("castquickm","castquickm");
+
+            }
+            else {
+                (this).triggerAnim("castquick", "castquick");
+            }
             this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON);
 
             String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
@@ -662,28 +942,8 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
 
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && this.getRandom().nextFloat() < 0.01F && this.getTarget() != null && !this.performing){
-            (this).triggerAnim("idle2","idle2");
 
-            ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-                        this.performing = false;
 
-                    }
-            );
-            this.performing = true;
-
-        }
-        if(!this.getWorld().isClient() && this.getRandom().nextFloat() < 0.01F &&  this.getTarget() != null && !this.performing){
-            (this).triggerAnim("glove","glove");
-
-            ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-                        this.performing = false;
-
-                    }
-            );
-            this.performing = true;
-
-        }
         if(!this.getWorld().isClient() && jumptimer > 200 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
             (this).triggerAnim("dash","dash");
 
@@ -738,11 +998,37 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
             darkmatter++;
 
         }
-        super.mobTick();
         if(this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget());
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
+            this.getLookControl().lookAt(this.getTarget(),360,360);
+        }
 
+        super.mobTick();
+
+    }
+
+
+    @Environment(value = EnvType.CLIENT)
+    public static void setRotationFromVelocity(Entity entity) {
+        Vec3d vec3d = entity.getVelocity();
+        if (vec3d.lengthSquared() != 0.0 && entity instanceof PathAwareEntity pathAwareEntity) {
+
+            vec3d = pathAwareEntity.getVelocity().multiply(-1);
+            double d = vec3d.horizontalLength();
+            float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
+            yaw = MathHelper.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
+
+
+
+            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw < -180.0F) {
+                ((PathAwareEntity) entity).prevBodyYaw -= 360.0F;
+            }
+
+            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw >= 180.0F) {
+                ((PathAwareEntity) entity).prevBodyYaw += 360.0F;
+            }
+
+            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
+            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
         }
     }
     private boolean performing;
@@ -819,116 +1105,6 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return instanceCache;
-    }
-    public class MinibossLookControl extends LookControl {
-        protected final MobEntity entity;
-        protected float maxYawChange;
-        protected float maxPitchChange;
-        protected int lookAtTimer;
-        protected double x;
-        protected double y;
-        protected double z;
-
-        public MinibossLookControl(MobEntity entity) {
-            super(entity);
-            this.entity = entity;
-        }
-
-        public void lookAt(Vec3d direction) {
-            this.lookAt(direction.x, direction.y, direction.z);
-        }
-
-        public void lookAt(Entity entity) {
-            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ());
-        }
-
-        public void lookAt(Entity entity, float maxYawChange, float maxPitchChange) {
-            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ(), maxYawChange, maxPitchChange);
-        }
-
-        public void lookAt(double x, double y, double z) {
-            this.lookAt(x, y, z, (float)this.entity.getMaxLookYawChange(), (float)this.entity.getMaxLookPitchChange());
-        }
-
-        public void lookAt(double x, double y, double z, float maxYawChange, float maxPitchChange) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.maxYawChange = maxYawChange;
-            this.maxPitchChange = maxPitchChange;
-            this.lookAtTimer = 2;
-        }
-
-        public void tick() {
-            if (this.shouldStayHorizontal()) {
-                this.entity.setPitch(0.0F);
-            }
-
-            if (this.lookAtTimer > 0) {
-                --this.lookAtTimer;
-                this.getTargetYaw().ifPresent((yaw) -> {
-                    this.entity.headYaw = this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange);
-                });
-                this.getTargetPitch().ifPresent((pitch) -> {
-                    this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
-                });
-            } else {
-                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
-            }
-
-            this.clampHeadYaw();
-        }
-
-        protected void clampHeadYaw() {
-            if (!this.entity.getNavigation().isIdle()) {
-                this.entity.headYaw = MathHelper.clampAngle(this.entity.headYaw, this.entity.bodyYaw, (float)this.entity.getMaxHeadRotation());
-            }
-
-        }
-
-        protected boolean shouldStayHorizontal() {
-            return false;
-        }
-
-        public boolean isLookingAtSpecificPosition() {
-            return this.lookAtTimer > 0;
-        }
-
-        public double getLookX() {
-            return this.x;
-        }
-
-        public double getLookY() {
-            return this.y;
-        }
-
-        public double getLookZ() {
-            return this.z;
-        }
-
-        protected Optional<Float> getTargetPitch() {
-            double d = this.x - this.entity.getX();
-            double e = this.y - this.entity.getEyeY();
-            double f = this.z - this.entity.getZ();
-            double g = Math.sqrt(d * d + f * f);
-            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(g) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(-(MathHelper.atan2(e, g) * 57.2957763671875)));
-        }
-
-        protected Optional<Float> getTargetYaw() {
-            double d = this.x - this.entity.getX();
-            double e = this.z - this.entity.getZ();
-            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(d) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F);
-        }
-
-        protected float changeAngle(float from, float to, float max) {
-            float f = MathHelper.subtractAngles(from, to);
-            float g = MathHelper.clamp(f, -max, max);
-            return from + g;
-        }
-
-        private static double getLookingHeightFor(Entity entity) {
-            return entity instanceof LivingEntity ? entity.getEyeY() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0;
-        }
     }
 
 }

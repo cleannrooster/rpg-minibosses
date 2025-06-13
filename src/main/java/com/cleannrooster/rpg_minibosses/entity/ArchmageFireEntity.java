@@ -174,8 +174,9 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 this.getMoveControl().strafeTo(-1,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -1 : 1);
 
             }
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
-
+            if (this.getTarget() != null) {
+                this.getLookControl().lookAt(this.getTarget(),360,360);
+            }
         }
         if(!this.getWorld().isClient() && jumptimer > 160 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
             if(this.getTarget() != null) {

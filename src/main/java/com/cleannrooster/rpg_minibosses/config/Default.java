@@ -1,14 +1,20 @@
 package com.cleannrooster.rpg_minibosses.config;
 
+import com.cleannrooster.rpg_minibosses.item.Armors;
 import net.fabric_extras.structure_pool.api.StructurePoolConfig;
+import net.spell_engine.api.config.ConfigFile;
+import net.spell_engine.api.item.armor.Armor;
+import net.spell_engine.api.item.weapon.Weapon;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Default {
+    public Default() {
+    }
+
+    public static final ConfigFile.Equipment itemConfig = new ConfigFile.Equipment();
+
     public final static StructurePoolConfig villageConfig;
     static {
 
@@ -27,6 +33,17 @@ public class Default {
                         new StructurePoolConfig.Entry.Structure("rpg-minibosses:village/generic/wanted", 10, limit))
                 ))
         ));
+        Iterator var0 = Armors.entries.iterator();
+
+        while(var0.hasNext()) {
+            Weapon.Entry weapon = (Weapon.Entry)var0.next();
+            itemConfig.weapons.put(weapon.name(), weapon.defaults());
+        }
+
+
+
+
+        String var3 = "weapons";
     }
 
     @SafeVarargs

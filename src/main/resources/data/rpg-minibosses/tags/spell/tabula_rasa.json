@@ -1,0 +1,17 @@
+{
+  "values": [
+    "wizards:arcane_blast",
+    "wizards:arcane_missile",
+    "wizards:arcane_beam",
+    "wizards:arcane_blink",
+    "wizards:fire_blast",
+    "wizards:fire_breath",
+    "wizards:fire_meteor",
+    "wizards:fire_scorch",
+    "wizards:fire_wall",
+    "wizards:frost_blizzard",
+    "wizards:frost_nova",
+    "wizards:frostbolt",
+    "wizards:frost_shield"
+  ]
+}

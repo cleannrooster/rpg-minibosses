@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity.AI;
 
 import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
+import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ChargedProjectilesComponent;
@@ -94,6 +95,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     public void tick() {
         LivingEntity livingEntity = this.actor.getTarget();
         if (livingEntity != null) {
+
             boolean bl = this.actor.getVisibilityCache().canSee(livingEntity);
             boolean bl2 = this.seeingTargetTicker > 0;
             if (bl != bl2) {
@@ -115,7 +117,8 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
             } else {
                 this.actor.getNavigation().stop();
                 if(livingEntity.distanceTo(this.actor) < 8 && this.stage != Stage.CHARGING){
-                    this.actor.getMoveControl().strafeTo(-1,livingEntity.getPos().subtract(this.actor.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.actor.getRotationVector()) > 0 ? -1 : 1);
+                    ((MinibossEntity.MinibossMoveConrol)this.actor.getMoveControl()).strafeTo(-2.0F,livingEntity.getPos().subtract(this.actor.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.actor.getRotationVector()) > 0 ? -1 : 1,0.5F);
+
                 }
 
             }
@@ -176,9 +179,12 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
 
             }
 
-            if (CrossbowItem.isCharged(itemStack) && bl &&  !this.actor.getDataTracker().get(ArtilleristEntity.CHARGING) &&  (this.actor.age % 2 == 0 && unload || this.actor.age % 20 == 0)) {
+            if (CrossbowItem.isCharged(itemStack) && bl &&  !this.actor.getDataTracker().get(ArtilleristEntity.CHARGING) &&  ((this.actor.age % 40 == 0 && livingEntity.distanceTo(this.actor) < 8)  || ((this.actor.age % 2 == 0 && unload) ||
+                    (livingEntity.distanceTo(this.actor) >= 8 &&this.actor.age % 20 == 0)))) {
+                this.actor.lookAtEntity(livingEntity,30,30);
                 shoot(livingEntity, 1.6F);
             }
+
         }
     }
     private  void shoot(LivingEntity entity, float speed) {
@@ -206,7 +212,12 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
 
                 uses = 0;
 
-                teleportTo(entity);
+                for(int i = 1; i <= 6; i++) {
+                    ((WorldScheduler) this.actor.getWorld()).schedule(4*i, () -> {
+                        teleportTo(entity);
+
+                    });
+                }
             }
             else {
                 loadProjectiles(this.actor, itemStack);
@@ -220,7 +231,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
         vec3d = vec3d.normalize();
         double d = 16.0;
         double e = this.actor.getX() + (this.actor.getRandom().nextDouble() - 0.5) * 8.0 - vec3d.x * 16.0;
-        double f = this.actor.getY() + (double)(this.actor.getRandom().nextInt(16) - 8) - vec3d.y * 16.0;
+        double f = this.actor.getY() + (double)(this.actor.getRandom().nextInt(16) - 8) + vec3d.y * 8.0;
         double g = this.actor.getZ() + (this.actor.getRandom().nextDouble() - 0.5) * 8.0 - vec3d.z * 16.0;
         return this.teleportTo(e, f, g);
     }
@@ -236,16 +247,23 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
         boolean bl2 = blockState.getFluidState().isIn(FluidTags.WATER);
         if (bl && !bl2) {
             Vec3d vec3d = this.actor.getPos();
-            boolean bl3 = this.actor.teleport(x, y, z, true);
-            if (bl3) {
-                this.actor.getWorld().emitGameEvent(GameEvent.TELEPORT, vec3d, GameEvent.Emitter.of(this.actor));
-                if (!this.actor.isSilent()) {
-                    this.actor.getWorld().playSound((PlayerEntity)null, this.actor.prevX, this.actor.prevY, this.actor.prevZ, SoundEvents.ENTITY_ENDERMAN_TELEPORT, this.actor.getSoundCategory(), 1.0F, 1.0F);
-                    this.actor.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+            if(y > vec3d.getY()) {
+                boolean bl3 = this.actor.teleport(x, y, z, true);
+                if (bl3) {
+                    this.actor.getWorld().emitGameEvent(GameEvent.TELEPORT, vec3d, GameEvent.Emitter.of(this.actor));
+                    if (!this.actor.isSilent()) {
+                        this.actor.getWorld().playSound((PlayerEntity) null, this.actor.prevX, this.actor.prevY, this.actor.prevZ, SoundEvents.ENTITY_ENDERMAN_TELEPORT, this.actor.getSoundCategory(), 1.0F, 1.0F);
+                        this.actor.playSound(SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0F, 1.0F);
+                    }
+
                 }
+
+                return bl3;
+            }
+            else{
+                return false;
             }
 
-            return bl3;
         } else {
             return false;
         }

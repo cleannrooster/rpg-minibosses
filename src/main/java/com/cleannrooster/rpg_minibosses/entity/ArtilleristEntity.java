@@ -105,8 +105,12 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
     }
     public static final RawAnimation IDLESHOOT = RawAnimation.begin().thenLoop("animation.mob.idleshoot");
+    public static final RawAnimation SHOOTWALK_BACKWARDS = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards_shoot");
+    public static final RawAnimation SHOOTWALK_BACKWARDST = RawAnimation.begin().thenPlay("animation.unknown.walk_backwards_shoot_transition").thenLoop("animation.unknown.walk_backwards_shoot");
 
     public static final RawAnimation SHOOTWALK = RawAnimation.begin().thenLoop("animation.mob.shootwalk");
+    public static final RawAnimation SHOOTWALKT = RawAnimation.begin().thenPlay("animation.mob.shootwalk2").thenLoop("animation.mob.shootwalk");
+
     public static final RawAnimation RELOAD = RawAnimation.begin().thenPlay("animation.unknown.merc.reload");
     public static final RawAnimation RELOADLONGER = RawAnimation.begin().thenPlay("animation.unknown.merc.reloadlonger");
 
@@ -121,6 +125,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
         super.initCustomGoals();
     }
+
     @Override
     public boolean isTwoHand() {
         return false;
@@ -156,15 +161,17 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     public void tick() {
 
             super.tick();
+        if(this.getTarget() != null) {
+            this.getLookControl().lookAt(this.getTarget(), 360, 390);
+
+        }
     }
 
     @Override
     protected void mobTick() {
 
-        if(this.getTarget() != null) {
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
-        }
         super.mobTick();
+
 
     }
 
@@ -180,8 +187,10 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
         if(CrossbowItem.isCharged(this.getMainHandStack())) {
             if (state.isMoving()) {
-
-                return state.setAndContinue(SHOOTWALK);
+                if(this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0.2 ){
+                    return state.setAndContinue(SHOOTWALK_BACKWARDST);
+                }
+                return state.setAndContinue(SHOOTWALKT);
 
             } else {
                 return state.setAndContinue(IDLESHOOT);
@@ -191,6 +200,9 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
 
         if (state.isMoving()) {
+            if(this.getVelocity().length() > 0.06F && this.getVelocity().dotProduct(this.getRotationVector()) < -0.2  ){
+                return state.setAndContinue(WALK_B_T);
+            }
             return state.setAndContinue(WALK);
         }
         else{

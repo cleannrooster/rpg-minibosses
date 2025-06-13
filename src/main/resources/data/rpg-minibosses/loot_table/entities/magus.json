@@ -6,8 +6,17 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "minecraft:ominous_trial_key"
+          "name": "rpg-minibosses:tabula_rasa"
 
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:abberraths_hooves"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:whispering_ice"
         }
       ]
     }

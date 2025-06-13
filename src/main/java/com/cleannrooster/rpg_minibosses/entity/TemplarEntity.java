@@ -212,8 +212,8 @@ public class TemplarEntity extends MinibossEntity{
 
 
 
-        if(this.getTarget() != null) {
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
+        if (this.getTarget() != null) {
+            this.getLookControl().lookAt(this.getTarget(),360,360);
         }
         if(!this.getWorld().isClient()) {
             stafftimer++;

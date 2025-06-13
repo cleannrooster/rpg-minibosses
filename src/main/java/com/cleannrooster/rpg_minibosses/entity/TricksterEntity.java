@@ -161,7 +161,9 @@ public class TricksterEntity extends MinibossEntity{
 
     @Override
     protected void mobTick() {
-
+        if (this.getTarget() != null) {
+            this.getLookControl().lookAt(this.getTarget(),360,360);
+        }
         if(!this.getWorld().isClient() && rolltimer > 80 &&  this.getTarget() != null && this.isAttacking()) {
             ((TricksterEntity)this).triggerAnim("roll","roll");
                 this.addVelocity(this.getRotationVector().multiply(2F));
@@ -187,7 +189,7 @@ public class TricksterEntity extends MinibossEntity{
                     this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 0.2F);
                 }
                 else{
-                    this.getMoveControl().strafeTo(-1,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F);
+                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2.5F, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.75F);
 
                 }
                 if(!this.getWorld().isClient() && throwtimer > 80 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {

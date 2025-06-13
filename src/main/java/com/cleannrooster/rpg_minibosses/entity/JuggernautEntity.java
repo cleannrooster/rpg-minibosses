@@ -120,7 +120,7 @@ public class JuggernautEntity extends MinibossEntity{
 
     }
     public static final RawAnimation LEAPSLAM = RawAnimation.begin().thenPlay("animation.mob.jugg.leapslam");
-    public static final RawAnimation TWOHANDWAVE = RawAnimation.begin().then("animation.mob.wizard.staffwave", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation TWOHANDWAVE = RawAnimation.begin().then("animation.mob.wizard.staffwave2", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation TWOHANDSPIN = RawAnimation.begin().thenPlayXTimes("animation.mob.spin_2h", 4);
     public static final RawAnimation WINDDOWN = RawAnimation.begin().thenPlay("animation.mob.spinwinddown");
 
@@ -164,15 +164,15 @@ public class JuggernautEntity extends MinibossEntity{
     @Override
     protected void mobTick() {
 
-        if(this.getTarget() != null) {
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
+        if (this.getTarget() != null) {
+            this.getLookControl().lookAt(this.getTarget(),360,360);
         }
         if(defensetimer > 0) {
             if(this.getTarget()  != null ) {
                 if (this.getTarget().distanceTo(this) > 4) {
                     this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
                 } else {
-                    this.getMoveControl().strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F);
+                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
 
                 }
                 if (!this.getWorld().isClient() && slamtimer > 140 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {

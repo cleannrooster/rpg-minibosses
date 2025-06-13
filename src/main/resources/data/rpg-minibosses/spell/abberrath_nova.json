@@ -1,0 +1,115 @@
+{
+  "school": "spell_power:fire",
+  "range": 6.0,
+  "tier": 4,
+  "learn": {},
+  "type": "PASSIVE",
+
+  "passive": {},
+
+  "release": {
+    "particles": [
+      {
+        "particle_id": "spell_engine:flame",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 130.0,
+        "min_speed": 0.2,
+        "max_speed": 0.6
+      },
+      {
+        "particle_id": "minecraft:smoke",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 35.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:flame_medium_b",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 65.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      },
+      {
+        "particle_id": "spell_engine:flame_medium_a",
+        "shape": "CIRCLE",
+        "origin": "CENTER",
+        "count": 65.0,
+        "min_speed": 0.5,
+        "max_speed": 0.9
+      }
+    ],
+    "sound": {
+      "id": "spell_engine:generic_fire_release"
+    }
+  },
+  "target": {
+    "type": "AREA",
+    "area": {}
+  },
+  "impacts": [
+    {
+      "school": "spell_power:fire",
+      "target_modifiers": [
+        {
+          "conditions": [
+            {
+              "entity_type": "#minecraft:freeze_immune_entity_types"
+            }
+          ],
+          "modifier": {
+            "critical_chance_bonus": 0.3
+          }
+        }
+      ],
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 0.6
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:flame_spark",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
+        },
+        {
+          "particle_id": "minecraft:smoke",
+          "origin": "CENTER",
+          "shape": "CIRCLE",
+          "rotation": "LOOK",
+          "count": 20.0,
+          "min_speed": 0.2,
+          "max_speed": 0.7,
+          "angle": 360.0
+        }
+      ],
+      "sound": {
+        "id": "minecraft:entity.player.hurt_on_fire"
+      }
+    },
+    {
+      "action": {
+        "type": "FIRE",
+        "fire": {
+          "duration": 3
+        }
+      }
+    }
+  ],
+  "cost": {
+    "durability": 0,
+    "cooldown": {
+      "duration": 0.1
+    }
+  }
+}

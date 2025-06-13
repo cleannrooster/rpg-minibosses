@@ -6,6 +6,7 @@ import com.cleannrooster.rpg_minibosses.config.Default;
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
 import com.cleannrooster.rpg_minibosses.entity.OrbEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
+import com.cleannrooster.rpg_minibosses.item.Armors;
 import com.cleannrooster.rpg_minibosses.item.SummonHorn;
 import com.cleannrooster.rpg_minibosses.patrols.Patrol;
 import net.fabric_extras.structure_pool.api.StructurePoolAPI;
@@ -29,6 +30,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
+import net.spell_engine.api.config.ConfigFile;
 import net.spell_engine.api.render.CustomModels;
 import net.tinyconfig.ConfigManager;
 import org.slf4j.Logger;
@@ -62,7 +64,12 @@ public class RPGMinibosses implements ModInitializer {
 			.setDirectory(MOD_ID)
 			.sanitize(true)
 			.build();
-
+	public static ConfigManager<ConfigFile.Equipment> itemConfig = new ConfigManager<ConfigFile.Equipment>
+			("items", Default.itemConfig)
+			.builder()
+			.setDirectory(MOD_ID)
+			.sanitize(true)
+			.build();
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -70,6 +77,7 @@ public class RPGMinibosses implements ModInitializer {
 		// Proceed with mild caution.
 		Registry.register(Registries.CUSTOM_STAT, Identifier.of(MOD_ID,"infamy"), INFAMY);
 		Registry.register(Registries.CUSTOM_STAT, Identifier.of(MOD_ID,"benevolence"), BENEVOLENCE);
+		itemConfig.refresh();
 
 		RPGMinibossesEntities.register();
 		villageConfig.refresh();
@@ -117,6 +125,7 @@ public class RPGMinibosses implements ModInitializer {
 				})));
 		Patrol.patrolList.add(new Patrol());
 		RPGMinibossesBlocks.register();
+		Armors.register(itemConfig.value.weapons);
 		LOGGER.info("Hello Fabric world!");
 	}
 }

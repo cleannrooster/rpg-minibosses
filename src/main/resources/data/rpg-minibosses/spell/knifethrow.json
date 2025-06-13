@@ -24,6 +24,7 @@
   "deliver": {
       "type": "PROJECTILE",
       "projectile": {
+        "direct_towards_target": true,
         "launch_properties": {
           "velocity": 0.8
         },
