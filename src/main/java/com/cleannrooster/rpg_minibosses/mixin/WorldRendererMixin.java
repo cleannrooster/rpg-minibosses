@@ -1,5 +1,6 @@
 package com.cleannrooster.rpg_minibosses.mixin;
 
+import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
 import net.fabricmc.loader.api.FabricLoader;
@@ -36,7 +37,7 @@ public abstract class WorldRendererMixin {
     }
     @Inject(at = @At("HEAD"), method = "renderSky", cancellable = true)
     public void renderSkyrpg(Matrix4f matrix4f, Matrix4f projectionMatrix, float tickDelta, Camera camera, boolean thickFog, Runnable fogCallback, CallbackInfo info) {
-        if (  MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+        if (  MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect)) || MinecraftClient.getInstance().world.getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
             if (!thickFog) {
                 CameraSubmersionType cameraSubmersionType = camera.getSubmersionType();
                 if (cameraSubmersionType != CameraSubmersionType.POWDER_SNOW && cameraSubmersionType != CameraSubmersionType.LAVA && !this.hasBlindnessOrDarkness(camera)) {
@@ -59,7 +60,7 @@ public abstract class WorldRendererMixin {
     }
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     public void renderClouds_RPGMINI(MatrixStack matrices, Matrix4f matrix4f, Matrix4f matrix4f2, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
-        if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+        if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect)) || MinecraftClient.getInstance().world.getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
             info.cancel();
         }
     }

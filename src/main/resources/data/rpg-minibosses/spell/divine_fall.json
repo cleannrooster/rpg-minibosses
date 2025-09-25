@@ -61,31 +61,37 @@
     "type": "METEOR",
     "meteor": {
       "launch_height": 12.0,
-      "projectile": {
-        "travel_particles": [
-          {
-            "particle_id": "spell_engine:magic_holy_spell_float",
-            "origin": "CENTER",
-            "shape": "CIRCLE",
-            "count": 40.0,
-            "min_speed": 0.05,
-            "max_speed": 0.1,
-            "angle": 360.0
-          },
-          {
-            "particle_id": "spell_engine:magic_holy_spark_float",
-            "origin": "CENTER",
-            "shape": "CIRCLE",
-            "count": 40.0,
-            "min_speed": 0.05,
-            "max_speed": 0.1,
-            "angle": 360.0
-          }
-        ],
-        "client_data": {
-          "model": {
-            "model_id": "magma_block",
-            "scale": 0.0
+      "launch_properties": {
+        "velocity": 0.4
+      },
+        "projectile": {
+          "client_data": {
+
+            "travel_particles": [
+            {
+              "particle_id": "spell_engine:magic_holy_spell_float",
+              "origin": "CENTER",
+              "shape": "CIRCLE",
+              "count": 40.0,
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            },
+            {
+              "particle_id": "spell_engine:magic_holy_spark_float",
+              "origin": "CENTER",
+              "shape": "CIRCLE",
+              "count": 40.0,
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          ],
+          "client_data": {
+            "model": {
+              "model_id": "magma_block",
+              "scale": 0.0
+            }
           }
         }
       }
@@ -97,7 +103,7 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 0.5
+          "spell_power_coefficient": 0.8
         }
       },
       "particles": [

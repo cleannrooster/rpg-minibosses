@@ -20,7 +20,18 @@
   "entity.rpg-minibosses.minor_archmage_fire.name.2":  "Igna Phoenix",
   "entity.rpg-minibosses.minor_archmage_fire.name.3":  "Minara Anemina",
   "entity.rpg-minibosses.minor_archmage_fire.name.4":  "Ultima Thule",
+  "entity.rpg-minibosses.gemini_alpha":  "Gemini Alpha",
+  "entity.rpg-minibosses.gemini_beta":  "Gemini Beta",
 
+  "biome.rpg-minibosses.guild_hall":  "Guild Hideout",
+  "item.rpg-minibosses.juggernaut_head": "Juggernaut Helmet",
+  "item.rpg-minibosses.juggernaut_chest": "Juggernaut Chestplate",
+  "item.rpg-minibosses.juggernaut_legs": "Juggernaut Leggings",
+  "item.rpg-minibosses.juggernaut_feet": "Juggernaut Boots",
+  "item.rpg-minibosses.trickster_head": "Trickster Hood",
+  "item.rpg-minibosses.trickster_chest": "Trickster Garb",
+  "item.rpg-minibosses.trickster_legs": "Trickster Leggings",
+  "item.rpg-minibosses.trickster_feet": "Trickster Boots",
   "entity.rpg-minibosses.minor_trickster.name.1":  "Ash Lessard",
   "entity.rpg-minibosses.minor_trickster.name.2":  "Ulysses Morvant",
   "entity.rpg-minibosses.minor_trickster.name.3":  "Thom Imperial",
@@ -74,7 +85,11 @@
   "item.rpg-minibosses.forsaken_minor_archmage_fire_spawn_egg": "Lesser Fire Mage Spawn Egg",
   "item.rpg-minibosses.forsaken_minor_templar_spawn_egg": "Lesser Templar Spawn Egg",
   "item.rpg-minibosses.forsaken_magus_spawn_egg": "Forsaken Magus Spawn Egg",
+  "item.rpg-minibosses.gemini_alpha_spawn_egg": "Gemini Alpha Spawn Egg",
+  "item.rpg-minibosses.gemini_beta_spawn_egg": "Gemini Beta Spawn Egg",
+
   "item.rpg-minibosses.lavos_horn": "Lavos' Horn",
+  "item.rpg-minibosses.gemini_fragment": "Gemini Fragment",
 
   "item.rpg-minibosses.poster_merc": "Wanted Poster (Mercenary)",
   "item.rpg-minibosses.poster_jugg": "Wanted Poster (Juggernaut)",
@@ -106,7 +121,7 @@
 
   "text.rpg-minibosses.petrified": "This long forgotten adventurer seems to be petrified...",
   "text.rpg-minibosses.petrified2": "Perhaps further investigation will do something...",
-  "text.rpg-minibosses.spare": "Right-click to spare the adventurer",
+  "text.rpg-minibosses.spare": "Right-click to spare and recruit the adventurer",
 
   "effect.rpg-minibosses.feather": "Phoenix Down",
   "effect.rpg-minibosses.petrified": "Petrified",

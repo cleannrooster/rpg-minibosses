@@ -1,0 +1,19 @@
+{
+  "type": "rpg-minibosses:guild_hall",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "rpg-minibosses:guild_hall",
+      "lakes": false,
+      "features": false,
+      "layers": [
+        {
+          "block": "minecraft:air",
+          "height": 64
+        }
+      ],
+      "structure_overrides": [
+      ]
+    }
+  }
+}

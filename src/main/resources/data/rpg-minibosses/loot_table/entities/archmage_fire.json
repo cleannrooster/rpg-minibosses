@@ -16,6 +16,20 @@
           ]
         }
       ]
+    },    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:gemini_fragment",
+          "conditions": [
+            {
+              "condition": "minecraft:random_chance",
+              "chance": 0.125
+            }
+          ]
+        }
+      ]
     }
   ],
   "random_sequence": "minecraft:entities/juggernaut"

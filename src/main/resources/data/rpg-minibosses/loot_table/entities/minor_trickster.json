@@ -16,6 +16,30 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_legs"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_feet"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_head"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_chest"
+        }
+      ]
     }
   ],
   "random_sequence": "minecraft:entities/juggernaut"

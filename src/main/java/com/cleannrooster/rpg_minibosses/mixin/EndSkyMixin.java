@@ -1,5 +1,6 @@
 package com.cleannrooster.rpg_minibosses.mixin;
 
+import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import net.fabricmc.fabric.api.client.rendering.v1.DimensionRenderingRegistry;
 import net.fabricmc.fabric.impl.client.rendering.DimensionRenderingRegistryImpl;
@@ -29,6 +30,9 @@ public class EndSkyMixin  {
 
     @Inject(at = @At("HEAD"), method = "getSkyRenderer", cancellable = true)
     private static void getSkyRendererRPGMINIBOSSES(RegistryKey<World> key, CallbackInfoReturnable<DimensionRenderingRegistry.SkyRenderer> callbackInfo) {
+        if(key.equals(RPGMinibosses.DIMENSIONKEY)){
+            callbackInfo.setReturnValue(SKY_RENDERERS.get(World.END));
+        }
         if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
             callbackInfo.setReturnValue(SKY_RENDERERS.get(World.END));
 

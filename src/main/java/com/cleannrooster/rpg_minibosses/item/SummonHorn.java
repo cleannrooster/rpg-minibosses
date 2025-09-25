@@ -56,8 +56,9 @@ public class SummonHorn<T extends LivingEntity> extends GoatHornItem {
                         magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,player.getPos());
                         world.spawnEntity(magus);
 
-                        stack.damage(1,player, EquipmentSlot.MAINHAND);
-                        player.sendMessage(Text.translatable("Magus has been unleashed!"));
+                        stack.decrement(1);
+                        user.playSound(this.getBreakSound());
+                        player.sendMessage(Text.translatable("A dark force has been unleashed!"));
 
                         return;
                     }

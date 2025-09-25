@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:item/handheld",
+	"textures": {
+		"layer0": "rpg-minibosses:item/trickster_head"
+	}
+
+}

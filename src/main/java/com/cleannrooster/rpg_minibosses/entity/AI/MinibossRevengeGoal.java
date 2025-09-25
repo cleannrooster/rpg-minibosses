@@ -16,6 +16,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+
+import static com.cleannrooster.rpg_minibosses.entity.MinibossEntity.DOWN;
 
 public class MinibossRevengeGoal extends TrackTargetGoal {
     private static final TargetPredicate VALID_AVOIDABLES_PREDICATE = TargetPredicate.createAttackable().ignoreVisibility().ignoreDistanceScalingFactor();
@@ -26,7 +29,7 @@ public class MinibossRevengeGoal extends TrackTargetGoal {
     @Nullable
     private Class<?>[] noHelpTypes;
 
-    public MinibossRevengeGoal(PathAwareEntity mob, Class<?>... noRevengeTypes) {
+    public MinibossRevengeGoal(MinibossEntity mob, Class<?>... noRevengeTypes) {
         super(mob, true);
         this.noRevengeTypes = noRevengeTypes;
         this.setControls(EnumSet.of(Control.TARGET));
@@ -36,7 +39,16 @@ public class MinibossRevengeGoal extends TrackTargetGoal {
         int i = this.mob.getLastAttackedTime();
         LivingEntity livingEntity = this.mob.getAttacker();
         if (i != this.lastAttackedTime && livingEntity != null) {
-            if (livingEntity.getType() == EntityType.PLAYER && this.mob.getWorld().getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
+            if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.getOwnerUuid() != null && (livingEntity.getUuid()==minibossEntity.getOwnerUuid() || (livingEntity instanceof MinibossEntity miniboss && miniboss.getDataTracker().get(DOWN)))){
+                return false;
+            }
+            else if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.isTamed() && !minibossEntity.canAttackWithOwner(livingEntity,minibossEntity.getOwner())){
+                return false;
+            }
+            else if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.isTamed() && Objects.equals(minibossEntity.getOwner(), livingEntity)){
+                return false;
+            }
+            else if (livingEntity.getType() == EntityType.PLAYER && this.mob.getWorld().getGameRules().getBoolean(GameRules.UNIVERSAL_ANGER)) {
                 return false;
             } else {
                 Class[] var3 = this.noRevengeTypes;
@@ -60,6 +72,34 @@ public class MinibossRevengeGoal extends TrackTargetGoal {
         this.groupRevenge = true;
         this.noHelpTypes = noHelpTypes;
         return this;
+    }
+
+    @Override
+    public boolean shouldContinue() {
+        if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.getOwnerUuid() != null && this.mob.getTarget() != null &&  this.mob.getTarget().getUuid()==minibossEntity.getOwnerUuid()){
+            return false;
+        }
+        if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.isTamed() && !minibossEntity.canAttackWithOwner(minibossEntity.getTarget(),minibossEntity.getOwner())){
+            return false;
+        }
+        if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.isTamed() && this.mob.getTarget() != null && Objects.equals(minibossEntity.getOwner(), this.mob.getTarget())){
+            return false;
+        }
+        return super.shouldContinue();
+    }
+
+    @Override
+    public boolean canStop() {
+        if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.getOwnerUuid() != null && this.mob.getTarget() != null &&  this.mob.getTarget().getUuid()==minibossEntity.getOwnerUuid()){
+            return true;
+        }
+        if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.isTamed() && !minibossEntity.canAttackWithOwner(minibossEntity.getTarget(),minibossEntity.getOwner())){
+            return true;
+        }
+        if(this.mob instanceof MinibossEntity minibossEntity && minibossEntity.isTamed() && this.mob.getTarget() != null && Objects.equals(minibossEntity.getOwner(), this.mob.getTarget())){
+            return true;
+        }
+        return super.canStop();
     }
 
     public void start() {

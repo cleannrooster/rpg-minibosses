@@ -89,12 +89,13 @@ import java.util.Optional;
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.raycastObstacleFree;
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.sendBatches;
 import static java.lang.Math.max;
+import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
 import static net.spell_power.api.SpellSchools.*;
 
-public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
+public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
     private int arctic;
 
-    public MagusPrimeEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    public MagusPrimeEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         this.bossBar = (ServerBossBar)(new ServerBossBar(this.getDisplayName(), BossBar.Color.PURPLE, BossBar.Style.PROGRESS)).setDarkenSky(true);
         this.experiencePoints = 500;
@@ -271,8 +272,8 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
                     Spell spell = SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"ice_bolt"));
                     Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"ice_bolt"));
 
-                    SpellHelper.performImpacts(this.getWorld(),this,player,player,spellReference.get(),spell.impacts,
-                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(FROST, this)).position(this.getPos()),false);
+                    boolean bool = SpellHelper.performImpacts(this.getWorld(),this,player,player,spellReference.get(),spell.impacts,
+                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(FROST, this)).position(this.getPos()));
                 }
             }
 
@@ -465,7 +466,7 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
             SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
+                boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
                         spell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
             }
@@ -507,7 +508,7 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
                 Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
 
                 for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
-                    SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
+                    boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
                             spell.impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
                 }
@@ -564,7 +565,7 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
                             SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
                             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, finalSpellReference.get(),
+                                boolean bool =  SpellHelper.performImpacts(this.getWorld(), this, entity, this, finalSpellReference.get(),
                                         finalSpell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
                             }
@@ -577,19 +578,15 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity{
                                 ((WorldScheduler) this.getWorld()).schedule(4 * (i + 1), () -> {
                                             if (this.getTarget() != null) {
 
-                                                SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0);
+                                                SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0).position(this.getTarget().getPos());
                                                 SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
                                                 Vec3d pos = this.getTarget().getBoundingBox().getCenter();
                                                 ((WorldScheduler) this.getWorld()).schedule(25, () -> {
 
-                                                            for (Entity entity : this.getWorld().getOtherEntities(this, Box.of(pos, 6, 6, 6))) {
-                                                                if (entity instanceof LivingEntity living && raycastObstacleFree(living, pos, living.getBoundingBox().getCenter())) {
-                                                                    SpellHelper.performImpacts(this.getWorld(), this, this.getTarget(), this.getTarget(), spellReferenceShockwave.get(), spellReferenceShockwave.get().value().impacts,
-                                                                            context, false);
-                                                                }
+                                                            if(this.getTarget() != null) {
+                                                                boolean bool = lookupAndPerformAreaImpact(spellReferenceShockwave.get().value().area_impact, spellReferenceShockwave.get(), this, this, this, spellReferenceShockwave.get().value().impacts, context, false);
+                                                                
                                                             }
-
-                                                            sendBatches(pos, this, spellReferenceShockwave.get().value().area_impact.particles, 1, PlayerLookup.tracking(this), false);
 
                                                         }
 

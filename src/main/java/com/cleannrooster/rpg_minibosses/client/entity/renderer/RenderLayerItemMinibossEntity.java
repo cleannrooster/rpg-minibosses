@@ -1,5 +1,6 @@
 package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
+import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import mod.azure.azurelib.common.api.client.renderer.layer.BlockAndItemGeoLayer;
@@ -19,20 +20,26 @@ public class RenderLayerItemMinibossEntity<T extends MinibossEntity> extends Blo
     @Override
     protected ItemStack getStackForBone(GeoBone bone, MinibossEntity animatable) {
         // Retrieve the items in the entity's hands for the relevant bone
+        if((!(animatable instanceof ArtilleristEntity artilleristEntity))) {
 
-        return switch (bone.getName()) {
-            case RIGHT_HAND -> animatable.getMainHandStack();
-            default -> null;
-        };
+            return switch (bone.getName()) {
+                case RIGHT_HAND -> animatable.getMainHandStack();
+                default -> null;
+            };
+        }
+        else{
+            return null;
+        }
     }
 
     @Override
     protected ModelTransformationMode getTransformTypeForStack(GeoBone bone, ItemStack stack, MinibossEntity animatable) {
         // Apply the camera transform for the given hand
-        return switch (bone.getName()) {
-            case RIGHT_HAND -> ModelTransformationMode.THIRD_PERSON_RIGHT_HAND;
-            default -> ModelTransformationMode.NONE;
-        };
+            return switch (bone.getName()) {
+                case RIGHT_HAND -> ModelTransformationMode.THIRD_PERSON_RIGHT_HAND;
+                default -> ModelTransformationMode.NONE;
+            };
+
     }
 
     // Do some quick render modifications depending on what the item is

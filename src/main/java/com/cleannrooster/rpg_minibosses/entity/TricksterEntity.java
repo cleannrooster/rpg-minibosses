@@ -17,6 +17,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.Item;
@@ -48,7 +49,7 @@ import java.util.Optional;
 public class TricksterEntity extends MinibossEntity{
     List<Item> bonusList = List.of();
 
-    protected TricksterEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
@@ -59,7 +60,7 @@ public class TricksterEntity extends MinibossEntity{
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/dagger"))))
                 ;}).toList();
     }
-    protected TricksterEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+    protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -85,7 +86,7 @@ public class TricksterEntity extends MinibossEntity{
         }
 
     }
-    protected TricksterEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser,float spawnCoeff) {
+    protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser,float spawnCoeff) {
         super(entityType, world,spawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -317,9 +318,7 @@ public class TricksterEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "dashright", event -> PlayState.CONTINUE)
                         .triggerableAnim("dashright", DASHRIGHT));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
+
 
     }
 }

@@ -54,7 +54,8 @@ dependencies {
 	modImplementation("maven.modrinth:structure-pool-api:${project.structure_pool_api_version}")
 	modImplementation("maven.modrinth:runes:${project.runes_version}")
 	modImplementation "mod.azure.azurelib:azurelib-fabric-1.21.1:2.3.19"
-
+	modImplementation "maven.modrinth:structureplacerapi:1.1.0"
+	include "maven.modrinth:structureplacerapi:1.1.0"
 	modImplementation("maven.modrinth:spell-engine:${project.spell_engine_version}")
 	modImplementation("maven.modrinth:spell-power:${project.spell_power_version}")
 //    modImplementation(files("run/mods/dev/spell_engine-${project.spell_engine_version}.jar"))

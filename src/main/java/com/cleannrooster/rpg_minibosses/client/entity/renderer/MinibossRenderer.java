@@ -24,6 +24,7 @@ import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
@@ -57,26 +58,42 @@ public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityMod
         return super.getRenderColor(animatable, partialTick, packedLight);
     }
 
+
     @Override
     public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
         var bool = ((bone.getName().equals("rightArm")));
         var bool2 = ((bone.getName().equals("leftArm")));
-        var bool3 = animatable instanceof JuggernautEntity || animatable instanceof TemplarEntity;
+        var bool3 = animatable instanceof JuggernautEntity || animatable instanceof TemplarEntity ;
 
-        if (bone.getName().equals("head") || bool || bool2) {
+        if (((bone.getName().equals("head")) || bool || bool2)) {
             poseStack.push();
             RenderUtils.translateMatrixToBone(poseStack, bone);
             RenderUtils.translateToPivotPoint(poseStack, bone);
             RenderUtils.rotateMatrixAroundBone(poseStack, bone);
             RenderUtils.scaleMatrixForBone(poseStack, bone);
 
-            if (!bool) {
-                poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw- animatable.getYaw(partialTick), -180, 180)));
-                poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+            if (!(bool )) {
+            /*    if((bool2 && animatable instanceof ArtilleristEntity)){
+                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( animatable.bodyYaw-animatable.getYaw(partialTick), -180, 180)));
 
-            } else if (!bool3 && !(animatable instanceof ArtilleristEntity && ((ArtilleristEntity) animatable).getDataTracker().get(ArtilleristEntity.CHARGING))) {
+                }*/
+                    poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw - animatable.getYaw(partialTick), -180, 180)));
 
-                poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( -animatable.bodyYaw+animatable.getYaw(partialTick), -180, 180)));
+                    poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+
+
+
+            } else if (!bool3 ) {
+                if(bool2 ){
+                    poseStack.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw - animatable.getYaw(partialTick), -180, 180)));
+
+                    poseStack.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+
+                    //poseStack.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
+
+                }else {
+                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((animatable instanceof ArtilleristEntity artilleristEntity ? 0.8F : 1)*MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
+                }
 
             }
 

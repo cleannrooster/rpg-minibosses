@@ -5,7 +5,9 @@
 	"mixins": [
 		"DefaultLootMixin",
 		"PatrolSpawnerMixin",
-		"PlayerMixin"
+		"PlayerMixin",
+		"EntityRelationsMixin",
+		"ServerPlayerEntityMixin"
 
 	],
 	"client": [
@@ -14,7 +16,8 @@
 		"DimensionEffectsMixin",
 		"ClientWorldMixin",
 		"PropertiesMixin",
-		"RenderSystemMixin"
+		"RenderSystemMixin",
+		"EntityRenderDispatcherMixin"
 
 	],
 	"injectors": {

@@ -23,6 +23,7 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.CrossbowItem;
@@ -61,7 +62,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
     private int feathertimer = 160;
     public List<Item> bonusList = new ArrayList<>();
 
-    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
@@ -70,7 +71,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
                         && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
     }
-    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+    protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -93,7 +94,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
         }
     }
 
-    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world,boolean lesser, float spawnCoeff) {
+    protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser, float spawnCoeff) {
         super(entityType, world,spawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -257,10 +258,11 @@ public class ArchmageFireEntity extends MinibossEntity  {
                             SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
                             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).get(),
+                                boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).get(),
                                         SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
                             }
+
                             ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
                             this.performing = false;
 
@@ -294,9 +296,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         .triggerableAnim("wave", WAVE_LEFTHAND));    animationData.add(
                 new AnimationController<>(this, "walk_wave", event -> PlayState.CONTINUE)
                         .triggerableAnim("walk_wave", WALK_WAVE_LEFTHAND));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
 
     }
 

@@ -1,10 +1,13 @@
 package com.cleannrooster.rpg_minibosses.patrols;
 
+import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.EndPortalBlock;
 import net.minecraft.entity.EntityData;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -135,18 +138,15 @@ public class Patrol {
 
         if (!SpawnHelper.isClearForSpawn(world, pos, blockState, blockState.getFluidState(), EntityType.PILLAGER)) {
             return false;
-        } else if (!PatrolEntity.canSpawn(type, world, SpawnReason.PATROL, pos, random)) {
+        }
+        if (!MinibossEntity.canSpawn(type,world,SpawnReason.PATROL,pos,random)) {
             return false;
-        } else {
-            PatrolEntity patrolEntity = (PatrolEntity) ((EntityType<? extends PatrolEntity>) type).create(world);
+        }else {
+            PathAwareEntity patrolEntity = (PathAwareEntity) ((EntityType<? extends PathAwareEntity>) type).create(world);
             if (patrolEntity != null) {
-                if (captain) {
-                    patrolEntity.setPatrolLeader(true);
-                    patrolEntity.setRandomPatrolTarget();
-                }
 
                 patrolEntity.setPosition((double) pos.getX(), (double) pos.getY(), (double) pos.getZ());
-                patrolEntity.initialize(world, world.getLocalDifficulty(pos), SpawnReason.PATROL, (EntityData) null);
+                patrolEntity.initialize(world, world.getLocalDifficulty(pos), SpawnReason.NATURAL, (EntityData) null);
                 world.spawnEntityAndPassengers(patrolEntity);
                 return true;
             } else {

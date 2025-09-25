@@ -1,8 +1,10 @@
 package com.cleannrooster.rpg_minibosses.entity.AI;
 
+import com.cleannrooster.rpg_minibosses.entity.ArchmageFireEntity;
 import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import net.minecraft.block.BlockState;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ChargedProjectilesComponent;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -44,7 +46,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     public final T actor;
     public int extraUseTime = 30;
     public boolean isTakingLonger = false;
-    public ArtilleristCrossbowAttackGoal.Stage stage;
+    public ArtilleristCrossbowAttackGoal.Stage stage = Stage.CHARGED;
     public final double speed;
     public boolean unload;
     public final float squaredRange;
@@ -60,7 +62,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     }
 
     public boolean canStart() {
-        return this.hasAliveTarget() && this.isEntityHoldingCrossbow();
+        return !this.actor.getDataTracker().get(ArtilleristEntity.RUNNING) && this.hasAliveTarget() && this.isEntityHoldingCrossbow();
     }
 
     private boolean isEntityHoldingCrossbow() {
@@ -68,7 +70,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     }
 
     public boolean shouldContinue() {
-        return this.hasAliveTarget() && (this.canStart() || !this.actor.getNavigation().isIdle()) && this.isEntityHoldingCrossbow();
+        return !this.actor.getDataTracker().get(ArtilleristEntity.RUNNING) &&  this.hasAliveTarget() && (this.canStart()) && this.isEntityHoldingCrossbow();
     }
 
     private boolean hasAliveTarget() {
@@ -89,12 +91,12 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     }
 
     public boolean shouldRunEveryTick() {
-        return true;
+        return false;
     }
 
     public void tick() {
         LivingEntity livingEntity = this.actor.getTarget();
-        if (livingEntity != null) {
+        if (livingEntity != null && !this.actor.startRunning) {
 
             boolean bl = this.actor.getVisibilityCache().canSee(livingEntity);
             boolean bl2 = this.seeingTargetTicker > 0;
@@ -117,7 +119,6 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
             } else {
                 this.actor.getNavigation().stop();
                 if(livingEntity.distanceTo(this.actor) < 8 && this.stage != Stage.CHARGING){
-                    ((MinibossEntity.MinibossMoveConrol)this.actor.getMoveControl()).strafeTo(-2.0F,livingEntity.getPos().subtract(this.actor.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.actor.getRotationVector()) > 0 ? -1 : 1,0.5F);
 
                 }
 
@@ -162,67 +163,101 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
             }
             Hand hand = ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW);
             ItemStack itemStack = this.actor.getStackInHand(hand);
-            if(this.uses >= 6) {
-                this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
 
-                this.unload = this.actor.getRandom().nextInt((int)Math.ceil(2*this.actor.getCooldownCoeff())) == 0;
-                if(this.unload){
-                    this.isTakingLonger = true;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
+
+            if (!this.actor.performing   &&  bl   ) {
+
+
+                this.actor.getLookControl().lookAt(livingEntity);
+                this.actor.lookAtEntity(livingEntity,30,30);
+                if(this.longanim) {
+                    ((ArtilleristEntity) this.actor).triggerAnim("shoot_heavy_many", "shoot_heavy_many");
+                        ((WorldScheduler) this.actor.getWorld()).schedule(28, () -> {
+
+                            this.actor.getLookControl().lookAt(livingEntity);
+                            this.actor.lookAtEntity(livingEntity,30,30);
+                            shoot(livingEntity, 1.6F);
+
+                        });
+                        ((WorldScheduler) this.actor.getWorld()).schedule(34, () -> {
+
+                            this.actor.getLookControl().lookAt(livingEntity);
+                            this.actor.lookAtEntity(livingEntity,30,30);
+                            shoot(livingEntity, 1.6F);
+
+                        });
+                        ((WorldScheduler) this.actor.getWorld()).schedule(40, () -> {
+
+                            this.actor.getLookControl().lookAt(livingEntity);
+                            this.actor.lookAtEntity(livingEntity,30,30);
+
+                            shoot(livingEntity, 1.6F);
+
+                        });
+                        ((WorldScheduler) this.actor.getWorld()).schedule(46, () -> {
+
+                            this.actor.getLookControl().lookAt(livingEntity);
+                            this.actor.lookAtEntity(livingEntity,30,30);
+                            shoot(livingEntity, 1.6F);
+
+                        });
+
+                    ((WorldScheduler) this.actor.getWorld()).schedule(60, () -> {
+                        this.actor.performing = false;
+                        if(this.actor.getTarget() != null && this.actor.getTarget().distanceTo(this.actor) < 10) {
+                            this.longanim = false;
+                        }
+                        else if (this.actor.getTarget() != null && this.actor.getTarget().distanceTo(this.actor) > 10){
+
+                            this.longanim = true;
+                        }
+                    }
+                    );
                 }
                 else{
-                    this.isTakingLonger = false;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,false);
+                    ((ArtilleristEntity) this.actor).triggerAnim("shoot_heavy", "shoot_heavy");
+                    ((WorldScheduler) this.actor.getWorld()).schedule(20, () -> {
+                        this.actor.lookAtEntity(livingEntity,30,30);
+
+                        this.actor.getLookControl().lookAt(livingEntity);
+                        shoot(livingEntity, 1.6F);
+
+                    });
+                    ((WorldScheduler) this.actor.getWorld()).schedule(28, () -> {
+                        this.actor.performing = false;
+                        if(this.actor.getTarget() != null && this.actor.getTarget().distanceTo(this.actor) < 10) {
+                            this.longanim = false;
+                        }
+                        else if (this.actor.getTarget() != null && this.actor.getTarget().distanceTo(this.actor) > 10){
+
+                            this.longanim = true;
+                        }
+                    }
+                    );
 
                 }
-                uses = 0;
 
+                this.actor.performing = true;
             }
-
-            if (CrossbowItem.isCharged(itemStack) && bl &&  !this.actor.getDataTracker().get(ArtilleristEntity.CHARGING) &&  ((this.actor.age % 40 == 0 && livingEntity.distanceTo(this.actor) < 8)  || ((this.actor.age % 2 == 0 && unload) ||
-                    (livingEntity.distanceTo(this.actor) >= 8 &&this.actor.age % 20 == 0)))) {
-                this.actor.lookAtEntity(livingEntity,30,30);
-                shoot(livingEntity, 1.6F);
-            }
-
         }
+        this.actor.bodyYaw = this.actor.headYaw;
+        this.actor.prevBodyYaw = this.actor.prevHeadYaw;
+
     }
+    public int shoottime = 0;
+    public boolean longanim = false;
+
     private  void shoot(LivingEntity entity, float speed) {
         Hand hand = ProjectileUtil.getHandPossiblyHolding(this.actor, Items.CROSSBOW);
         ItemStack itemStack = this.actor.getStackInHand(hand);
         Item var6 = itemStack.getItem();
+        loadProjectiles(this.actor, itemStack);
+
         if (var6 instanceof CrossbowItem crossbowItem) {
             crossbowItem.shootAll(this.actor.getWorld(), this.actor, hand, itemStack, speed, (float)(14 - this.actor.getWorld().getDifficulty().getId() * 4), entity);
 
-            if(this.uses >= 6) {
-                this.stage = ArtilleristCrossbowAttackGoal.Stage.UNCHARGED;
-                this.unload = this.actor.getRandom().nextInt(2) == 0;
-                if(this.unload){
-                    this.isTakingLonger = true;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,true);
-                }
-                else{
-                    this.isTakingLonger = false;
-                    this.actor.getDataTracker().set(ArtilleristEntity.EXTRACHARGE,false);
 
-                }
-                uses = 0;
-            }else   if(this.actor.getRandom().nextInt(13) == 0){
                 loadProjectiles(this.actor, itemStack);
-
-                uses = 0;
-
-                for(int i = 1; i <= 6; i++) {
-                    ((WorldScheduler) this.actor.getWorld()).schedule(4*i, () -> {
-                        teleportTo(entity);
-
-                    });
-                }
-            }
-            else {
-                loadProjectiles(this.actor, itemStack);
-                uses++;
-            }
         }
         this.actor.postShoot();
     }
@@ -271,7 +306,8 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
 
 
     private static boolean loadProjectiles(LivingEntity shooter, ItemStack crossbow) {
-        List<ItemStack> list = load(crossbow, shooter.getProjectileType(crossbow), shooter);
+
+        List<ItemStack> list = load(crossbow, Items.ARROW.getDefaultStack(), shooter);
         if (!list.isEmpty()) {
             crossbow.set(DataComponentTypes.CHARGED_PROJECTILES, ChargedProjectilesComponent.of(list));
             return true;

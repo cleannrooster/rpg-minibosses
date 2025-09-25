@@ -1,0 +1,71 @@
+{
+  "range": 32.0,
+  "school": "PHYSICAL_MELEE",
+  "tier": 2,
+  "learn": { },
+  "type": "ACTIVE",
+
+  "active": {
+    "cast": {
+      "duration": 0
+    }
+  },
+  "target": {
+    "type": "AIM",
+    "aim": {
+      "sticky": true
+    }
+  },
+  "deliver": {
+    "type": "CUSTOM",
+    "custom": {
+      "handler": "artificers:beartrap"
+    }
+  },
+  "release": {
+    "animation": "spell_engine:one_handed_projectile_release"
+
+  },
+  "impacts": [
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "status_effect": {
+          "apply_mode": "SET",
+          "duration": 3,
+          "amplifier": 4,
+          "effect_id": "minecraft:slowness",
+          "show_particles": false
+        }
+      }
+    }
+
+  ],
+  "area_impact": {
+    "radius": 2.5,
+    "area": {
+    },
+    "sound": {
+      "id": "entity.armor_stand.place"
+    },
+    "particles": [
+      {
+        "particle_id": "minecraft:smoke",
+        "origin": "CENTER",
+        "shape": "CIRCLE",
+        "count": 20.0,
+        "min_speed": 0.2,
+        "max_speed": 0.7,
+        "angle": 360.0
+      }
+    ]
+  },
+  "cost": {
+    "cooldown": {
+      "duration": 4
+    },
+    "item": {
+      "id": "artificers:trap"
+    }
+  }
+}

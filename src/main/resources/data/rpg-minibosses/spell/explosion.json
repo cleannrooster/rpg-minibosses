@@ -1,0 +1,121 @@
+{
+  "school": "PHYSICAL_RANGED",
+  "range": 64,
+  "tier": 1,
+  "learn": { },
+  "type": "PASSIVE",
+
+  "active": {
+    "scroll": { },
+    "cast": {
+      "duration": 1.5,
+      "animation": "spell_engine:one_handed_projectile_charge",
+      "sound": {
+        "id": "spell_engine:generic_fire_casting",
+        "randomness": 0
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:flame",
+          "shape": "WIDE_PIPE",
+          "origin": "FEET",
+          "count": 1.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1
+        }
+      ]
+    }
+  },
+  "release": {
+    "animation": "spell_engine:one_handed_projectile_release"
+  },
+  "target": {
+    "type": "AIM",
+    "aim": { }
+  },
+  "deliver": {
+    "type": "DIRECT"
+  },
+  "impacts": [
+    {
+      "target_modifiers": [
+        {
+          "conditions": [
+            {
+              "entity_type": "#minecraft:freeze_immune_entity_types"
+            }
+          ],
+          "modifier": {
+            "critical_chance_bonus": 0.3
+          }
+        }
+      ],
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 1.5
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "lava",
+          "shape": "CIRCLE",
+          "origin": "CENTER",
+          "count": 15.0,
+          "min_speed": 0.5,
+          "max_speed": 3.0
+        },
+        {
+          "particle_id": "spell_engine:flame_medium_b",
+          "shape": "CIRCLE",
+          "origin": "CENTER",
+          "count": 10,
+          "min_speed": 0.1,
+          "max_speed": 0.2
+        }
+      ]
+    }
+  ],
+  "area_impact": {
+    "radius": 2.5,
+    "area": {
+      "distance_dropoff": "NONE"
+    },
+    "particles": [
+      {
+        "particle_id": "spell_engine:fire_explosion",
+        "shape": "SPHERE",
+        "origin": "CENTER",
+        "count": 2.0,
+        "min_speed": 0.2,
+        "max_speed": 0.5
+      },
+      {
+        "particle_id": "spell_engine:flame_spark",
+        "origin": "CENTER",
+        "shape": "CIRCLE",
+        "count": 20.0,
+        "min_speed": 0.2,
+        "max_speed": 0.7,
+        "angle": 360.0
+      },
+      {
+        "particle_id": "minecraft:smoke",
+        "origin": "CENTER",
+        "shape": "CIRCLE",
+        "count": 20.0,
+        "min_speed": 0.2,
+        "max_speed": 0.7,
+        "angle": 360.0
+      }
+    ],
+    "sound": {
+      "id": "minecraft:entity.generic.explode"
+    }
+  },
+  "cost": {
+    "item": {
+      "id": "runes:fire_stone"
+    }
+  }
+}

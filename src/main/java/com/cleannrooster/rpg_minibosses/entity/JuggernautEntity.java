@@ -23,6 +23,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -58,7 +59,7 @@ public class JuggernautEntity extends MinibossEntity{
     List<Item> bonusList;
 
 
-    protected JuggernautEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
@@ -69,7 +70,7 @@ public class JuggernautEntity extends MinibossEntity{
                 ;}).toList();
 
     }
-    protected JuggernautEntity(EntityType<? extends PatrolEntity> entityType, World world,boolean lesser) {
+    protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -94,7 +95,7 @@ public class JuggernautEntity extends MinibossEntity{
         }
 
     }
-    protected JuggernautEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser, float SpawnCoeff) {
+    protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser, float SpawnCoeff) {
         super(entityType, world,SpawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -183,7 +184,7 @@ public class JuggernautEntity extends MinibossEntity{
                         ((WorldScheduler) this.getWorld()).schedule(20, () -> {
                             ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
                             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
+                                boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
                                         SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
                             }
@@ -258,7 +259,7 @@ public class JuggernautEntity extends MinibossEntity{
                 ((WorldScheduler) this.getWorld()).schedule(28, () -> {
                     ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
                     for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                        SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
+                        boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
                                 SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
 
                     }
@@ -337,8 +338,5 @@ public class JuggernautEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "swing2", event -> PlayState.CONTINUE)
                         .triggerableAnim("swing2", SWING2));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
     }
 }

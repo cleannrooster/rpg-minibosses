@@ -1,26 +1,25 @@
 package com.cleannrooster.rpg_minibosses;
 
+
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.FeatherRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.model.*;
+import com.cleannrooster.rpg_minibosses.client.entity.renderer.GeminiRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MagusRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.OrbRenderer;
+import com.cleannrooster.rpg_minibosses.entity.TrapRenderer;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.spell_engine.api.effect.CustomModelStatusEffect;
 import net.spell_engine.api.render.CustomModels;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.casting.SpellCasterClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +48,12 @@ public class RPGMinibossesClient implements ClientModInitializer {
 		EntityRendererRegistry.register(RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TemplarModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new JuggernautModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArchmageFireModel<>()));
+		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_ALPHA.entityType, (context) ->  new GeminiRenderer<>(context, new GeminiModel<>()));
+		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_BETA.entityType, (context) ->  new GeminiRenderer<>(context, new GeminiModel<>()));
+
 		EntityRendererRegistry.register(RPGMinibosses.ORBENTITY, OrbRenderer::new);
 		CustomModels.registerModelIds(List.of(Identifier.of(RPGMinibosses.MOD_ID,"projectile/iron_dagger")));
+		EntityRendererRegistry.register(RPGMinibossesEntities.TRAP, TrapRenderer::new);
 
 		CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());
 		ModelPredicateProviderRegistry.register(RPGMinibosses.LAVOSHORN, Identifier.of(MOD_ID,"tooting"), (stack, world, entity, seed) -> {

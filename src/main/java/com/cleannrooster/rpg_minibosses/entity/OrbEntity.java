@@ -110,7 +110,7 @@ public class OrbEntity extends Entity implements GeoEntity, Ownable {
 
             List<LivingEntity> list = this.getWorld().getEntitiesByType(TypeFilter.instanceOf(LivingEntity.class),this.getBoundingBox(), target -> target != this.getOwner());
             for(LivingEntity living : list){
-                SpellHelper.performImpacts(this.getWorld(),livingEntity,living,living,spellReference.get(),spellReference.get().value().impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower( SpellSchools.SOUL,livingEntity)).position(this.getPos()));
+                boolean bool = SpellHelper.performImpacts(this.getWorld(),livingEntity,living,living,spellReference.get(),spellReference.get().value().impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower( SpellSchools.SOUL,livingEntity)).position(this.getPos()));
             }
         }
         if(this.age == 240 && !this.getWorld().isClient()){

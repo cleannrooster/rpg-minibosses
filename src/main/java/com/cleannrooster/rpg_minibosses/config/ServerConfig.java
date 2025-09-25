@@ -8,7 +8,27 @@ import java.util.LinkedHashMap;
 
 @Config(name = "server_v4")
 public class ServerConfig  implements ConfigData {
+
+
+
     public ServerConfig(){}
+    @Comment("Enable Guild Hall")
+    public boolean guild = false;
+    @Comment("Trade Multiplier")
+
+    public float tradeMultiplier = 1;
+    @Comment("Trade Amount")
+
+    public int tradeAmount = 5;
+    @Comment("Rare Trade Multiplier")
+
+    public int rareTradeMultiplier = 4;
+    @Comment("Trade Item")
+    public String tradeItem = "minecraft:emerald";
+
+    @Comment("Minibosses can spawn in the Nether")
+    public boolean hell = true;
+
     @Comment("Chance for Forsaken Templars to spawn naturally")
     public  float templarGreater = 1.0F;
     @Comment("Forsaken Templar maxHealth ")
@@ -31,7 +51,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Forsaken Fire Mages Armor ")
     public  float fireMageGreaterArmor = 4F;
     @Comment("Forsaken Fire Mages Movement Speed ")
-    public  float fireMageMovementSpeed = 0.9F;
+    public  float fireMageMovementSpeed = 0.5F;
     @Comment("Forsaken Fire Mages Fire Power ")
     public  float fireMageFirePower = 6.0F;
 
@@ -100,7 +120,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Lesser Fire Mages Armor ")
     public  float fireMageLesserArmor = 4F;
     @Comment("Lesser Fire Mages Movement Speed ")
-    public  float fireMageLesserMovementSpeed = 0.9F;
+    public  float fireMageLesserMovementSpeed = 0.5F;
     @Comment("Lesser Fire Mages Fire Power ")
     public  float fireMageLesserFirePower = 4F;
 
@@ -172,8 +192,43 @@ public class ServerConfig  implements ConfigData {
     public  float magusSoulPower = 8F;
     @Comment("Forsaken Magus Lightning Power ")
     public  float magusLightningPower = 8F;
+    @Comment("Alpha Lightning Power ")
+
+    public float alphaLightningPower = 8F;
+    @Comment("Alpha Attack Damage ")
+
+    public float alphaAttackDamage = 8F;
+    @Comment("Alpha Arcane Power ")
+
+    public float alphaArcanePower = 8F;
+
+    @Comment("Alpha Fire Power ")
+
+    public float alphaFirePower = 8F;
+    @Comment("Alpha Health Power ")
+
+    public float alphaHealth = 800;
+    @Comment("Alpha Armor ")
 
 
+    public float alphaArmor = 12;
+    @Comment("Beta Frost Power ")
+
+
+    public float betaFrostPower = 8F;
+    @Comment("Beta Attack Damage ")
+
+    public float betaAttackDamage = 8F;
+    @Comment("Beta Lightning Power ")
+
+
+    public float betaLightningPower = 8F;
+    @Comment("Beta Health ")
+    public float betaHealth = 800;
+    @Comment("Beta Armor ")
+
+
+    public float betaArmor = 12;
     @Comment("Distance from existing Minibosses within which new ones cannot spawn (Deprecated)")
     public  float areaCannotSpawn = 30;
     @Comment("Chance for Lesser Minibosses to be Petrified upon Spawn")

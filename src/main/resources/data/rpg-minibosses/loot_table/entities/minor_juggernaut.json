@@ -16,6 +16,30 @@
           ]
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:juggernaut_legs"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:juggernaut_feet"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:juggernaut_head"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:juggernaut_chest"
+        }
+      ]
     }
   ],
   "random_sequence": "minecraft:entities/juggernaut"
