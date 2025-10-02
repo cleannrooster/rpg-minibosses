@@ -92,7 +92,7 @@ public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityMod
                     //poseStack.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
 
                 }else {
-                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((animatable instanceof ArtilleristEntity artilleristEntity ? 0.8F : 1)*MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
+                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((animatable.isAttacking() ?  animatable instanceof ArtilleristEntity artilleristEntity ? 0.8F : 1.0F : 0F)*MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
                 }
 
             }

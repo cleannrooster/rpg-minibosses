@@ -145,6 +145,7 @@ public class TricksterEntity extends MinibossEntity{
 
 
     }
+
    public int pommelTick = 100;
     public int rolltimer = 40;
     public int defensetimer;
@@ -235,6 +236,11 @@ public class TricksterEntity extends MinibossEntity{
         }
         super.mobTick();
 
+    }
+
+    @Override
+    public boolean isMobile() {
+        return true;
     }
 
     @Override

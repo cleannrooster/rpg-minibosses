@@ -134,9 +134,9 @@
 					]
 				},
 				{
-					"name": "bodyMain",
+					"name": "torso",
 					"parent": "body",
-					"pivot": [0, 12, 0],
+					"pivot": [0, 24, 0],
 					"cubes": [
 						{"origin": [-4, 18, -1], "size": [8, 5, 3], "inflate": 0.75, "pivot": [3, 13, 1], "rotation": [15, 0, 0], "uv": [68, 27]},
 						{"origin": [-4, 15, -2], "size": [8, 9, 4], "inflate": 0.8, "uv": [90, 8]},

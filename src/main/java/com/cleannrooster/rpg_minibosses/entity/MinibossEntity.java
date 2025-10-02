@@ -229,9 +229,14 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     public static final RawAnimation WALK_B_T = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards_transition").thenPlay("animation.unknown.walk_backwards");
     public static final RawAnimation WALK_B_2h_T = RawAnimation.begin().thenPlay("animation.unknown.walk_backwards2_2h2_transition").thenLoop("animation.unknown.walk_backwards2_2h");
 
-    public static final RawAnimation WALK2H = RawAnimation.begin().thenLoop("animation.unknown.walk_2h");
+    public static final RawAnimation WALKING_BACKWARDS = RawAnimation.begin().thenLoop("walking_backwards");
+    public static final RawAnimation WALK_NO_AGGRO = RawAnimation.begin().thenLoop("walking");
+    public static final RawAnimation SPRINT = RawAnimation.begin().thenLoop("running");
 
-    public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("animation.unknown.idle");
+    public static final RawAnimation WALK2H = RawAnimation.begin().thenLoop("animation.unknown.walk_2h");
+    public static final RawAnimation IDLE_AGGRO = RawAnimation.begin().thenPlay("animation.unknown.idle");
+
+    public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("idle");
     public static final RawAnimation IDLE2H = RawAnimation.begin().thenPlay("animation.unknown.idle_2h");
     public static final RawAnimation DOWNANIM = RawAnimation.begin().thenPlayAndHold("animation.generic.down");
     public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
@@ -759,7 +764,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
     @Override
     public float getMovementSpeed() {
-        return this.sitting ? 0 : super.getMovementSpeed();
+        return this.sitting ? 0 : (float) (this.getOwner() != null && !this.isAttacking() ? (float) this.getOwner().getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) * (2.4F) : this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED));
     }
 
     protected void initCustomGoals() {
@@ -834,34 +839,46 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
     }
 
+
+
     private PlayState predicate2(AnimationState<MinibossEntity> state) {
+        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
         if(this.getDataTracker().get(DOWN)){
             return  state.setAndContinue(DOWNANIM);
         }
         if(state.isMoving()){
 
             if(this.isTwoHand()){
-                if( this.getVelocity().length() > 0.06F && this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0.2 ){
-                    return state.setAndContinue(WALK_B_2h_T);
+                if( this.getVelocity().length() > 0.01F && this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0.0 ){
+                    return this.isAttacking() ? state.setAndContinue(WALK_B_2h_T)  : state.setAndContinue(WALK_NO_AGGRO);
                 }
-                return state.setAndContinue(WALK2H);
+                return this.isAttacking() ?  state.setAndContinue(WALK2H) : this.getVelocity().length() > 0.2F ? state.setAndContinue(SPRINT):  state.setAndContinue(WALK_NO_AGGRO) ;
 
 
             }
-            if(this.getVelocity().length() > 0.06F && this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0.2 ){
-                return state.setAndContinue(WALK_B_T);
+            if(this.getVelocity().length() > 0.001F && this.getVelocity().normalize().dotProduct(this.getRotationVector().normalize()) < -0 ){
+                return this.isAttacking() && this.isTwoHand() ? state.setAndContinue(WALK_B_2h_T) : this.isAttacking() ? this.isTwoHand() ?   state.setAndContinue(WALK_B_2h_T) : state.setAndContinue(WALK_B_T) :  state.setAndContinue(WALKING_BACKWARDS);
             }
-            return state.setAndContinue(WALK);
+            return   this.getVelocity().length() > 0.2F ?
+                    this.isAttacking() ? state.setAndContinue(WALK) :  state.setAndContinue(SPRINT) :
+                    this.isAttacking() ? state.setAndContinue(WALK) :  state.setAndContinue(WALK_NO_AGGRO);
 
 
         }
         if(this.isTwoHand()) {
 
-            return state.setAndContinue(IDLE2H);
+            return this.isAttacking() ? state.setAndContinue(IDLE2H) : state.setAndContinue(IDLE);
         }
-        return state.setAndContinue(IDLE);
+        return this.isAttacking() ? state.setAndContinue(IDLE_AGGRO) : state.setAndContinue(IDLE);
 
     }
+
+
+
+    public boolean isMobile() {
+        return false;
+    }
+
     private int ageWhenTargetSet;
 
     public void setTarget(@Nullable LivingEntity target) {
@@ -1157,7 +1174,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         public void tick() {
             float n;
             if (this.state == MoveControl.State.STRAFE) {
-                float f = (float)this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                float f = (float)this.entity.getMovementSpeed();
                 float g = (float)this.speed * f;
                 float h = this.forwardMovement;
                 float i = this.sidewaysMovement;
@@ -1202,7 +1219,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
                 n = (float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F;
                 this.entity.setYaw(this.wrapDegrees(this.entity.getYaw(), n, 90.0F));
-                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getMovementSpeed()));
                 BlockPos blockPos = this.entity.getBlockPos();
                 BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
                 VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
@@ -1211,7 +1228,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
                     this.state = MoveControl.State.JUMPING;
                 }
             } else if (this.state == MoveControl.State.JUMPING) {
-                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getMovementSpeed()));
 
                 if (this.entity.isOnGround()) {
                     this.state = MoveControl.State.WAIT;

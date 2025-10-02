@@ -137,6 +137,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     public static final RawAnimation SHOOT_HEAVY = RawAnimation.begin().thenPlay("animation.merc.shoot_heavy");
     public static final RawAnimation SHOOT_HEAVY_MANY = RawAnimation.begin().thenPlay("animation.merc.shoot_heavy_many");
     public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("animation.merc.idle");
+    public static final RawAnimation IDLE_TRUE = RawAnimation.begin().thenPlay("idle");
 
     public static final RawAnimation RELOAD = RawAnimation.begin().thenPlay("animation.unknown.merc.reload");
     public static final RawAnimation RELOADLONGER = RawAnimation.begin().thenPlay("animation.unknown.merc.reloadlonger");
@@ -267,6 +268,8 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     public int sinceRunning = 0;
 
     private PlayState predicateShoot(AnimationState<MinibossEntity> state) {
+        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
+
         if(this.getDataTracker().get(DOWN)){
             return  state.setAndContinue(DOWNANIM);
         }
@@ -275,10 +278,10 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
                 return state.setAndContinue(RUN);
 
             }
-            return state.setAndContinue(WALK);
+            return this.isAttacking() ? state.setAndContinue(WALK) : this.getVelocity().length() > 0.2F ? state.setAndContinue(SPRINT):  state.setAndContinue(WALK_NO_AGGRO);
         }
         else{
-            return state.setAndContinue(IDLE);
+            return this.isAttacking() ? state.setAndContinue(IDLE) : state.setAndContinue(IDLE_TRUE);
 
         }
 

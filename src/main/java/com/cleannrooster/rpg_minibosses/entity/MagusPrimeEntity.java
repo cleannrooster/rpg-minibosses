@@ -170,6 +170,8 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
     }
 
     private PlayState predicate2(AnimationState<MagusPrimeEntity> state) {
+        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
+
         if(state.isMoving()){
             return state.setAndContinue(IDLE_M);
         }

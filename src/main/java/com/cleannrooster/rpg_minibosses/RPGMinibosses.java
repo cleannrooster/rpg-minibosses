@@ -25,6 +25,7 @@ import net.fabricmc.fabric.api.event.player.*;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.NetherPortalBlock;
@@ -229,7 +230,7 @@ public class RPGMinibosses implements ModInitializer {
 				.executes((ctx) -> {
 					// For versions below 1.19, replace "Text.literal" with "new LiteralText".
 					// For versions below 1.20, remode "() ->" directly.
-					if(RPGMinibossesEntities.config.guild && (ctx.getSource().getPlayer().getLastAttackedTime() == 0 || ctx.getSource().getPlayer().age - ctx.getSource().getPlayer().getLastAttackedTime() > 80) && !ctx.getSource().getPlayer().getWorld().getRegistryKey().equals(DIMENSIONKEY)) {
+					if(RPGMinibossesEntities.config.guild && (ctx.getSource().getPlayer().getLastAttacker() == null || ( ctx.getSource().getPlayer().age - ctx.getSource().getPlayer().getLastAttackedTime() == 0) || (ctx.getSource().getPlayer().age - ctx.getSource().getPlayer().getLastAttackedTime() == 0)) && !ctx.getSource().getPlayer().getWorld().getRegistryKey().equals(DIMENSIONKEY)) {
 						ctx.getSource().getPlayer().teleportTo(new TeleportTarget(ctx.getSource().getServer().getWorld(DIMENSIONKEY), new Vec3d(74.5, 74, 19.5), Vec3d.ZERO, ctx.getSource().getPlayer().getYaw(), ctx.getSource().getPlayer().getPitch(), TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
 
 					}
@@ -239,13 +240,14 @@ public class RPGMinibosses implements ModInitializer {
 				.executes((ctx) -> {
 					// For versions below 1.19, replace "Text.literal" with "new LiteralText".
 					// For versions below 1.20, remode "() ->" directly.
-					if(RPGMinibossesEntities.config.guild && (ctx.getSource().getPlayer().getLastAttackedTime() == 0 || ctx.getSource().getPlayer().age - ctx.getSource().getPlayer().getLastAttackedTime() > 80)  && ctx.getSource().getPlayer().getWorld().getRegistryKey().equals(DIMENSIONKEY)) {
+					if(RPGMinibossesEntities.config.guild && (ctx.getSource().getPlayer().getLastAttacker() == null || ( ctx.getSource().getPlayer().age - ctx.getSource().getPlayer().getLastAttackedTime() ==0) || (ctx.getSource().getPlayer().age - ctx.getSource().getPlayer().getLastAttackedTime() == 0))  && ctx.getSource().getPlayer().getWorld().getRegistryKey().equals(DIMENSIONKEY)) {
 
 						ctx.getSource().getPlayer().teleportTo(ctx.getSource().getPlayer().getRespawnTarget(true, TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
 
 					}
 					return 1;
 				})));
+
 		Patrol.patrolList.add(new Patrol());
 		RPGMinibossesBlocks.register();
 		Armors.register(itemConfig.value.weapons);
