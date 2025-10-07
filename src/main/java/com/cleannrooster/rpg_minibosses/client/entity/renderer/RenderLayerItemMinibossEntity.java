@@ -1,5 +1,6 @@
 package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
+import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import mod.azure.azurelib.cache.object.GeoBone;
@@ -39,6 +40,9 @@ public class RenderLayerItemMinibossEntity<T extends MinibossEntity> extends Blo
     @Override
     protected void renderStackForBone(MatrixStack poseStack, GeoBone bone, ItemStack stack, MinibossEntity animatable,
                                       VertexConsumerProvider bufferSource, float partialTick, int packedLight, int packedOverlay) {
+        if(animatable instanceof ArtilleristEntity){
+            return;
+        }
         if(animatable instanceof JuggernautEntity){
             poseStack.translate(0,3/16F,-3/16F);
             poseStack.scale(2F,2F,2F);

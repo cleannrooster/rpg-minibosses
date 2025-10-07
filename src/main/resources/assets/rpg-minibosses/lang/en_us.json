@@ -20,7 +20,18 @@
   "entity.rpg-minibosses.minor_archmage_fire.name.2":  "Igna Phoenix",
   "entity.rpg-minibosses.minor_archmage_fire.name.3":  "Minara Anemina",
   "entity.rpg-minibosses.minor_archmage_fire.name.4":  "Ultima Thule",
+  "entity.rpg-minibosses.gemini_alpha":  "Gemini Alpha",
+  "entity.rpg-minibosses.gemini_beta":  "Gemini Beta",
 
+  "biome.rpg-minibosses.guild_hall":  "Guild Hideout",
+  "item.rpg-minibosses.juggernaut_head": "Juggernaut Helmet",
+  "item.rpg-minibosses.juggernaut_chest": "Juggernaut Chestplate",
+  "item.rpg-minibosses.juggernaut_legs": "Juggernaut Leggings",
+  "item.rpg-minibosses.juggernaut_feet": "Juggernaut Boots",
+  "item.rpg-minibosses.trickster_head": "Trickster Hood",
+  "item.rpg-minibosses.trickster_chest": "Trickster Garb",
+  "item.rpg-minibosses.trickster_legs": "Trickster Leggings",
+  "item.rpg-minibosses.trickster_feet": "Trickster Boots",
   "entity.rpg-minibosses.minor_trickster.name.1":  "Ash Lessard",
   "entity.rpg-minibosses.minor_trickster.name.2":  "Ulysses Morvant",
   "entity.rpg-minibosses.minor_trickster.name.3":  "Thom Imperial",
@@ -74,13 +85,18 @@
   "item.rpg-minibosses.forsaken_minor_archmage_fire_spawn_egg": "Lesser Fire Mage Spawn Egg",
   "item.rpg-minibosses.forsaken_minor_templar_spawn_egg": "Lesser Templar Spawn Egg",
   "item.rpg-minibosses.forsaken_magus_spawn_egg": "Forsaken Magus Spawn Egg",
+  "item.rpg-minibosses.gemini_alpha_spawn_egg": "Gemini Alpha Spawn Egg",
+  "item.rpg-minibosses.gemini_beta_spawn_egg": "Gemini Beta Spawn Egg",
+
   "item.rpg-minibosses.lavos_horn": "Lavos' Horn",
+  "item.rpg-minibosses.gemini_fragment": "Gemini Fragment",
 
   "item.rpg-minibosses.poster_merc": "Wanted Poster (Mercenary)",
   "item.rpg-minibosses.poster_jugg": "Wanted Poster (Juggernaut)",
   "item.rpg-minibosses.poster_mage": "Wanted Poster (Fire Mage)",
   "item.rpg-minibosses.poster_rogue": "Wanted Poster (Rogue)",
   "item.rpg-minibosses.poster_templar": "Wanted Poster (Templar)",
+  "item.rpg-minibosses.tabula_rasa": "Tabula Rasa",
 
   "stat.rpg-minibosses.benevolence": "Benevolence",
   "stat.rpg-minibosses.infamy": "Infamy",
@@ -90,15 +106,24 @@
   "block.rpg-minibosses.poster_mage": "Wanted Poster (Fire Mage)",
   "block.rpg-minibosses.poster_rogue": "Wanted Poster (Rogue)",
   "block.rpg-minibosses.poster_templar": "Wanted Poster (Templar)",
+  "item.rpg-minibosses.abberraths_hooves": "Abberath's Hooves",
+  "item.rpg-minibosses.whispering_ice": "Whispering Ice",
+
+  "spell.rpg-minibosses.abberrath_nova.name": "Abberath's Fury",
+  "spell.rpg-minibosses.abberrath_nova.description": "Release a Fire Nova every time you sprint 4 meters, dealing {damage} fire damage.",
+  "spell.rpg-minibosses.ice_storm.name": "Ice Storm",
+  "spell.rpg-minibosses.ice_storm.description": "Conjure an Ice Storm over a target location, lasting 4 seconds. Each projectile deals {damage} Frost Damage.",
+  "text.rpg-minibosses.abberraths_hooves": "The Goat King's stampede turned all into ash.",
+  "text.rpg-minibosses.whispering_ice": "Your darkest thoughts are the cracks through which The Nightmare crawls.",
 
   "itemGroup.rpg-minibosses.eggs": "ANARCHY",
+  "itemGroup.rpg-minibosses.armors": "ANARCHY Armors",
+
   "text.rpg-minibosses.petrified": "This long forgotten adventurer seems to be petrified...",
   "text.rpg-minibosses.petrified2": "Perhaps further investigation will do something...",
-  "text.rpg-minibosses.spare": "Right-click to spare the adventurer",
-  "text.rpg-minibosses.lavos_horn": "Even though the past holds great trauma, there is still comfort to be had in memories.",
-  "text.rpg-minibosses.lavos_horn_2": "Holding this invokes memories of a forgotten mage.",
+  "text.rpg-minibosses.spare": "Right-click to spare and recruit the adventurer",
 
-  "effect.rpg-minibosses.feather": "Lesser Phoenix Down",
+  "effect.rpg-minibosses.feather": "Phoenix Down",
   "effect.rpg-minibosses.petrified": "Petrified",
   "effect.rpg-minibosses.arctic_armor": "Arctic Armor",
   "effect.rpg-minibosses.shrapnel": "Shrapnel",
@@ -106,6 +131,9 @@
   "effect.rpg-minibosses.dark_matter": "Dark Matter",
   "structure.ancient_trials.dungeon_trial": "Ancient Trial Dungeon",
   "structure.rpg-minibosses.wanted": "Wanted Board",
+  "structure.rpg-minibosses.snowy_camp": "Snowy Vagrant Camp",
+  "structure.rpg-minibosses.desert_camp": "Sandy Vagrant Camp",
+  "structure.rpg-minibosses.plains_camp": "Pristine Vagrant Camp",
 
   "subtitles.rpg-minibosses.anticipation" : "Anticipation"
 }

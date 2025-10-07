@@ -12,6 +12,8 @@ import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
 import mod.azure.azurelib.util.AzureLibUtil;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SnowBlock;
@@ -19,8 +21,14 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.ai.control.JumpControl;
 import net.minecraft.entity.ai.control.LookControl;
+import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.ai.pathing.EntityNavigation;
+import net.minecraft.entity.ai.pathing.PathNodeMaker;
+import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.entity.boss.ServerBossBar;
 import net.minecraft.entity.damage.DamageSource;
@@ -32,10 +40,12 @@ import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.*;
+import net.minecraft.entity.passive.RabbitEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -49,6 +59,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -74,23 +85,29 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.raycastObstacleFree;
-import static java.lang.Math.*;
+import static java.lang.Math.max;
+import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
 import static net.spell_engine.particle.ParticleHelper.sendBatches;
 import static net.spell_power.api.SpellSchools.*;
 
-public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
+public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity {
     private int arctic;
 
-    public MagusPrimeEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    public MagusPrimeEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
-        this.bossBar = (ServerBossBar)(new ServerBossBar(this.getDisplayName(), BossBar.Color.PURPLE, BossBar.Style.PROGRESS)).setDarkenSky(true);
+        this.bossBar = (ServerBossBar) (new ServerBossBar(this.getDisplayName(), BossBar.Color.PURPLE, BossBar.Style.PROGRESS)).setDarkenSky(true);
         this.experiencePoints = 500;
+        this.moveControl = new MinibossMoveConrol(this);
 
         this.lookControl = new MinibossLookControl(this);
     }
+
+
     public static final TrackedData<Boolean> CASTINGBOOL;
 
     public static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.magus.idle");
+    public static final RawAnimation IDLE_M = RawAnimation.begin().thenLoop("animation.magus.walk_1");
+
     public static final RawAnimation IDLE2 = RawAnimation.begin().thenPlay("animation.magus.idle2");
 
     public static final RawAnimation GLOVE = RawAnimation.begin().thenPlay("animation.magus.glovepull");
@@ -98,23 +115,29 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
     public static final RawAnimation CAST_QUICK = RawAnimation.begin().thenPlay("animation.magus.cast.quick");
 
     public static final RawAnimation CASTING = RawAnimation.begin().thenPlay("animation.magus.casting");
+    public static final RawAnimation CAST_QUICK_M = RawAnimation.begin().thenPlay("animation.magus.cast.quick2");
+
+    public static final RawAnimation CASTING_M = RawAnimation.begin().thenPlay("animation.magus.casting2");
     public static final RawAnimation INTRO = RawAnimation.begin().thenPlay("animation.magus.intro");
 
     public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
     public void playBoom(){
         this.playSound(RPGMinibosses.ANTICIPATION_SOUND,1,1);
     }
-    public void resetIndicator(){
-        this.getDataTracker().set(INDICATOR,0);
+
+    public void resetIndicator() {
+        this.getDataTracker().set(INDICATOR, 0);
         this.playBoom();
     }
-    public void tickIndicator(){
-        this.getDataTracker().set(INDICATOR,this.getDataTracker().get(INDICATOR)+1);
+
+    public void tickIndicator() {
+        this.getDataTracker().set(INDICATOR, this.getDataTracker().get(INDICATOR) + 1);
     }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
-        animationData.add(new AnimationController<MagusPrimeEntity>(this,"walk",
-                0,this::predicate2)
+        animationData.add(new AnimationController<MagusPrimeEntity>(this, "walk",
+                0, this::predicate2)
         );
 
         animationData.add(
@@ -127,19 +150,45 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
                 new AnimationController<>(this, "dash", event -> PlayState.CONTINUE)
                         .triggerableAnim("dash", DASH));
         animationData.add(
+                new AnimationController<>(this, "castquickm", event -> PlayState.CONTINUE)
+                        .triggerableAnim("castquickm", CAST_QUICK));
+        animationData.add(
                 new AnimationController<>(this, "castquick", event -> PlayState.CONTINUE)
-                        .triggerableAnim("castquick", CAST_QUICK));
+                        .triggerableAnim("castquick", CAST_QUICK_M));
         animationData.add(
                 new AnimationController<>(this, "casting", event -> PlayState.CONTINUE)
                         .triggerableAnim("casting", CASTING));
+        animationData.add(
+                new AnimationController<>(this, "castingm", event -> PlayState.CONTINUE)
+                        .triggerableAnim("castingm", CASTING_M));
         animationData.add(
                 new AnimationController<>(this, "intro", event -> PlayState.CONTINUE)
                         .triggerableAnim("intro", INTRO));
     }
 
     private PlayState predicate2(AnimationState<MagusPrimeEntity> state) {
+        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length() / 0.1F : 1F));
 
+        if (state.isMoving()) {
+            return state.setAndContinue(IDLE_M);
+        }
         return state.setAndContinue(IDLE);
+
+    }
+
+    private PlayState predicate3(AnimationState<MagusPrimeEntity> state) {
+        if (state.isMoving()) {
+            state.setAndContinue(CASTING_M);
+        }
+        return state.setAndContinue(CASTING);
+
+    }
+
+    private PlayState predicate4(AnimationState<MagusPrimeEntity> state) {
+        if (state.isMoving()) {
+            state.setAndContinue(CAST_QUICK_M);
+        }
+        return state.setAndContinue(CAST_QUICK);
 
     }
 
@@ -155,55 +204,61 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
     public static ArrayList<Identifier> LONGRANGE = new ArrayList<>();
     public static ArrayList<String> modes = new ArrayList<>();
 
-    public int getIndicator(){
+    public int getIndicator() {
         return this.getDataTracker().get(INDICATOR);
 
     }
+
     public static ArrayList<Identifier> SHORTCASTPROJECTILE = new ArrayList<>();
     public static ArrayList<Identifier> LONGCASTPROJECTILE = new ArrayList<>();
     public static ArrayList<Identifier> CUSTOMSPELLS = new ArrayList<>();
-    public static int rgba(int alpha, int red, int green, int blue) {
-        return (red << 16) | (green << 8) | (blue) ;
-    }
-    static {
-        ARCTICARMORPARTICLES = new ParticleBatch(Particles.snowflake.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET,null,0,0,50,0.1F,0.1F,0,0,20,false);
-        SHIELDPARTICLES_BLUE = new ParticleBatch(Particles.snowflake.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET,null,0,0,50,0.1F,0.1F,0,0,20,false);
-        SHIELDPARTICLES_RED = new ParticleBatch(Particles.flame.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET,null,0,0,50,0.1F,0.1F,0,0,20,false);
-        SHIELDPARTICLES_PURPLE = new ParticleBatch(Particles.arcane_spell.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET,null,0,0,50,0.1F,0.1F,0,0,20,false);
 
-        modes.addAll(List.of("PROJECTILE","NOVA"));
+    public static int rgba(int alpha, int red, int green, int blue) {
+        return (red << 16) | (green << 8) | (blue);
+    }
+
+    static {
+        ARCTICARMORPARTICLES = new ParticleBatch(Particles.snowflake.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET, null, 0, 0, 50, 0.1F, 0.1F, 0, 0, 20, false);
+        SHIELDPARTICLES_BLUE = new ParticleBatch(Particles.snowflake.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET, null, 0, 0, 50, 0.1F, 0.1F, 0, 0, 20, false);
+        SHIELDPARTICLES_RED = new ParticleBatch(Particles.flame.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET, null, 0, 0, 50, 0.1F, 0.1F, 0, 0, 20, false);
+        SHIELDPARTICLES_PURPLE = new ParticleBatch(Particles.arcane_spell.id.toString(), ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.FEET, null, 0, 0, 50, 0.1F, 0.1F, 0, 0, 20, false);
+
+        modes.addAll(List.of("PROJECTILE", "NOVA"));
         CASTINGBOOL = DataTracker.registerData(MagusPrimeEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         NOVA.addAll(List.of(
-                Identifier.of(RPGMinibosses.MOD_ID,"fire_nova"),
-                Identifier.of(RPGMinibosses.MOD_ID,"arctic_armor")
-                ));
+                Identifier.of(RPGMinibosses.MOD_ID, "fire_nova"),
+                Identifier.of(RPGMinibosses.MOD_ID, "arctic_armor")
+        ));
         LONG_NOVA.addAll(List.of(
-                Identifier.of(RPGMinibosses.MOD_ID,"phoenix_nova"),
-                Identifier.of(RPGMinibosses.MOD_ID,"arcane_nova"),
-                Identifier.of(RPGMinibosses.MOD_ID,"deathchill_nova")
+                Identifier.of(RPGMinibosses.MOD_ID, "phoenix_nova"),
+                Identifier.of(RPGMinibosses.MOD_ID, "arcane_nova"),
+                Identifier.of(RPGMinibosses.MOD_ID, "deathchill_nova")
         ));
 
         SHOCKWAVES.addAll(List.of(
-                Identifier.of(RPGMinibosses.MOD_ID,"lightning_fall"),
-                Identifier.of(RPGMinibosses.MOD_ID,"soul_burst")
+                Identifier.of(RPGMinibosses.MOD_ID, "lightning_fall"),
+                Identifier.of(RPGMinibosses.MOD_ID, "soul_burst")
 
         ));
         SHORTCASTPROJECTILE.addAll(List.of(
-                Identifier.of(RPGMinibosses.MOD_ID,"fireball"),
-                Identifier.of(RPGMinibosses.MOD_ID,"arcane_projectile"),
-                Identifier.of(RPGMinibosses.MOD_ID,"ice_bolt")
-                ));
+                Identifier.of(RPGMinibosses.MOD_ID, "fireball"),
+                Identifier.of(RPGMinibosses.MOD_ID, "arcane_projectile"),
+                Identifier.of(RPGMinibosses.MOD_ID, "ice_bolt")
+        ));
         LONGCASTPROJECTILE.addAll(List.of(
-                Identifier.of(RPGMinibosses.MOD_ID,"greater_fireball"),
-                Identifier.of(RPGMinibosses.MOD_ID,"amethyst_chunk"),
-                Identifier.of(RPGMinibosses.MOD_ID,"ice_chunk")));
+                Identifier.of(RPGMinibosses.MOD_ID, "greater_fireball"),
+                Identifier.of(RPGMinibosses.MOD_ID, "amethyst_chunk"),
+                Identifier.of(RPGMinibosses.MOD_ID, "ice_chunk")));
         INDICATOR = DataTracker.registerData(MagusPrimeEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
     }
+
     public SpellSchool spellSchool = SpellSchools.ARCANE;
-    public SpellSchool getSpellSchool(){
+
+    public SpellSchool getSpellSchool() {
         return spellSchool;
     }
+
     @Override
     protected void initDataTracker() {
         super.initDataTracker();
@@ -215,37 +270,44 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if(source.getAttacker() != null){
-            if(source.getAttacker()  instanceof ServerPlayerEntity player){
+        if (source.getAttacker() != null) {
+            if (source.getAttacker() instanceof ServerPlayerEntity player) {
                 this.bossBar.addPlayer(player);
 
-                if(!source.isOf(DamageTypes.THORNS) &&  this.hasStatusEffect(Effects.ARCTICARMOR.effect) && this.distanceTo(player) < 4 && !source.isIndirect() && arctic >= 10){
+                if (!source.isOf(DamageTypes.THORNS) && this.hasStatusEffect(Effects.ARCTICARMOR.effect) && this.distanceTo(player) < 4 && !source.isIndirect() && arctic >= 10) {
                     arctic = 0;
 
-                    Spell spell = SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"ice_bolt"));
+                    Spell spell = net.spell_engine.internals.SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "ice_bolt"));
 
-                    SpellHelper.performImpacts(this.getWorld(),this,player,player,new SpellInfo(spell,Identifier.of(RPGMinibosses.MOD_ID,"ice_bolt")),
-                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(FROST, this)).position(this.getPos()),false);
+                    SpellHelper.performImpacts(this.getWorld(), this, player, player, new SpellInfo(spell, Identifier.of(RPGMinibosses.MOD_ID, "ice_bolt")),
+                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(FROST, this)).position(this.getPos()), false);
                 }
             }
 
 
         }
-        if(source.isOf(DamageTypes.FALL)){
+        if (source.isOf(DamageTypes.FALL)) {
             return false;
         }
-
+        if (source.isOf(this.getSpellSchool().damageType) || source.isOf(SpellSchools.HEALING.damageType)) {
+            if (this.hasStatusEffect(Effects.MAGUS_BARRIER.effect)) {
+                this.removeStatusEffect(Effects.MAGUS_BARRIER.effect);
+                this.playSound(RPGMinibosses.EXPLOSION_SOUND, 0.4F, 0.8F);
+            }
+        }
         return super.damage(source, amount);
     }
+
     @Override
     public void onSpawnPacket(EntitySpawnS2CPacket packet) {
         super.onSpawnPacket(packet);
     }
 
-    public ItemStack getMainWeapon(){
+    public ItemStack getMainWeapon() {
         return ItemStack.EMPTY;
 
     }
+
     private final ServerBossBar bossBar;
 
     @Override
@@ -253,7 +315,9 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
         super.onStoppedTrackingBy(player);
         this.bossBar.removePlayer(player);
     }
+
     public int thornstimer = 0;
+
     @Override
     public void tick() {
         if(this.age % 10 == 0 && !this.getWorld().isClient()){
@@ -286,20 +350,20 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
                 (this).triggerAnim("intro", "intro");
                 ((WorldScheduler) this.getWorld()).schedule(30, () -> {
                             this.performing = false;
-                            this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.effect,-1,0,false,false));
+                            this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.effect, -1, 0, false, false));
                         }
                 );
                 this.performing = true;
             }
         }
-        if(this.getTarget() != null){
-            if(this.getTarget() instanceof ServerPlayerEntity player){
+        if (this.getTarget() != null) {
+            if (this.getTarget() instanceof ServerPlayerEntity player) {
                 this.bossBar.addPlayer(player);
             }
 
 
         }
-        if(this.bossBar != null){
+        if (this.bossBar != null) {
             this.bossBar.setPercent(this.getHealth() / this.getMaxHealth());
 
             SpellSchool magicSchool = this.getSpellSchool();
@@ -313,62 +377,95 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
         }
         this.arctic++;
         super.tick();
-        if(!this.getWorld().isClient){
+        if (!this.getWorld().isClient) {
             tickIndicator();
+
         }
+        if (this.getWorld().isClient) {
+            setRotationFromVelocity(this);
+
+        }
+
     }
 
     @Override
     public void tickMovement() {
-        if(!notPetrified()){
-            if(!this.isOnGround()) {
+        if (!notPetrified()) {
+            if (!this.isOnGround()) {
                 super.tickMovement();
 
             }
             return;
         }
+
         super.tickMovement();
+
     }
 
 
+    @Override
+    protected ActionResult interactMob(PlayerEntity player, Hand hand) {
+        if (!this.notPetrified()) {
+            for (MinibossEntity boss : this.getWorld().getEntitiesByType(TypeFilter.instanceOf(MinibossEntity.class), this.getBoundingBox().expand(8), Predicates.alwaysTrue())) {
+                if (!boss.notPetrified()) {
+                    boss.playIntro(player);
 
-    public String introTranslation(){
+                }
+            }
+            playIntro(player);
+            return ActionResult.SUCCESS;
+
+        }
+
+        return ActionResult.PASS;
+    }
+
+    public String introTranslation() {
         return "text.rpg-minibosses.petrified";
     }
     public boolean notPetrified(){
         return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value());
     }
+
     @Override
     public boolean isInvulnerable() {
-        return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.isInvulnerable();
+        return Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.isInvulnerable();
     }
 
 
-
-
-
+    public void playIntro(PlayerEntity player) {
+        if (!this.notPetrified()) {
+            this.removeStatusEffect(this.getIntroEffect().value());
+            playReleaseParticlesAndSound();
+        }
+    }
 
     @Override
     public double getTick(Object entity) {
-        if(entity instanceof LivingEntity living){
-            if(!notPetrified()){
+        if (entity instanceof LivingEntity living) {
+            if (!notPetrified()) {
                 return 0;
             }
         }
         return GeoEntity.super.getTick(entity);
     }
 
-    public void playReleaseParticlesAndSound(){
-        if(!this.getWorld().isClient()) {
-            sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-            SoundHelper.playSound(this.getWorld(), this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.sound);
+    public void playReleaseParticlesAndSound() {
+        if (!this.getWorld().isClient()) {
+            sendBatches(this, net.spell_engine.internals.SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+            SoundHelper.playSound(this.getWorld(), this, net.spell_engine.internals.SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.sound);
         }
     }
-    public int delay(){
+
+    public int delay() {
         return 1;
     }
 
-    public RegistryEntry<StatusEffect> getIntroEffect(){
+    public void applyIntroEffect() {
+        this.addStatusEffect(new StatusEffectInstance(getIntroEffect().value(), -1, 2, false, false));
+    }
+
+    public RegistryEntry<StatusEffect> getIntroEffect() {
         return Effects.PETRIFIED.registryEntry;
     }
 
@@ -376,129 +473,131 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
     protected void dropLoot(DamageSource damageSource, boolean causedByPlayer) {
         super.dropLoot(damageSource, causedByPlayer);
     }
- /*   public void performCustomSpell(Identifier id) {
-        if(id.equals(Identifier.of(RPGMinibosses.MOD_ID,"arctic_armor"))){
-            this.addStatusEffect(new StatusEffectInstance(Effects.ARCTICARMOR.registryEntry,160,0));
-            SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
-            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
-                        spell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+    /*   public void performCustomSpell(Identifier id) {
+           if(id.equals(Identifier.of(RPGMinibosses.MOD_ID,"arctic_armor"))){
+               this.addStatusEffect(new StatusEffectInstance(Effects.ARCTICARMOR.registryEntry,160,0));
+               SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-            }
-            Spell spell = SpellRegistry.getSpell(id);
-            Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.getSpell(id);
-            ParticleHelper.sendBatches(this, spell.release.particles);
-        }
+               for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
+                   boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
+                           spell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+
+               }
+               Spell spell = SpellRegistry.getSpell(id);
+               Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
+               ParticleHelper.sendBatches(this, spell.release.particles);
+           }
 
 
-    }*/
-    public void performSpell(String string,String string2){
+       }*/
+    public void performSpell(String string, String string2) {
         Spell spell = null;
-        if(string.equals("short")) {
-            if(string2.equals("projectile")) {
+        if (string.equals("short")) {
+            if (string2.equals("projectile")) {
                 Identifier id = SHORTCASTPROJECTILE.get(this.getRandom().nextInt(SHORTCASTPROJECTILE.size()));
 
                 SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
-                 spell = SpellRegistry.getSpell(id);
-                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(spell,id),
+                spell = SpellRegistry.getSpell(id);
+                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(spell, id),
                         new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
                 sendBatches(this, spell.release.particles);
             }
-            if(string2.equals("nova")) {
-                Identifier id = NOVA.get(this.getRandom().nextInt(NOVA.size()));
-                 spell = SpellRegistry.getSpell(id);
-                SoundHelper.playSound(this.getWorld(),this, new Sound("spell_engine:generic_fire_release"));
-
-                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Release.Target.Area(), null)) {
-                    SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(spell,id),
-                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
-
-                }
-                sendBatches(this,spell.release.particles);
-            }
-
         }
-        if(string.equals("long")) {
-            Identifier id = Identifier.of("","");
-            Optional<RegistryEntry.Reference<Spell>> spellReference = null;
-            if (string2.equals("projectile")) {
-                 id = LONGCASTPROJECTILE.get(this.getRandom().nextInt(LONGCASTPROJECTILE.size()));
+        if (string2.equals("nova")) {
+            Identifier id = NOVA.get(this.getRandom().nextInt(NOVA.size()));
+            spell = net.spell_engine.internals.SpellRegistry.getSpell(id);
+            SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
+            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
+                SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(spell, id),
+                        new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
-                SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
-
-                spell = SpellRegistry.getSpell(id);
             }
-            
-            if (string2.equals("nova")) {
-                 id = LONG_NOVA.get(this.getRandom().nextInt(LONG_NOVA.size()));
+            sendBatches(this, spell.release.particles);
+        }
 
-                spell = SpellRegistry.getSpell(id);
-                if(spell.school.equals(ARCANE)){
-                    this.addStatusEffect(new StatusEffectInstance(ARCANE.boostEffect,160,3,true,true));
-                }
-                else if(spell.school.equals(FIRE)){
-                    this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.effect,80,7,false,false));
 
-                }
-                else if(spell.school.equals(FROST)){
-                    this.addStatusEffect(new StatusEffectInstance(Effects.ARCTICARMOR.effect,160,0,false,false));
+        if(string.equals("long"))
 
-                }
+    {
+        Identifier id = Identifier.of("", "");
+        Optional<RegistryEntry.Reference<Spell>> spellReference = null;
+        if (string2.equals("projectile")) {
+            id = LONGCASTPROJECTILE.get(this.getRandom().nextInt(LONGCASTPROJECTILE.size()));
+
+
+            SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
+
+            spell = SpellRegistry.getSpell(id);
+        }
+
+        if (string2.equals("nova")) {
+            id = LONG_NOVA.get(this.getRandom().nextInt(LONG_NOVA.size()));
+
+            spell = SpellRegistry.getSpell(id);
+            if (spell.school.equals(ARCANE)) {
+                this.addStatusEffect(new StatusEffectInstance(ARCANE.boostEffect, 160, 3, true, true));
+            } else if (spell.school.equals(FIRE)) {
+                this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.effect, 80, 7, false, false));
+
+            } else if (spell.school.equals(FROST)) {
+                this.addStatusEffect(new StatusEffectInstance(Effects.ARCTICARMOR.effect, 160, 0, false, false));
+
             }
+        }
 
-            Identifier idShockWave = SHOCKWAVES.get(this.getRandom().nextInt(SHOCKWAVES.size()));
+        Identifier idShockWave = SHOCKWAVES.get(this.getRandom().nextInt(SHOCKWAVES.size()));
 
-            Spell spellShockwave = SpellRegistry.getSpell(idShockWave);
+        Spell spellShockwave = SpellRegistry.getSpell(idShockWave);
 
-            final Spell finalSpell = spell;
-            Optional<RegistryEntry.Reference<Spell>> finalSpellReference = spellReference;
-            List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
-            players.forEach(player -> {
+        final Spell finalSpell = spell;
+        Optional<RegistryEntry.Reference<Spell>> finalSpellReference = spellReference;
+        List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
+        players.forEach(player -> {
 
-                player.sendMessage(Text.translatable("Barrier change / Only " + finalSpell.school.id.getPath().toUpperCase() + " damages."), true);
-            });
-
-
-            Identifier finalId = id;
-            ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                    if (this.getTarget() != null) {
-                        if (string2.equals("projectile")) {
-
-                            SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
+            player.sendMessage(Text.translatable("Barrier change / Weak to " + finalSpell.school.id.getPath().toUpperCase() + " power."), true);
+        });
 
 
-                            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(finalSpell, finalId),
-                                    new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+        Identifier finalId = id;
+        ((WorldScheduler) this.getWorld()).schedule(40, () -> {
+            if (this.getTarget() != null) {
+                if (string2.equals("projectile")) {
 
-                            sendBatches(this, finalSpell.release.particles);
-                        }
-                        if (string2.equals("nova")) {
+                    SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
-                            SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
 
-                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
-                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(finalSpell, finalId),
-                                         new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                    SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(finalSpell, finalId),
+                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
-                            }
-                            sendBatches(this, finalSpell.release.particles);
+                    sendBatches(this, finalSpell.release.particles);
+                }
+                if (string2.equals("nova")) {
 
-                        }
+                    SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_fire_release"));
+
+                    for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
+                        SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(finalSpell, finalId),
+                                new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
                     }
-                    if (finalSpell != null && finalSpell.school != null) {
-                        this.spellSchool = finalSpell.school;
+                    sendBatches(this, finalSpell.release.particles);
+
+                }
+
+            }
+            if (finalSpell != null && finalSpell.school != null) {
+                this.spellSchool = finalSpell.school;
 
 
-                    }
-                    this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.effect, -1, 0));
+            }
+            this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.effect, -1, 0));
 
-                });
-        }
+        });
+    }
 
     }
     public static final TrackedData<Integer> INDICATOR ;
@@ -508,7 +607,217 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
     public static ParticleBatch SHIELDPARTICLES_BLUE;
     public static ParticleBatch SHIELDPARTICLES_RED;
 
+    public class MinibossMoveConrol extends MoveControl {
 
+        public MinibossMoveConrol(MobEntity entity) {
+            super(entity);
+        }
+
+        public void tick() {
+            float n;
+            if (this.state == MoveControl.State.STRAFE) {
+                float f = (float)this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                float g = (float)this.speed * f;
+                float h = this.forwardMovement;
+                float i = this.sidewaysMovement;
+                float j = MathHelper.sqrt(h * h + i * i);
+                if (j < 1.0F) {
+                    j = 1.0F;
+                }
+
+                j = g / j;
+                h *= j;
+                i *= j;
+                float k = MathHelper.sin(this.entity.getYaw() * 0.017453292F);
+                float l = MathHelper.cos(this.entity.getYaw() * 0.017453292F);
+                float m = h * l - i * k;
+                n = i * l + h * k;
+                if (!this.isPosWalkable(m, n) && this.state == MoveControl.State.JUMPING) {
+                    this.forwardMovement = 1.0F;
+                    this.sidewaysMovement = 0.0F;
+                }
+
+                this.entity.setMovementSpeed(g);
+                this.entity.setForwardSpeed(this.forwardMovement);
+                this.entity.setSidewaysSpeed(this.sidewaysMovement);
+                BlockPos blockPos = this.entity.getBlockPos();
+                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
+                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
+
+                this.state = MoveControl.State.WAIT;
+
+                if (isOnGround() && (horizontalCollision || this.entity.getWorld().getBlockState(BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getVelocity().subtract(0,this.entity.getVelocity().getY(),0).multiply(20)))).isSolidBlock(this.entity.getWorld(),BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getVelocity().subtract(0,this.entity.getVelocity().getY(),0).multiply(20))))) ) {
+                    this.entity.getJumpControl().setActive();
+                    this.state = MoveControl.State.JUMPING;
+                }
+            } else if (this.state == MoveControl.State.MOVE_TO) {
+                this.state = MoveControl.State.WAIT;
+                double d = this.targetX - this.entity.getX();
+                double e = this.targetZ - this.entity.getZ();
+                double o = this.targetY - this.entity.getY();
+                double p = d * d + o * o + e * e;
+                if (p < 2.500000277905201E-7) {
+                    this.entity.setForwardSpeed(0.0F);
+                    return;
+                }
+
+                n = (float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F;
+                this.entity.setYaw(this.wrapDegrees(this.entity.getYaw(), n, 90.0F));
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                BlockPos blockPos = this.entity.getBlockPos();
+                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
+                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
+                if (o > 0 && d * d + e * e < (double)Math.max(1.0F, this.entity.getWidth()) || !voxelShape.isEmpty() && this.entity.getY() < voxelShape.getMax(Direction.Axis.Y) + (double)blockPos.getY() && !blockState.isIn(BlockTags.DOORS) && !blockState.isIn(BlockTags.FENCES)) {
+                    this.entity.getJumpControl().setActive();
+                    this.state = MoveControl.State.JUMPING;
+                }
+            } else if (this.state == MoveControl.State.JUMPING) {
+                this.entity.setMovementSpeed((float)(this.speed * this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+                if (this.entity.isOnGround()) {
+                    this.state = MoveControl.State.WAIT;
+                }
+            } else {
+                this.entity.setForwardSpeed(0.0F);
+            }
+
+        }
+        private boolean isPosWalkable(float x, float z) {
+            EntityNavigation entityNavigation = this.entity.getNavigation();
+            if (entityNavigation != null) {
+                PathNodeMaker pathNodeMaker = entityNavigation.getNodeMaker();
+                BlockPos.Mutable mutable = BlockPos.ofFloored(this.entity.getX() + (double)x, (double)this.entity.getBlockY(), this.entity.getZ() + (double)z).mutableCopy();
+                if (pathNodeMaker != null && pathNodeMaker.getDefaultNodeType(this.entity.getWorld(), mutable.getX(),mutable.getY(),mutable.getZ()) != PathNodeType.WALKABLE) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public void strafeTo(float forward, float sideways, float speed) {
+            super.strafeTo(forward, sideways);
+            this.speed = speed;
+
+        }
+
+        @Override
+        public double getSpeed() {
+            return super.getSpeed();
+        }
+
+        public boolean isStrafing(){
+            return this.state.equals(State.STRAFE);
+        }
+
+    }
+
+    public class MinibossLookControl extends LookControl {
+        protected final MobEntity entity;
+        protected float maxYawChange;
+        protected float maxPitchChange;
+        protected int lookAtTimer;
+        protected double x;
+        protected double y;
+        protected double z;
+        public MinibossLookControl(MobEntity entity) {
+            super(entity);
+            this.entity = entity;
+        }
+
+        public void lookAt(Vec3d direction) {
+            this.lookAt(direction.x, direction.y, direction.z);
+        }
+
+        public void lookAt(Entity entity) {
+            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ());
+        }
+
+        public void lookAt(Entity entity, float maxYawChange, float maxPitchChange) {
+            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ(), maxYawChange, maxPitchChange);
+        }
+
+        public void lookAt(double x, double y, double z) {
+            this.lookAt(x, y, z, (float)this.entity.getMaxLookYawChange(), (float)this.entity.getMaxLookPitchChange());
+        }
+
+        public void lookAt(double x, double y, double z, float maxYawChange, float maxPitchChange) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.maxYawChange = 30;
+            this.maxPitchChange = 30;
+            this.lookAtTimer = 8;
+        }
+
+        public void tick() {
+            if (this.lookAtTimer > 0) {
+
+                this.getTargetYaw().ifPresent((yaw) -> {
+                    this.entity.setHeadYaw(this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange));
+                    this.entity.setYaw((this.changeAngle(this.entity.getYaw(),yaw,this.maxYawChange)));
+                    this.entity.prevHeadYaw = this.entity.headYaw;
+                });
+                this.getTargetPitch().ifPresent((pitch) -> {
+                    this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
+                    this.entity.prevPitch = this.entity.getPitch();
+
+                });  } else {
+                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
+            }
+
+            this.clampHeadYaw();
+        }
+        protected void clampHeadYaw() {
+            if (!this.entity.getNavigation().isIdle()) {
+                this.entity.headYaw = MathHelper.clampAngle(this.entity.headYaw, this.entity.bodyYaw, (float)this.entity.getMaxHeadRotation());
+            }
+
+        }
+
+        protected boolean shouldStayHorizontal() {
+            return false;
+        }
+
+        public boolean isLookingAtSpecificPosition() {
+            return this.lookAtTimer > 0;
+        }
+
+        public double getLookX() {
+            return this.x;
+        }
+
+        public double getLookY() {
+            return this.y;
+        }
+
+        public double getLookZ() {
+            return this.z;
+        }
+
+        protected Optional<Float> getTargetPitch() {
+            double d = this.x - this.entity.getX();
+            double e = this.y - this.entity.getEyeY();
+            double f = this.z - this.entity.getZ();
+            double g = Math.sqrt(d * d + f * f);
+            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(g) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(-(MathHelper.atan2(e, g) * 57.2957763671875)));
+        }
+
+        protected Optional<Float> getTargetYaw() {
+            double d = this.x - this.entity.getX();
+            double e = this.z - this.entity.getZ();
+            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(d) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F);
+        }
+
+        protected float changeAngle(float from, float to, float max) {
+            float f = MathHelper.subtractAngles(from, to);
+            float g = MathHelper.clamp(f, -max, max);
+            return from + g;
+        }
+
+        private static double getLookingHeightFor(Entity entity) {
+            return entity instanceof LivingEntity ? entity.getEyeY() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0;
+        }
+    }
     @Override
     protected void mobTick() {
 
@@ -516,14 +825,15 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
             return;
         }
         if(this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget());
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
+            if(this.distanceTo(this.getTarget())< 8){
+                ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
+            }
         }
         if(!this.getWorld().isClient() && this.getHealth()/this.getMaxHealth() < 0.25F && darkmatter > 400 && !this.performing && this.getTarget() != null ) {
             this.resetIndicator();
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                if (this.getTarget() != null) {
+                if(this.getTarget() != null) {
 
                     (this).triggerAnim("casting", "casting");
                     this.getDataTracker().set(CASTINGBOOL, true);
@@ -532,7 +842,7 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
                     String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
                     List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
                     players.forEach(player -> {
-                        player.sendMessage(Text.translatable("Barrier change / Only " + SOUL.id.getPath().toUpperCase() + " damages."), true);
+                        player.sendMessage(Text.translatable("Barrier change / Weak to " + SOUL.id.getPath().toUpperCase() + " power."), true);
                     });
 
                     ((WorldScheduler) this.getWorld()).schedule(40, () -> {
@@ -567,9 +877,14 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
             this.resetIndicator();
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                if (this.getTarget() != null) {
+                if(this.getTarget() != null) {
+                    if(this.moveControl.isMoving()){
+                        (this).triggerAnim("castingm","castingm");
 
-                    (this).triggerAnim("casting", "casting");
+                    }
+                    else {
+                        (this).triggerAnim("casting", "casting");
+                    }
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK, 1, 1);
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
@@ -610,28 +925,8 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
 
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && this.getRandom().nextFloat() < 0.01F && this.getTarget() != null && !this.performing){
-            (this).triggerAnim("idle2","idle2");
 
-            ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-                        this.performing = false;
 
-                    }
-            );
-            this.performing = true;
-
-        }
-        if(!this.getWorld().isClient() && this.getRandom().nextFloat() < 0.01F &&  this.getTarget() != null && !this.performing){
-            (this).triggerAnim("glove","glove");
-
-            ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-                        this.performing = false;
-
-                    }
-            );
-            this.performing = true;
-
-        }
         if(!this.getWorld().isClient() && jumptimer > 200 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
             (this).triggerAnim("dash","dash");
 
@@ -686,11 +981,37 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
             darkmatter++;
 
         }
-        super.mobTick();
         if(this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget());
-            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
+            this.getLookControl().lookAt(this.getTarget(),360,360);
+        }
 
+        super.mobTick();
+
+    }
+
+
+    @Environment(value = EnvType.CLIENT)
+    public static void setRotationFromVelocity(Entity entity) {
+        Vec3d vec3d = entity.getVelocity();
+        if (vec3d.lengthSquared() != 0.0 && entity instanceof PathAwareEntity pathAwareEntity) {
+
+            vec3d = pathAwareEntity.getVelocity().multiply(-1);
+            double d = vec3d.horizontalLength();
+            float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
+            yaw = MathHelper.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
+
+
+
+            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw < -180.0F) {
+                ((PathAwareEntity) entity).prevBodyYaw -= 360.0F;
+            }
+
+            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw >= 180.0F) {
+                ((PathAwareEntity) entity).prevBodyYaw += 360.0F;
+            }
+
+            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
+            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
         }
     }
     private boolean performing;
@@ -755,31 +1076,6 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
         this.initCustomGoals();
     }
 
-    @Override
-    protected void applyDamage(DamageSource source, float amount) {
-        if(source.getAttacker() instanceof PlayerEntity player  ) {
-            SpellSchool magicSchool = this.getSpellSchool();
-            if (magicSchool.equals(FROST) && SpellPower.getSpellPower(magicSchool,player).baseValue() > 4) {
-                this.removeStatusEffect(Effects.MAGUS_BARRIER.effect);
-            } else if (magicSchool.equals(FIRE) && SpellPower.getSpellPower(magicSchool,player).baseValue() > 4) {
-                this.removeStatusEffect(Effects.MAGUS_BARRIER.effect);
-
-            } else if (magicSchool.equals(ARCANE) && SpellPower.getSpellPower(magicSchool,player).baseValue() > 4) {
-                this.removeStatusEffect(Effects.MAGUS_BARRIER.effect);
-
-            }
-            else if (magicSchool.equals(SOUL) && SpellPower.getSpellPower(magicSchool,player).baseValue() > 4) {
-                this.removeStatusEffect(Effects.MAGUS_BARRIER.effect);
-
-            }
-        }
-        if(this.getStatusEffect(Effects.MAGUS_BARRIER.effect) != null){
-            amount *= 0.05F;
-        }
-
-        super.applyDamage(source, amount);
-    }
-
     protected void initCustomGoals() {
     }
     public boolean isTwoHand(){
@@ -792,116 +1088,6 @@ public class MagusPrimeEntity extends PatrolEntity implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return instanceCache;
-    }
-    public class MinibossLookControl extends LookControl {
-        protected final MobEntity entity;
-        protected float maxYawChange;
-        protected float maxPitchChange;
-        protected int lookAtTimer;
-        protected double x;
-        protected double y;
-        protected double z;
-
-        public MinibossLookControl(MobEntity entity) {
-            super(entity);
-            this.entity = entity;
-        }
-
-        public void lookAt(Vec3d direction) {
-            this.lookAt(direction.x, direction.y, direction.z);
-        }
-
-        public void lookAt(Entity entity) {
-            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ());
-        }
-
-        public void lookAt(Entity entity, float maxYawChange, float maxPitchChange) {
-            this.lookAt(entity.getX(), getLookingHeightFor(entity), entity.getZ(), maxYawChange, maxPitchChange);
-        }
-
-        public void lookAt(double x, double y, double z) {
-            this.lookAt(x, y, z, (float)this.entity.getMaxLookYawChange(), (float)this.entity.getMaxLookPitchChange());
-        }
-
-        public void lookAt(double x, double y, double z, float maxYawChange, float maxPitchChange) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.maxYawChange = maxYawChange;
-            this.maxPitchChange = maxPitchChange;
-            this.lookAtTimer = 2;
-        }
-
-        public void tick() {
-            if (this.shouldStayHorizontal()) {
-                this.entity.setPitch(0.0F);
-            }
-
-            if (this.lookAtTimer > 0) {
-                --this.lookAtTimer;
-                this.getTargetYaw().ifPresent((yaw) -> {
-                    this.entity.headYaw = this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange);
-                });
-                this.getTargetPitch().ifPresent((pitch) -> {
-                    this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
-                });
-            } else {
-                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
-            }
-
-            this.clampHeadYaw();
-        }
-
-        protected void clampHeadYaw() {
-            if (!this.entity.getNavigation().isIdle()) {
-                this.entity.headYaw = MathHelper.clampAngle(this.entity.headYaw, this.entity.bodyYaw, (float)this.entity.getMaxHeadRotation());
-            }
-
-        }
-
-        protected boolean shouldStayHorizontal() {
-            return false;
-        }
-
-        public boolean isLookingAtSpecificPosition() {
-            return this.lookAtTimer > 0;
-        }
-
-        public double getLookX() {
-            return this.x;
-        }
-
-        public double getLookY() {
-            return this.y;
-        }
-
-        public double getLookZ() {
-            return this.z;
-        }
-
-        protected Optional<Float> getTargetPitch() {
-            double d = this.x - this.entity.getX();
-            double e = this.y - this.entity.getEyeY();
-            double f = this.z - this.entity.getZ();
-            double g = Math.sqrt(d * d + f * f);
-            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(g) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(-(MathHelper.atan2(e, g) * 57.2957763671875)));
-        }
-
-        protected Optional<Float> getTargetYaw() {
-            double d = this.x - this.entity.getX();
-            double e = this.z - this.entity.getZ();
-            return !(Math.abs(e) > 9.999999747378752E-6) && !(Math.abs(d) > 9.999999747378752E-6) ? Optional.empty() : Optional.of((float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F);
-        }
-
-        protected float changeAngle(float from, float to, float max) {
-            float f = MathHelper.subtractAngles(from, to);
-            float g = MathHelper.clamp(f, -max, max);
-            return from + g;
-        }
-
-        private static double getLookingHeightFor(Entity entity) {
-            return entity instanceof LivingEntity ? entity.getEyeY() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0;
-        }
     }
 
 }

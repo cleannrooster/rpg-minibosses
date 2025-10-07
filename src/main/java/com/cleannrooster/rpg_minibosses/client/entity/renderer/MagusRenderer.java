@@ -2,9 +2,14 @@ package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
 
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
+import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
+import com.cleannrooster.rpg_minibosses.entity.TemplarEntity;
+
 import mod.azure.azurelib.cache.object.BakedGeoModel;
 import mod.azure.azurelib.cache.object.GeoBone;
+import mod.azure.azurelib.core.animation.AnimatableManager;
 import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.object.Color;
 import mod.azure.azurelib.core.object.PlayState;
@@ -45,7 +50,6 @@ public class MagusRenderer<T extends MagusPrimeEntity, M extends BipedEntityMode
         }
         return super.getRenderColor(animatable, partialTick, packedLight);
     }
-
     @Override
     public void actuallyRender(MatrixStack poseStack, T animatable, BakedGeoModel model, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         if(animatable.age <= 2){
@@ -59,33 +63,54 @@ public class MagusRenderer<T extends MagusPrimeEntity, M extends BipedEntityMode
         }
     }
 
-
-
     @Override
     public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        if(bone.getName().equals("head")) {
+        var bool = ((bone.getName().equals("rightArm")));
+        var bool2 = ((bone.getName().equals("leftArm")));
+
+        if (bone.getName().equals("head") || bool || bool2) {
             poseStack.push();
             RenderUtils.translateMatrixToBone(poseStack, bone);
             RenderUtils.translateToPivotPoint(poseStack, bone);
             RenderUtils.rotateMatrixAroundBone(poseStack, bone);
             RenderUtils.scaleMatrixForBone(poseStack, bone);
-            poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
-            poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.getYaw() - animatable.headYaw, -75, 75)));
+
+            if (!bool) {
+                poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw- animatable.getYaw(partialTick), -180, 180)));
+                poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+
+            } else  {
+
+                poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( -animatable.bodyYaw+animatable.getYaw(partialTick), -180, 180)));
+
+            }
 
             if (bone.isTrackingMatrices()) {
                 Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());
                 Matrix4f localMatrix = RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations);
 
                 bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-                bone.setLocalSpaceMatrix(RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f()));
-                bone.setWorldSpaceMatrix(RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f()));
+                bone.setLocalSpaceMatrix(
+                        RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f())
+                );
+                bone.setWorldSpaceMatrix(
+                        RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f())
+                );
             }
 
             RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
 
             this.textureOverride = getTextureOverrideForBone(bone, this.animatable, partialTick);
-            Identifier texture = this.textureOverride == null ? getTexture(this.animatable) : this.textureOverride;
-            RenderLayer renderTypeOverride = getRenderTypeOverrideForBone(bone, this.animatable, texture, bufferSource, partialTick);
+            Identifier texture = this.textureOverride == null
+                    ? getTexture(this.animatable)
+                    : this.textureOverride;
+            RenderLayer renderTypeOverride = getRenderTypeOverrideForBone(
+                    bone,
+                    this.animatable,
+                    texture,
+                    bufferSource,
+                    partialTick
+            );
 
             if (texture != null && renderTypeOverride == null)
                 renderTypeOverride = getRenderType(this.animatable, texture, bufferSource, partialTick);
@@ -97,21 +122,33 @@ public class MagusRenderer<T extends MagusPrimeEntity, M extends BipedEntityMode
                 super.renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
 
             if (renderTypeOverride != null)
-                buffer = bufferSource.getBuffer(getRenderType(this.animatable, getTexture(this.animatable), bufferSource, partialTick));
+                buffer = bufferSource.getBuffer(
+                        getRenderType(this.animatable, getTexture(this.animatable), bufferSource, partialTick)
+                );
 
             if (!isReRender)
-                applyRenderLayersForBone(poseStack, animatable, bone, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+                applyRenderLayersForBone(
+                        poseStack,
+                        animatable,
+                        bone,
+                        renderType,
+                        bufferSource,
+                        buffer,
+                        partialTick,
+                        packedLight,
+                        packedOverlay
+                );
 
             super.renderChildBones(poseStack, animatable, bone, renderType, bufferSource, buffer, false, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
             poseStack.pop();
-
         }
         else{
             super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
 
         }
-    }
 
+
+    }
 
     @Override
     protected void applyRotations(T animatable, MatrixStack poseStack, float ageInTicks, float rotationYaw, float partialTick) {

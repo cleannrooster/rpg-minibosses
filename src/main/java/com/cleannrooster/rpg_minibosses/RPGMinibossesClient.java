@@ -8,6 +8,7 @@ import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.OrbRenderer;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
+import com.cleannrooster.rpg_minibosses.entity.TrapRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -48,7 +49,9 @@ public class RPGMinibossesClient implements ClientModInitializer {
 		EntityRendererRegistry.register(RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TemplarModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new JuggernautModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArchmageFireModel<>()));
-		EntityRendererRegistry.register(RPGMinibosses.ORBENTITY, OrbRenderer::new);
+        EntityRendererRegistry.register(RPGMinibossesEntities.TRAP, TrapRenderer::new);
+
+        EntityRendererRegistry.register(RPGMinibosses.ORBENTITY, OrbRenderer::new);
 		CustomModels.registerModelIds(List.of(Identifier.of(RPGMinibosses.MOD_ID,"projectile/iron_dagger")));
 
 		CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());

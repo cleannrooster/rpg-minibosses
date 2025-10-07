@@ -8,6 +8,8 @@ import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.TemplarEntity;
 import mod.azure.azurelib.cache.object.BakedGeoModel;
+
+
 import mod.azure.azurelib.cache.object.GeoBone;
 import mod.azure.azurelib.core.object.Color;
 import mod.azure.azurelib.model.GeoModel;
@@ -24,6 +26,7 @@ import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
+import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
@@ -37,15 +40,15 @@ import org.joml.Matrix4f;
 import java.awt.*;
 import java.util.List;
 
-public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityModel<T>> extends DynamicGeoEntityRenderer<T> {
+public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityModel<T>> extends mod.azure.azurelib.renderer.DynamicGeoEntityRenderer<T> {
 
     GeoModel<T> model;
 
-    public MinibossRenderer(EntityRendererFactory.Context renderManager, GeoModel<T> model) {
+    public MinibossRenderer(EntityRendererFactory.Context renderManager, mod.azure.azurelib.model.GeoModel<T> model) {
         super(renderManager, model);
         addRenderLayer(new RenderLayerItemMinibossEntity(this));
         addRenderLayer(new RenderBackLayerItemMinibossEntity(this));
-        this.model = (GeoModel<T>) model;
+        this.model = (mod.azure.azurelib.model.GeoModel<T>) model;
     }
 
     @Override
@@ -62,40 +65,66 @@ public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityMod
     public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         var bool = ((bone.getName().equals("rightArm")));
         var bool2 = ((bone.getName().equals("leftArm")));
-        var bool3 = animatable instanceof JuggernautEntity || animatable instanceof TemplarEntity;
+        var bool3 = animatable instanceof JuggernautEntity || animatable instanceof TemplarEntity ;
 
-        if (bone.getName().equals("head") || bool || bool2) {
-                    poseStack.push();
-                    RenderUtils.translateMatrixToBone(poseStack, bone);
-                    RenderUtils.translateToPivotPoint(poseStack, bone);
-                    RenderUtils.rotateMatrixAroundBone(poseStack, bone);
-                    RenderUtils.scaleMatrixForBone(poseStack, bone);
+        if (((bone.getName().equals("head")) || bool || bool2)) {
+            poseStack.push();
+            RenderUtils.translateMatrixToBone(poseStack, bone);
+            RenderUtils.translateToPivotPoint(poseStack, bone);
+            RenderUtils.rotateMatrixAroundBone(poseStack, bone);
+            RenderUtils.scaleMatrixForBone(poseStack, bone);
 
-                    if (!bool) {
-                        poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(- animatable.getYaw(partialTick)+90, -75, 75)));
-                        poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+            if (!(bool )) {
+            /*    if((bool2 && animatable instanceof ArtilleristEntity)){
+                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( animatable.bodyYaw-animatable.getYaw(partialTick), -180, 180)));
 
-                    } else if (!bool3 && !(animatable instanceof ArtilleristEntity && ((ArtilleristEntity) animatable).getDataTracker().get(ArtilleristEntity.CHARGING))) {
+                }*/
+                    poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw - animatable.getYaw(partialTick), -180, 180)));
 
-                        poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( animatable.getYaw(partialTick)-90, -75, 75)));
+                    poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
 
-                    }
 
+
+            } else if (!bool3 ) {
+                if(bool2 ){
+                    poseStack.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw - animatable.getYaw(partialTick), -180, 180)));
+
+                    poseStack.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
+
+                    //poseStack.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
+
+                }else {
+                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((animatable.isAttacking() ?  animatable instanceof ArtilleristEntity artilleristEntity ? 0.8F : 1.0F : 0F)*MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
+                }
+
+            }
 
             if (bone.isTrackingMatrices()) {
                 Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());
                 Matrix4f localMatrix = RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations);
 
                 bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-                bone.setLocalSpaceMatrix(RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f()));
-                bone.setWorldSpaceMatrix(RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f()));
+                bone.setLocalSpaceMatrix(
+                        RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f())
+                );
+                bone.setWorldSpaceMatrix(
+                        RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f())
+                );
             }
 
             RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
 
             this.textureOverride = getTextureOverrideForBone(bone, this.animatable, partialTick);
-            Identifier texture = this.textureOverride == null ? getTexture(this.animatable) : this.textureOverride;
-            RenderLayer renderTypeOverride = getRenderTypeOverrideForBone(bone, this.animatable, texture, bufferSource, partialTick);
+            Identifier texture = this.textureOverride == null
+                    ? getTexture(this.animatable)
+                    : this.textureOverride;
+            RenderLayer renderTypeOverride = getRenderTypeOverrideForBone(
+                    bone,
+                    this.animatable,
+                    texture,
+                    bufferSource,
+                    partialTick
+            );
 
             if (texture != null && renderTypeOverride == null)
                 renderTypeOverride = getRenderType(this.animatable, texture, bufferSource, partialTick);
@@ -107,18 +136,31 @@ public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityMod
                 super.renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
 
             if (renderTypeOverride != null)
-                buffer = bufferSource.getBuffer(getRenderType(this.animatable, getTexture(this.animatable), bufferSource, partialTick));
+                buffer = bufferSource.getBuffer(
+                        getRenderType(this.animatable, getTexture(this.animatable), bufferSource, partialTick)
+                );
 
             if (!isReRender)
-                applyRenderLayersForBone(poseStack, animatable, bone, renderType, bufferSource, buffer, partialTick, packedLight, packedOverlay);
+                applyRenderLayersForBone(
+                        poseStack,
+                        animatable,
+                        bone,
+                        renderType,
+                        bufferSource,
+                        buffer,
+                        partialTick,
+                        packedLight,
+                        packedOverlay
+                );
 
             super.renderChildBones(poseStack, animatable, bone, renderType, bufferSource, buffer, false, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
             poseStack.pop();
-
         }
         else{
             super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, red, green, blue, alpha);
         }
+
+
     }
 
     public void actuallyRender(MatrixStack poseStack, T animatable, BakedGeoModel model, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {

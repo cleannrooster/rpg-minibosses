@@ -6,7 +6,6 @@ import mod.azure.azurelib.core.animation.Animation;
 import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
-import net.minecraft.client.sound.Sound;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -18,6 +17,7 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.item.Item;
@@ -33,6 +33,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
+
+import net.spell_engine.api.spell.Sound;
 import net.spell_engine.api.spell.SpellInfo;
 import net.spell_engine.internals.SpellHelper;
 import net.spell_engine.internals.SpellRegistry;
@@ -48,7 +50,7 @@ import java.util.Optional;
 public class TricksterEntity extends MinibossEntity{
     List<Item> bonusList = List.of();
 
-    protected TricksterEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
@@ -59,7 +61,7 @@ public class TricksterEntity extends MinibossEntity{
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/dagger"))))
                 ;}).toList();
     }
-    protected TricksterEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+    protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -85,7 +87,7 @@ public class TricksterEntity extends MinibossEntity{
         }
 
     }
-    protected TricksterEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser,float spawnCoeff) {
+    protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser,float spawnCoeff) {
         super(entityType, world,spawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -144,6 +146,7 @@ public class TricksterEntity extends MinibossEntity{
 
 
     }
+
    public int pommelTick = 100;
     public int rolltimer = 40;
     public int defensetimer;
@@ -161,15 +164,14 @@ public class TricksterEntity extends MinibossEntity{
 
     @Override
     protected void mobTick() {
-        super.mobTick();
         if (this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget(),30,30);
+            this.getLookControl().lookAt(this.getTarget(),360,360);
         }
         if(!this.getWorld().isClient() && rolltimer > 80 &&  this.getTarget() != null && this.isAttacking()) {
             ((TricksterEntity)this).triggerAnim("roll","roll");
                 this.addVelocity(this.getRotationVector().multiply(2F));
 
-            this.rolltimer = 0;
+            this.rolltimer = 80 - (int)(80*this.getCooldownCoeff());
         }
 
         if(pommelTick == 120){
@@ -187,10 +189,10 @@ public class TricksterEntity extends MinibossEntity{
 
             if(this.getTarget()  != null ){
                 if( this.getTarget().distanceTo(this) > 4){
-                    this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
+                    this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 0.2F);
                 }
                 else{
-                    this.getMoveControl().strafeTo(-1,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F);
+                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2.5F, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.75F);
 
                 }
                 if(!this.getWorld().isClient() && throwtimer > 80 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
@@ -223,7 +225,7 @@ public class TricksterEntity extends MinibossEntity{
                         });
 
                     });
-                    this.throwtimer = 0;
+                    this.throwtimer = 80 - (int)(80*this.getCooldownCoeff());
                     this.performing = true;
                 }
 
@@ -233,6 +235,13 @@ public class TricksterEntity extends MinibossEntity{
                 this.defensetime = 80 + this.getRandom().nextInt(80);
             }
         }
+        super.mobTick();
+
+    }
+
+    @Override
+    public boolean isMobile() {
+        return true;
     }
 
     @Override
@@ -254,7 +263,7 @@ public class TricksterEntity extends MinibossEntity{
 
                     }
             );
-            this.dashtimer = 80 - (int)(80*this.getCooldownCoeff());;
+            this.dashtimer = 0;
             this.performing = true;
             this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT,1,1);
             return false;
@@ -272,7 +281,7 @@ public class TricksterEntity extends MinibossEntity{
                 living.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS,10,10));
 
             }
-            pommelTick = 120 - (int)(120*this.getCooldownCoeff());;
+            pommelTick = 120 - (int)(120*this.getCooldownCoeff());
             return super.tryAttack(target);
         }
         else if(swingBool){
@@ -316,9 +325,7 @@ public class TricksterEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "dashright", event -> PlayState.CONTINUE)
                         .triggerableAnim("dashright", DASHRIGHT));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
+
 
     }
 }

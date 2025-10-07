@@ -82,7 +82,7 @@ public class RPGMinibossesEntities {
     }
 
 
-    public static class Entry<T extends PatrolEntity> {
+    public static class Entry<T extends PathAwareEntity> {
         public final Identifier id;
         public EntityType<T> entityType;
         public EntityType.EntityFactory<T> entityFactory;
@@ -272,6 +272,7 @@ public class RPGMinibossesEntities {
             0xebcb6a,true);
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.MOD_ID,"generic"));
 
+    public static EntityType<TrapCleann> TRAP;
 
 
     public static ItemGroup RPGENTITIES;
@@ -310,6 +311,15 @@ public class RPGMinibossesEntities {
             FabricDefaultAttributeRegistry.register(entry.entityType, entry.attributes);
 
         }
+        TRAP = Registry.register(
+                ENTITY_TYPE,
+                Identifier.of(RPGMinibosses.MOD_ID, "trap"),
+                FabricEntityTypeBuilder.<TrapCleann>create(SpawnGroup.MISC, TrapCleann::new)
+                        .dimensions(EntityDimensions.fixed(1F, 1F)) // dimensions in Minecraft units of the render
+                        .trackRangeBlocks(128)
+                        .trackedUpdateRate(1)
+                        .build()
+        );
     }
 
 }

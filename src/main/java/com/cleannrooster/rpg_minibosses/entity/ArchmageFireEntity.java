@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 import mod.azure.azurelib.core.animation.*;
 import mod.azure.azurelib.core.object.PlayState;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -21,6 +22,7 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.CrossbowItem;
@@ -36,6 +38,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.Sound;
 import net.spell_engine.api.spell.Spell;
+
 import net.spell_engine.api.spell.SpellInfo;
 import net.spell_engine.internals.SpellHelper;
 import net.spell_engine.internals.SpellRegistry;
@@ -51,6 +54,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static net.spell_engine.particle.ParticleHelper.*;
+
 public class ArchmageFireEntity extends MinibossEntity  {
     private boolean performing;
     private int throwtimer = 20;
@@ -59,7 +64,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
     private int feathertimer = 160;
     public List<Item> bonusList = new ArrayList<>();
 
-    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
@@ -68,7 +73,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
                         && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
     }
-    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+    protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -91,7 +96,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
         }
     }
 
-    protected ArchmageFireEntity(EntityType<? extends PatrolEntity> entityType, World world,boolean lesser, float spawnCoeff) {
+    protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser, float spawnCoeff) {
         super(entityType, world,spawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -161,7 +166,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     protected void mobTick() {
-        super.mobTick();
 
         if(this.getTarget() != null ) {
             if( this.getTarget().distanceTo(this) > 8){
@@ -171,9 +175,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 this.getMoveControl().strafeTo(-1,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -1 : 1);
 
             }
-
             if (this.getTarget() != null) {
-                this.getLookControl().lookAt(this.getTarget(),30,30);
+                this.getLookControl().lookAt(this.getTarget(),360,360);
             }
         }
         if(!this.getWorld().isClient() && jumptimer > 160 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
@@ -187,7 +190,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.setVelocity(vec3);
             this.jumptimer = 160 - (int)(160*this.getCooldownCoeff());
         }
-        if(!this.getWorld().isClient() && throwtimer > 60 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
             ((ArchmageFireEntity)this).triggerAnim("throw1","throw1");
             if(this.getTarget() != null) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
@@ -196,7 +199,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")),Identifier.of(RPGMinibosses.MOD_ID,"fireball")),
                     new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
-            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
+            sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 ((ArchmageFireEntity)this).triggerAnim("throw2","throw2");
@@ -209,12 +212,12 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")),Identifier.of(RPGMinibosses.MOD_ID,"fireball")),
                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
 
-                ParticleHelper.sendBatches(this,SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
+                sendBatches(this,SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
 
             });
 
 
-            this.throwtimer = 60 - (int)(60*this.getCooldownCoeff());
+            this.throwtimer = 40 - (int)(40*this.getCooldownCoeff());
             this.performing = true;
         }
         if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
@@ -237,7 +240,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 });
 
             });
-            this.feathertimer = 320 - (int)(320*this.getCooldownCoeff());;
+            this.feathertimer = 320 - (int)(320*this.getCooldownCoeff());
             this.performing = true;
         }
         if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 6) {
@@ -259,13 +262,14 @@ public class ArchmageFireEntity extends MinibossEntity  {
                                          new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
 
                             }
-                            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
+
+                            sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
                             this.performing = false;
 
                         }
                 );
             });
-            this.novatimer = 220 - (int)(220*this.getCooldownCoeff());;
+            this.novatimer = 220 - (int)(220*this.getCooldownCoeff());
             this.performing = true;
         }
         if(!this.getWorld().isClient()){
@@ -274,6 +278,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
             feathertimer++;
             novatimer++;
         }
+        super.mobTick();
+
     }
 
 
@@ -290,9 +296,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         .triggerableAnim("wave", WAVE_LEFTHAND));    animationData.add(
                 new AnimationController<>(this, "walk_wave", event -> PlayState.CONTINUE)
                         .triggerableAnim("walk_wave", WALK_WAVE_LEFTHAND));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
 
     }
 

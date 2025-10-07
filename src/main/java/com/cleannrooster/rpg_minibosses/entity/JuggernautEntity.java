@@ -23,6 +23,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -59,7 +60,7 @@ public class JuggernautEntity extends MinibossEntity{
     List<Item> bonusList;
 
 
-    protected JuggernautEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+    protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
@@ -70,7 +71,7 @@ public class JuggernautEntity extends MinibossEntity{
                 ;}).toList();
 
     }
-    protected JuggernautEntity(EntityType<? extends PatrolEntity> entityType, World world,boolean lesser) {
+    protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -95,7 +96,7 @@ public class JuggernautEntity extends MinibossEntity{
         }
 
     }
-    protected JuggernautEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser, float SpawnCoeff) {
+    protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser, float SpawnCoeff) {
         super(entityType, world,SpawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -121,7 +122,7 @@ public class JuggernautEntity extends MinibossEntity{
 
     }
     public static final RawAnimation LEAPSLAM = RawAnimation.begin().thenPlay("animation.mob.jugg.leapslam");
-    public static final RawAnimation TWOHANDWAVE = RawAnimation.begin().then("animation.mob.wizard.staffwave", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation TWOHANDWAVE = RawAnimation.begin().then("animation.mob.wizard.staffwave2", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation TWOHANDSPIN = RawAnimation.begin().thenPlayXTimes("animation.mob.spin_2h", 4);
     public static final RawAnimation WINDDOWN = RawAnimation.begin().thenPlay("animation.mob.spinwinddown");
 
@@ -153,18 +154,55 @@ public class JuggernautEntity extends MinibossEntity{
 
     }
 
+    public int defensetime = 80;
 
 
             public void applyIntroEffect(){
         super.applyIntroEffect();
     }
-
+    public RegistryEntry<StatusEffect> getIntroEffect(){
+        return Effects.PETRIFIED.registryEntry;
+    }
     @Override
     protected void mobTick() {
-        super.mobTick();
 
         if (this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget(),30,30);
+            this.getLookControl().lookAt(this.getTarget(),360,360);
+        }
+        if(defensetimer > 0) {
+            if(this.getTarget()  != null ) {
+                if (this.getTarget().distanceTo(this) > 4) {
+                    this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
+                } else {
+                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
+
+                }
+                if (!this.getWorld().isClient() && slamtimer > 140 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {
+                    this.resetIndicator();
+                    ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+
+                        ((JuggernautEntity) this).triggerAnim("slam", "slam");
+                        ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
+                                boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")),Identifier.of(RPGMinibosses.MOD_ID, "pound")),new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()),
+                                        false );
+
+                            }
+                            this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE,1F,1F);
+                            this.performing = false;
+
+                        });
+
+                    });
+                    this.slamtimer = 140 - (int) (140 * this.getCooldownCoeff());
+                    this.performing = true;
+                }
+            }
+            if(this.defensetimer > defensetime){
+                this.defensetimer = -80 - this.getRandom().nextInt(80);
+                this.defensetime = 80 + this.getRandom().nextInt(80);
+            }
         }
         if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
             this.resetIndicator();
@@ -205,8 +243,9 @@ public class JuggernautEntity extends MinibossEntity{
 
                 });
 
-            this.spintimer = 480 - (int)(480*this.getCooldownCoeff());
+            this.spintimer = 460 - (int)(460*this.getCooldownCoeff());
             this.performing = true;
+
         }
         if(!this.getWorld().isClient() && leapTimer > 160 && !this.performing && this.getTarget() != null && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
             this.resetIndicator();
@@ -234,54 +273,19 @@ public class JuggernautEntity extends MinibossEntity{
             this.performing = true;
 
         }
-        if(defensetimer > 0) {
 
-            if (this.getTarget() != null) {
-                if (this.getTarget().distanceTo(this) > 4) {
-                    this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
-                } else {
-                    this.getMoveControl().strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F);
-
-                }
-                if (!this.getWorld().isClient() && slamtimer > 140 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {
-                    this.resetIndicator();
-                    ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-
-                        ((JuggernautEntity) this).triggerAnim("slam", "slam");
-                        ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                            ParticleHelper.sendBatches(this, SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Release.Target.Area(), null)) {
-                                SpellHelper.performImpacts(this.getWorld(), this, entity, this, new SpellInfo(SpellRegistry.getSpell(Identifier.of(RPGMinibosses.MOD_ID, "pound")), Identifier.of(RPGMinibosses.MOD_ID, "pound")),
-                                        new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
-
-                            }
-                            this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE, 1, 1);
-                            this.performing = false;
-
-                        });
-
-                    });
-                    this.slamtimer = 140 - (int) (140 * this.getCooldownCoeff());
-                    this.performing = true;
-                }
-                if (this.defensetimer > defensetime) {
-
-                    this.defensetimer = -80 - this.getRandom().nextInt(80);
-                    this.defensetime = 80 + this.getRandom().nextInt(80);
-                }
-
-            }
-
-        }
-        if (!this.getWorld().isClient()) {
+        if(!this.getWorld().isClient()) {
             slamtimer++;
             spintimer++;
-            defensetimer++;
             leapTimer++;
+            defensetimer++;
+
         }
+        super.mobTick();
+
     }
+
     public int defensetimer;
-    public int defensetime = 80;
 
 
     public int leapTimer;
@@ -335,8 +339,5 @@ public class JuggernautEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "swing2", event -> PlayState.CONTINUE)
                         .triggerableAnim("swing2", SWING2));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
     }
 }

@@ -3,21 +3,20 @@ package com.cleannrooster.rpg_minibosses.entity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import mod.azure.azurelib.core.animation.*;
+import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.object.PlayState;
-import net.fabricmc.fabric.api.networking.v1.FabricPacket;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.mob.PatrolEntity;
+import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -38,10 +37,10 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import net.spell_engine.api.spell.ParticleBatch;
-import net.spell_engine.api.spell.Sound;
-import net.spell_engine.api.spell.SpellInfo;
-import net.spell_engine.client.sound.SpellCastingSound;
+import net.spell_engine.api.spell.*;
+
+import net.spell_engine.entity.SpellProjectile;
+
 import net.spell_engine.internals.SpellHelper;
 import net.spell_engine.internals.SpellRegistry;
 import net.spell_engine.internals.WorldScheduler;
@@ -57,12 +56,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static net.spell_engine.internals.SpellHelper.fallProjectile;
+import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
+
 public class TemplarEntity extends MinibossEntity{
     private boolean performing;
     private boolean is_staff = false;
     private boolean is_twirl = false;
     List<Item> bonusList = List.of();
-    protected TemplarEntity(EntityType<? extends PatrolEntity> entityType, World world) {
+
+
+    protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         super.bonusList = Registries.ITEM.stream().filter(item -> {
             return
@@ -74,7 +78,7 @@ public class TemplarEntity extends MinibossEntity{
                     ;
         }).toList();
     }
-    protected TemplarEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser) {
+    protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -100,7 +104,7 @@ public class TemplarEntity extends MinibossEntity{
         }
 
     }
-    protected TemplarEntity(EntityType<? extends PatrolEntity> entityType, World world, boolean lesser,float spawnCoeff) {
+    protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser,float spawnCoeff) {
         super(entityType, world,spawnCoeff);
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
@@ -129,10 +133,7 @@ public class TemplarEntity extends MinibossEntity{
     public boolean skipMainHand(){
         return true;
     }
-    @Override
-    public EquipmentSlot getPreferredMinibossEquipmentSlot(ItemStack stack) {
-        return EquipmentSlot.OFFHAND;
-    }
+
 
     public static final RawAnimation STAFF = RawAnimation.begin().thenPlay("animation.valkyrie.staff");
     public static final RawAnimation DASHRIGHT = RawAnimation.begin().thenPlay("animation.valkyrie.dashright");
@@ -154,6 +155,8 @@ public class TemplarEntity extends MinibossEntity{
     public boolean isTwoHand() {
         return true;
     }
+
+
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
@@ -181,13 +184,16 @@ public class TemplarEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "swing2", event -> PlayState.CONTINUE)
                         .triggerableAnim("swing2", SWING2));
-        animationData.add(
-                new AnimationController<>(this, "down", event -> PlayState.CONTINUE)
-                        .triggerableAnim("down", DOWNANIM));
+
+
     }
+
 
             public void applyIntroEffect(){
         super.applyIntroEffect();
+    }
+    public RegistryEntry<StatusEffect> getIntroEffect(){
+        return Effects.PETRIFIED.registryEntry;
     }
     public Item getDefaultItem(){
         return Items.AIR;
@@ -204,11 +210,13 @@ public class TemplarEntity extends MinibossEntity{
     }
     @Override
     protected void mobTick() {
-        super.mobTick();
+
+
+
 
 
         if (this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget(),30,30);
+            this.getLookControl().lookAt(this.getTarget(),360,360);
         }
         if(!this.getWorld().isClient()) {
             stafftimer++;
@@ -235,7 +243,7 @@ public class TemplarEntity extends MinibossEntity{
 
                     }
             );
-            this.dashtimer = 80 - (int)(80*this.getCooldownCoeff());
+            this.dashtimer = 140 - (int)(140*this.getCooldownCoeff());
             this.performing = true;
 
         }
@@ -257,7 +265,7 @@ public class TemplarEntity extends MinibossEntity{
 
                 ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
             });
-            this.dash_attack_timer = 0;
+            this.dash_attack_timer = 80 - (int)(80*this.getCooldownCoeff());
             this.performing = true;
         }
         else
@@ -281,7 +289,7 @@ public class TemplarEntity extends MinibossEntity{
                 this.is_twirl = false;
 
             });
-            this.twirltimer = 180 - (int)(180*this.getCooldownCoeff());;
+            this.twirltimer = 180 - (int)(180*this.getCooldownCoeff());
             this.performing = true;
             this.is_twirl = true;
 
@@ -302,7 +310,7 @@ public class TemplarEntity extends MinibossEntity{
             this.getNavigation().stop();
             for(int i = 0 ; i < 5; i++) {
                 ((WorldScheduler) this.getWorld()).schedule(20*(i+1), () -> {
-                            if (this.getTarget() != null) {
+                            if (this.getTarget() != null && this.canSee(this.getTarget())) {
 
                                 SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), TargetHelper.TargetingMode.DIRECT);
                                 SoundHelper.playSound(this.getWorld(), this, new Sound("spell_engine:generic_healing_release"));
@@ -336,16 +344,18 @@ public class TemplarEntity extends MinibossEntity{
             this.performing = true;
         }
 
+
         if(this.is_twirl && this.getTarget() != null && !this.getWorld().isClient()){
             if(this.age % 4 == 0) {
                 ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
             }
         }
-        else
         if(this.is_staff){
             this.getNavigation().stop();
 
         }
+
+        super.mobTick();
 
     }
     public static void sendBatches(Entity trackedEntity, ParticleBatch[] batches, Vec3d pos, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
