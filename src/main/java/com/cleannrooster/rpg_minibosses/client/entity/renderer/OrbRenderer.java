@@ -2,7 +2,6 @@ package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
 import com.cleannrooster.rpg_minibosses.client.entity.model.OrbModel;
 import com.cleannrooster.rpg_minibosses.entity.OrbEntity;
-import com.cleannrooster.spellblades.client.entity.CycloneModel;
 import mod.azure.azurelib.common.api.client.renderer.GeoEntityRenderer;
 import mod.azure.azurelib.common.internal.common.cache.object.BakedGeoModel;
 import net.minecraft.client.MinecraftClient;

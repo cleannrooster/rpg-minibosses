@@ -4,7 +4,7 @@
       {
       "weight": 1,
       "element": {
-        "location": "rpg-minibosses:camp/plains_camp",
+        "location": "rpg-minibosses:camp/pristine3",
         "processors": "minecraft:empty",
 		"projection": "rigid",
         "element_type": "minecraft:single_pool_element"

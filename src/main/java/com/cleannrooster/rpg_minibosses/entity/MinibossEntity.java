@@ -102,6 +102,7 @@ import static net.minecraft.entity.mob.HostileEntity.isSpawnDark;
 
 public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEntity, Angerable, Merchant {
     private UUID ownerUuid;
+    public boolean performing;
 
     protected MinibossEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
@@ -141,6 +142,17 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         builder.add(NAME, -1);
         builder.add(DOWN, false);
         builder.add(INDICATOR, 40);
+        builder.add(OWNER_UUID, Optional.empty());
+        builder.add(CANTHIRE, false);
+
+    }
+
+    @Override
+    public @Nullable EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData) {
+        if(spawnReason.equals(SpawnReason.TRIAL_SPAWNER)){
+            this.setCantHire(true);
+        }
+        return super.initialize(world, difficulty, spawnReason, entityData);
     }
 
     List<Item> bonusList = List.of();
@@ -213,6 +225,8 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     public static final TrackedData<Integer> NAME ;
 
     public static final TrackedData<Integer> INDICATOR ;
+    public static final TrackedData<Optional<UUID>> OWNER_UUID ;
+    public static final TrackedData<Boolean> CANTHIRE ;
 
     static{
         HAS_ROLLED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -220,6 +234,8 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         NAME = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
         DOWN = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         INDICATOR = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
+        OWNER_UUID = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
+        CANTHIRE = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     }
 
@@ -240,6 +256,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     public static final RawAnimation IDLE2H = RawAnimation.begin().thenPlay("animation.unknown.idle_2h");
     public static final RawAnimation DOWNANIM = RawAnimation.begin().thenPlayAndHold("animation.generic.down");
     public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation PREPARE = RawAnimation.begin().then("animation.mob.prepare", Animation.LoopType.PLAY_ONCE);
 
     public float spawnCoeff = 1;
     public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
@@ -335,13 +352,15 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
     @Override
     public void onDeath(DamageSource damageSource) {
-        if(!damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null){
-            this.setHealth(0.01F);
-            (this).triggerAnim("down","down");
+        if(!this.getCantHire()) {
+            if (!damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null) {
+                this.setHealth(0.01F);
+                (this).triggerAnim("down", "down");
 
-            this.getDataTracker().set(DOWN,true);
-            this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE ,40,9,false,false));
-            return;
+                this.getDataTracker().set(DOWN, true);
+                this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 9, false, false));
+                return;
+            }
         }
 
         if( damageSource.getAttacker() instanceof ServerPlayerEntity player){
@@ -450,14 +469,12 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         if(this.getWorld() instanceof ServerWorld){
             this.tickIndicator();
         }
-        if(this.getWorld().isClient() && this instanceof ArtilleristEntity artilleristEntity && artilleristEntity.getDataTracker().get(ArtilleristEntity.RUNNING) && artilleristEntity.getVelocity().length() > 0.01F){
-            setRotationAndHeadFromVelocity(this);
+            if (this.getWorld().isClient() && this instanceof ArtilleristEntity artilleristEntity && artilleristEntity.getDataTracker().get(ArtilleristEntity.RUNNING) && artilleristEntity.getVelocity().length() > 0.01F) {
+                setRotationAndHeadFromVelocity(this);
 
-        }
-        else if(this.getWorld().isClient() && !(this instanceof TemplarEntity)){
-            setRotationFromVelocity(this);
-        }
-
+            } else if (this.getWorld().isClient() ) {
+                setRotationFromVelocity(this);
+            }
 
     }
 
@@ -574,7 +591,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
                 return ActionResult.SUCCESS_NO_ITEM_USED;
 
             }
-            if (this.getDataTracker().get(DOWN)) {
+            if (this.getDataTracker().get(DOWN) && !this.getCantHire()) {
                 if (this.getOwnerUuid() == null) {
                     this.setOwnerUuid(player.getUuid());
                     this.getDataTracker().set(DOWN, false);
@@ -764,7 +781,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
     @Override
     public float getMovementSpeed() {
-        return this.sitting ? 0 : (float) (this.getOwner() != null && !this.isAttacking() ? (float) this.getOwner().getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) * (2.4F) : this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED));
+        return (this.getDataTracker().get(INDICATOR) < 40F ? 0.25F : 1F) * (this.sitting ? 0 : (float) (this.getOwner() != null && !this.isAttacking() ? (float) this.getOwner().getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) * (2.4F) : this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
     }
 
     protected void initCustomGoals() {
@@ -842,7 +859,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
 
     private PlayState predicate2(AnimationState<MinibossEntity> state) {
-        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
+        state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
         if(this.getDataTracker().get(DOWN)){
             return  state.setAndContinue(DOWNANIM);
         }
@@ -879,6 +896,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         return false;
     }
 
+
     private int ageWhenTargetSet;
 
     public void setTarget(@Nullable LivingEntity target) {
@@ -905,8 +923,14 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     static{
         ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 39);
     }
-    public void setOwnerUuid(@Nullable UUID ownerUuid) {
-        this.ownerUuid = ownerUuid;
+    public void setOwnerUuid(@Nullable UUID uuid) {
+        this.dataTracker.set(OWNER_UUID, Optional.ofNullable(uuid));
+    }
+    public void setCantHire(boolean cantHire ) {
+        this.dataTracker.set(CANTHIRE, cantHire);
+    }
+    public boolean getCantHire() {
+        return (boolean) this.dataTracker.get(CANTHIRE);
     }
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
@@ -918,11 +942,12 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         }
         if (!this.getWorld().isClient) {
             TradeOfferList tradeOfferList = this.getOffers();
-            if (!tradeOfferList.isEmpty()) {
+            if (tradeOfferList != null && !tradeOfferList.isEmpty()) {
                 nbt.put("Offers", (NbtElement)TradeOfferList.CODEC.encodeStart(this.getRegistryManager().getOps(NbtOps.INSTANCE), tradeOfferList).getOrThrow());
             }
         }
         nbt.putBoolean("Sitting", this.sitting);
+        nbt.putBoolean("cantHire", this.getDataTracker().get(CANTHIRE));
 
     }
     protected TradeOfferList offers;
@@ -948,6 +973,13 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             String string = nbt.getString("Owner");
             uUID = ServerConfigHandler.getPlayerUuidByName(this.getServer(), string);
         }
+        boolean cantHire;
+        if (nbt.containsUuid("cantHire")) {
+            cantHire = nbt.getBoolean("cantHire");
+        } else {
+            cantHire = false;
+        }
+
         if (nbt.contains("Offers")) {
             DataResult var10000 = TradeOfferList.CODEC.parse(this.getRegistryManager().getOps(NbtOps.INSTANCE), nbt.get("Offers"));
             Logger var10002 = LOGGER;
@@ -963,6 +995,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             this.setOwnerUuid(uUID);
 
         }
+        this.getDataTracker().set(CANTHIRE,cantHire);
         this.sitting = nbt.getBoolean("Sitting");
 
     }
@@ -1009,10 +1042,10 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     }
 
     @Nullable
-    @Override
     public UUID getOwnerUuid() {
-        return ownerUuid;
+        return (UUID)((Optional)this.dataTracker.get(OWNER_UUID)).orElse((Object)null);
     }
+
 
     public static boolean canSpawn(EntityType<? extends PathAwareEntity> type, ServerWorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
         return spawnReason.equals(SpawnReason.PATROL) || ( world.getDifficulty() != Difficulty.PEACEFUL && (SpawnReason.isTrialSpawner(spawnReason) ||   isSpawnDark((ServerWorldAccess)world, pos, random)) && canMobSpawn(type, world, spawnReason, pos, random));
@@ -1039,7 +1072,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         if (this.getWorld().isClient) {
             throw new IllegalStateException("Cannot load Villager offers on the client");
         } else {
-            if (this.offers == null) {
+            if (this.offers == null && !this.bonusList.isEmpty()) {
                 this.offers = new TradeOfferList();
                 RegistryKey<LootTable> registryKey = EntityType.ENDER_DRAGON.getLootTableId();
 
@@ -1203,8 +1236,8 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
                 }
 
                 this.entity.setMovementSpeed(g);
-                this.entity.setForwardSpeed(this.forwardMovement);
-                this.entity.setSidewaysSpeed(this.sidewaysMovement);
+                this.entity.setForwardSpeed((float) (this.forwardMovement*speed));
+                this.entity.setSidewaysSpeed((float) (this.sidewaysMovement*speed));
                 this.state = MoveControl.State.WAIT;
             } else if (this.state == MoveControl.State.MOVE_TO) {
                 this.state = MoveControl.State.WAIT;
@@ -1298,12 +1331,15 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         }
 
         public void lookAt(double x, double y, double z, float maxYawChange, float maxPitchChange) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-            this.maxYawChange = 30;
-            this.maxPitchChange = 30;
-            this.lookAtTimer = 8;
+
+                this.x = x;
+
+                this.y = y;
+                this.z = z;
+                this.maxYawChange = 30;
+                this.maxPitchChange = 30;
+                this.lookAtTimer = 30;
+
         }
 
         public void tick() {

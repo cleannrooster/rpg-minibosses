@@ -33,10 +33,10 @@
 		"fabric-api": "*",
 		"spell_power": ">=1.0.4+1.21.1",
 		"spell_engine": ">=1.7.0+1.21.1",
-		"extraspellattributes": ">=1.0.6+1.21.1",
 		"wizards": ">=2.4.2+1.21.1"
 	},
 	"suggests": {
-		"another-mod": "*"
-	}
+		"another-mod": "*",
+      "extraspellattributes": ">=1.0.6+1.21.1"
+    }
 }

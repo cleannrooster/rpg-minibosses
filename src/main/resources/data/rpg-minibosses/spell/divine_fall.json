@@ -60,9 +60,9 @@
   "deliver": {
     "type": "METEOR",
     "meteor": {
-      "launch_height": 12.0,
+      "launch_height": 4.0,
       "launch_properties": {
-        "velocity": 0.4
+        "velocity": 0.1
       },
         "projectile": {
           "client_data": {

@@ -55,7 +55,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ArchmageFireEntity extends MinibossEntity  {
-    private boolean performing;
     private int throwtimer = 20;
     private int jumptimer = 100;
     private int novatimer = 100;
@@ -70,6 +69,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
                         && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
+        this.moveControl = new MinibossMoveConrol(this);
     }
     protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
@@ -92,6 +92,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
                             && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
 
         }
+        this.moveControl = new MinibossMoveConrol(this);
+
     }
 
     protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser, float spawnCoeff) {
@@ -115,6 +117,8 @@ public class ArchmageFireEntity extends MinibossEntity  {
                             && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
 
         }
+        this.moveControl = new MinibossMoveConrol(this);
+
     }
     public boolean skipOffHand(){
         return true;
@@ -172,7 +176,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
             }
             else{
-                this.getMoveControl().strafeTo(-1,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -1 : 1);
+                ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-0.5F,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -0.5F : 0.5F,0.5F);
 
             }
             if (this.getTarget() != null) {
@@ -188,7 +192,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.setPosition(this.getPos().add(0, 0.2, 0));
             this.setOnGround(false);
             this.setVelocity(vec3);
-            this.jumptimer = 160 - (int)(160*this.getCooldownCoeff());
+            this.jumptimer = 320 - (int)(320*this.getCooldownCoeff());
         }
         if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
             ((ArchmageFireEntity)this).triggerAnim("throw1","throw1");

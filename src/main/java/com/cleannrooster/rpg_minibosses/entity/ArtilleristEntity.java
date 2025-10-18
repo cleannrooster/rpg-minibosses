@@ -1,7 +1,5 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
-import com.cleannrooster.artificers.Entities;
-import com.cleannrooster.artificers.entity.Trap;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 import mod.azure.azurelib.core.animation.AnimatableManager;
@@ -47,12 +45,12 @@ import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.cleannrooster.artificers.Artificers.MOD_ID;
 
 public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob, CrossbowUser {
     List<Item> bonusList = List.of();
@@ -183,7 +181,6 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         return Items.CROSSBOW.getDefaultStack();
 
     }
-    public boolean performing = false;
     public boolean skipMainHand(){
         return true;
     }
@@ -207,10 +204,14 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     protected void mobTick() {
 
         super.mobTick();
-        if((this.getTarget() != null && !this.performing) && ((this.getTarget().distanceTo(this) < 4 && this.sinceRunning > 160) || this.sinceRunning > 240 )){
-            this.startRunning = true;
-            this.getDataTracker().set(RUNNING,true);
-            this.runningTick = 80;
+        if((this.getTarget() != null && !this.performing) && ((this.getTarget().distanceTo(this) < 4 && this.sinceRunning > 180) || this.sinceRunning > 260 )){
+            this.resetIndicator();
+            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+
+                this.startRunning = true;
+                this.getDataTracker().set(RUNNING, true);
+                this.runningTick = 80;
+            });
             this.sinceRunning = 0;
 
 

@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class JuggernautEntity extends MinibossEntity{
-    private boolean performing;
     List<Item> bonusList;
 
 
@@ -173,7 +172,7 @@ public class JuggernautEntity extends MinibossEntity{
                 if (this.getTarget().distanceTo(this) > 4) {
                     this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
                 } else {
-                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
+                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.5F);
 
                 }
                 if (!this.getWorld().isClient() && slamtimer > 140 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {

@@ -1,13 +1,11 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 
-import com.cleannrooster.artificers.Artificers;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses.*;
 
 import com.cleannrooster.rpg_minibosses.config.ServerConfig;
 import com.cleannrooster.rpg_minibosses.config.ServerConfigWrapper;
-import com.extraspellattributes.ReabsorptionInit;
 import com.google.common.base.Predicates;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
@@ -25,6 +23,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.AboveGroundTargeting;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectCategory;
@@ -116,6 +116,11 @@ public class RPGMinibossesEntities {
             entries.add(this);
         }
 
+
+        public DefaultAttributeContainer.Builder add( RegistryEntry<EntityAttribute> attribute, double baseValue) {
+              attributes.add(attribute, baseValue);
+            return attributes;
+        }
         public EntityType<T> entityType() {
             return entityType;
         }
@@ -134,8 +139,8 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new JuggernautEntity(entityType,world,false,config.juggernautGreater), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(ReabsorptionInit.DEFIANCE,config.juggernautGreaterDefiance)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)/*
+            .add(ReabsorptionInit.DEFIANCE,config.juggernautGreaterDefiance)*/
             .add(EntityAttributes.GENERIC_ARMOR,config.juggernautGreaterArmor)
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautGreaterAttackDamage)
 
@@ -154,8 +159,8 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.mercenaryGreaterMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryGreaterMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-            .add(ReabsorptionInit.DEFIANCE,config.mercenaryGreaterDefiance),
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
+          //  .add(ReabsorptionInit.DEFIANCE,config.mercenaryGreaterDefiance),
 
             0x09356B,
             0xebcb6a,false);
@@ -170,8 +175,8 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueGreaterAttackDamage)
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueGreaterMovementSpeed)
-            .add(ReabsorptionInit.SPELLSUPPRESS,100+config.rogueGreaterSuppress)
-            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueGreaterEvasion)
+         /*   .add(ReabsorptionInit.SPELLSUPPRESS,100+config.rogueGreaterSuppress)
+            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueGreaterEvasion)*/
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
 
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueGreaterMaxHealth),
@@ -181,8 +186,8 @@ public class RPGMinibossesEntities {
             (entityType,world) -> new JuggernautEntity(entityType,world,true,config.juggernautLesser), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
 
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(ReabsorptionInit.DEFIANCE,config.juggernautLesserDefiance)
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)/*
+            .add(ReabsorptionInit.DEFIANCE,config.juggernautLesserDefiance)*/
             .add(EntityAttributes.GENERIC_ARMOR,config.juggernautLesserArmor)
 
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautLesserAttackDamage)
@@ -202,9 +207,9 @@ public class RPGMinibossesEntities {
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed* config.mercenaryLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryLesserMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),/*
             .add(ReabsorptionInit.DEFIANCE,config.mercenaryLesserDefiance),
-
+*/
             0x09356B,
             0xebcb6a,true);
 
@@ -217,9 +222,9 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueLesserAttackDamage)
             .add(EntityAttributes.GENERIC_ARMOR,config.rogueLesserArmor)
 
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueLesserMovementSpeed)
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueLesserMovementSpeed)/*
             .add(ReabsorptionInit.SPELLSUPPRESS,100F+config.rogueLesserSuppress)
-            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueLesserEvasion)
+            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueLesserEvasion)*/
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueLesserMaxHealth),
             0x09356B,
@@ -341,7 +346,11 @@ public class RPGMinibossesEntities {
     public static EntityType<TrapCleann> TRAP;
 
 
+
     public static ItemGroup RPGENTITIES;
+    static{
+
+    }
     public static void register() {
         for (var entry: entries) {
             entry.entityType  = Registry.register(

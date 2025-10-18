@@ -1,13 +1,14 @@
 package com.cleannrooster.rpg_minibosses.item;
 
-import com.cleannrooster.artificers.Artificers;
-import com.cleannrooster.artificers.armors.PeasantArmor;
+
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.armor.renderer.ThiefArmorRenderer;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
-import com.extraspellattributes.ReabsorptionInit;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
+import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -28,6 +29,7 @@ import net.spell_engine.api.config.WeaponConfig;
 import net.spell_engine.api.item.Equipment;
 import net.spell_engine.api.item.armor.Armor;
 import net.spell_engine.api.item.weapon.Weapon;
+import net.spell_engine.fabric.FabricMod;
 import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 
@@ -65,19 +67,9 @@ public class Armors {
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.BLAZE_ROD));
 
-    public static RegistryEntry<ArmorMaterial> juggernaut = material(
-            "juggernaut",
-            3, 8, 6, 3,
-            30,
-            SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE, () -> Ingredient.ofItems(Items.NETHERITE_SCRAP));
 
-    public static RegistryEntry<ArmorMaterial> trickster = material(
-            "trickster",
-            2, 6, 4, 2,
-            30,
-            SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, () -> Ingredient.ofItems(Items.LEATHER,Items.IRON_INGOT));
 
-    private static Armor.Entry create(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults, int tier) {
+    public static Armor.Entry create(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults, int tier) {
         var entry = Armor.Entry.create(
                 material,
                 id,
@@ -115,66 +107,7 @@ public class Armors {
         return entry(requiredMod, name, material, WhisperingIceStaff::new, new WeaponConfig(damage, -3F))
                 .loot(Equipment.LootProperties.of(6));
     }
-    public static final Armor.Set tricksterArmor = create(
-            trickster,
-            Identifier.of(RPGMinibosses.MOD_ID, "trickster"),
-            30,
-            ThiefArmor::new,
-            ArmorSetConfig.with(
-                    new ArmorSetConfig.Piece(2)
-                            .addAll(List.of(
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.SPELLSUPPRESS.getIdAsString()), 0.15F),
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.GLANCINGBLOW.getIdAsString()), 0.15F)
 
-
-                            )),
-                    new ArmorSetConfig.Piece(6)
-                            .addAll(List.of(
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.SPELLSUPPRESS.getIdAsString()), 0.15F),
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.GLANCINGBLOW.getIdAsString()), 0.15F)
-
-                            )),
-                    new ArmorSetConfig.Piece(4)
-                            .addAll(List.of(
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.SPELLSUPPRESS.getIdAsString()), 0.15F),
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.GLANCINGBLOW.getIdAsString()), 0.15F)
-
-                            )),
-                    new ArmorSetConfig.Piece(2)
-                            .addAll(List.of(
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.SPELLSUPPRESS.getIdAsString()), 0.15F),
-                                    AttributeModifier.multiply(Identifier.tryParse(ReabsorptionInit.GLANCINGBLOW.getIdAsString()), 0.15F)
-                            ))
-            ),2)
-            .armorSet();
-    public static final Armor.Set juggernautArmor = create(
-            juggernaut,
-            Identifier.of(RPGMinibosses.MOD_ID, "juggernaut"),
-            30,
-            JuggernautArmor::new,
-            ArmorSetConfig.with(
-                    new ArmorSetConfig.Piece(3)
-                            .addAll(List.of(
-                                    AttributeModifier.bonus(Identifier.tryParse(ReabsorptionInit.DEFIANCE.getIdAsString()), 1F)
-
-
-                            )),
-                    new ArmorSetConfig.Piece(8)
-                            .addAll(List.of(
-                                    AttributeModifier.bonus(Identifier.tryParse(ReabsorptionInit.DEFIANCE.getIdAsString()), 1F)
-
-                            )),
-                    new ArmorSetConfig.Piece(6)
-                            .addAll(List.of(
-                                    AttributeModifier.bonus(Identifier.tryParse(ReabsorptionInit.DEFIANCE.getIdAsString()), 1F)
-
-                            )),
-                    new ArmorSetConfig.Piece(3)
-                            .addAll(List.of(
-                                    AttributeModifier.bonus(Identifier.tryParse(ReabsorptionInit.DEFIANCE.getIdAsString()), 1F)
-                            ))
-            ),2)
-            .armorSet();
     public static void register(Map<String, WeaponConfig> configs){
         if ( RPGARMOR == null){
             RPGARMOR = FabricItemGroup.builder()
@@ -192,13 +125,16 @@ public class Armors {
          TABULA = Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.MOD_ID,"tabula_rasa"),new Item(new Item.Settings().maxCount(1)));
         Weapon.register(configs, entries, RPGMinibossesEntities.KEY);
         Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.MOD_ID,"abberraths_hooves"),ABBERRATH);
-        ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> {
+        ItemGroupEvents.modifyEntriesEvent(KEY).register((content) -> {
             content.add(ABBERRATH);
             content.add(TABULA);
 
         });
     }
     public static void registerArmors(Map<String, ArmorSetConfig> configs) {
+        if(FabricLoader.getInstance().isModLoaded("extraspellattributes")){
+            CompatArmors.register();
+        }
         Armor.register(configs, armorentries, KEY);
     }
 }

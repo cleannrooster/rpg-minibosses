@@ -152,7 +152,6 @@ public class TricksterEntity extends MinibossEntity{
     public int defensetime = 80;
     public int dashtimer = 80;
 
-    public boolean performing = false;
     public int throwtimer;
     public static final RawAnimation THROW1 = RawAnimation.begin().then("animation.mob.throw1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation THROW2 = RawAnimation.begin().then("animation.mob.throw2", Animation.LoopType.PLAY_ONCE);
@@ -196,6 +195,7 @@ public class TricksterEntity extends MinibossEntity{
                 }
                 if(!this.getWorld().isClient() && throwtimer > 80 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
                     this.resetIndicator();
+                    (this).triggerAnim("prepare", "prepare");
                     ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
                         (this).triggerAnim("throw1", "throw1");
@@ -300,6 +300,9 @@ public class TricksterEntity extends MinibossEntity{
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
         animationData.add(
+                new AnimationController<>(this, "prepare", event -> PlayState.CONTINUE)
+                        .triggerableAnim("prepare", PREPARE));
+        animationData.add(
                 new AnimationController<>(this, "throw1", event -> PlayState.CONTINUE)
                         .triggerableAnim("throw1", THROW1));
         animationData.add(
@@ -309,6 +312,7 @@ public class TricksterEntity extends MinibossEntity{
                 animationData.add(
                 new AnimationController<>(this, "pommelstrike", event -> PlayState.CONTINUE)
                         .triggerableAnim("pommelstrike", POMMELSTRIKE));
+
         animationData.add(
                 new AnimationController<>(this, "swing1", event -> PlayState.CONTINUE)
                         .triggerableAnim("swing1", SWING1));

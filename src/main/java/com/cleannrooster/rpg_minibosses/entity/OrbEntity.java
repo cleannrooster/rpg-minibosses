@@ -1,8 +1,6 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import com.cleannrooster.spellblades.entity.CycloneEntity;
-import com.cleannrooster.spellblades.items.Orb;
 import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
 import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
 import mod.azure.azurelib.core.animatable.GeoAnimatable;
@@ -12,6 +10,7 @@ import mod.azure.azurelib.core.animation.AnimationController;
 import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.animation.RawAnimation;
 import mod.azure.azurelib.core.object.PlayState;
+import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -77,6 +76,7 @@ public class OrbEntity extends Entity implements GeoEntity, Ownable {
         builder.add(OWNER, -1);
 
     }
+
 
 
     public int getColor(){

@@ -79,7 +79,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Forsaken Rogues Attack Damage ")
     public  float rogueGreaterAttackDamage = 1.0F;
     @Comment("Forsaken Rogues Movement Speed ")
-    public  float rogueGreaterMovementSpeed = 1.8F;
+    public  float rogueGreaterMovementSpeed = 1.5F;
     @Comment("Forsaken Rogues Suppress ")
     public  float rogueGreaterSuppress = 60F;
     @Comment("Forsaken Rogues Evasion ")
@@ -148,7 +148,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Lesser Rogues Attack Damage ")
     public  float rogueLesserAttackDamage = 1.0F;
     @Comment("Lesser Rogues Movement Speed ")
-    public  float rogueLesserMovementSpeed = 1.8F;
+    public  float rogueLesserMovementSpeed = 1.5F;
     @Comment("Lesser Rogues Suppress ")
     public  float rogueLesserSuppress = 40F;
     @Comment("Lesser Rogues Evasion ")

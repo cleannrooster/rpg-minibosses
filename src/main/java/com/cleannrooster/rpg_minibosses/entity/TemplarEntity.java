@@ -62,7 +62,6 @@ import static net.spell_engine.internals.SpellHelper.fallProjectile;
 import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
 
 public class TemplarEntity extends MinibossEntity{
-    private boolean performing;
     private boolean is_staff = false;
     private boolean is_twirl = false;
     List<Item> bonusList = List.of();
@@ -255,49 +254,64 @@ public class TemplarEntity extends MinibossEntity{
         }
         else
         if(!this.getWorld().isClient() && dash_attack_timer > 80 && !this.performing && this.getTarget() != null &&  this.distanceTo(this.getTarget()) > 4) {
-            ((TemplarEntity)this).triggerAnim("dash_attack","dash_attack");
-            ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-            Vec3d vec31 = new Vec3d(this.getTarget().getX() - this.getX(), 0, this.getTarget().getZ() - this.getZ());
-            Vec3d vec3 = new Vec3d(vec31.normalize().x * 1.5, 0.45, vec31.normalize().z * 1.5);
-            this.setVelocity(vec3);
-
+            this.resetIndicator();
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                        this.performing = false;
+                if(this.getTarget() != null) {
+                    ((TemplarEntity) this).triggerAnim("dash_attack", "dash_attack");
+                    ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
+                    Vec3d vec31 = new Vec3d(this.getTarget().getX() - this.getX(), 0, this.getTarget().getZ() - this.getZ());
+                    Vec3d vec3 = new Vec3d(vec31.normalize().x * 1.5, 0.45, vec31.normalize().z * 1.5);
+                    this.setVelocity(vec3);
 
-                    }
+                    ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                                this.performing = false;
+
+                            }
+                    );
+                    ((WorldScheduler) this.getWorld()).schedule(16, () -> {
+
+
+                        ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
+                    });
+                }
+                this.dash_attack_timer = 80 - (int) (80 * this.getCooldownCoeff());
+            }
             );
-            ((WorldScheduler) this.getWorld()).schedule(16, () -> {
-
-
-                ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-            });
-            this.dash_attack_timer = 80 - (int)(80*this.getCooldownCoeff());
             this.performing = true;
+
         }
         else
         if(!this.getWorld().isClient() && twirltimer > 180 && !this.performing && this.getTarget() != null && this.distanceTo(this.getTarget())<= 4) {
-            ((TemplarEntity)this).triggerAnim("twirl","twirl");
-            ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
+            this.resetIndicator();
+            ((WorldScheduler) this.getWorld()).schedule(40, () -> {
 
-            ((WorldScheduler) this.getWorld()).schedule(100, () -> {
-                        this.performing = false;
+                ((TemplarEntity) this).triggerAnim("twirl", "twirl");
+                ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
+
+                ((WorldScheduler) this.getWorld()).schedule(100, () -> {
+                            this.performing = false;
+                        }
+                );
+                ((WorldScheduler) this.getWorld()).schedule(70, () -> {
+                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).release.particles);
+                    for (Entity entity : TargetHelper.targetsFromArea(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).range, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).target.area, entity -> {
+                        return entity != this;
+                    })) {
+
+
+                        boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).get(),
+                                SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.HEALING, this)).position(this.getPos()));
+
                     }
+                    this.is_twirl = false;
+
+                });
+                this.twirltimer = 180 - (int) (180 * this.getCooldownCoeff());
+                this.is_twirl = true;
+
+            }
             );
-            ((WorldScheduler) this.getWorld()).schedule(70, () ->{
-                ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).release.particles);
-                for(Entity entity : TargetHelper.targetsFromArea(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).range,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).target.area, entity ->{ return entity != this;})) {
-
-
-                    boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).get(),
-                            SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "holy_burst")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.HEALING, this)).position(this.getPos()));
-
-                }
-                this.is_twirl = false;
-
-            });
-            this.twirltimer = 180 - (int)(180*this.getCooldownCoeff());
             this.performing = true;
-            this.is_twirl = true;
 
         }
         else
@@ -353,6 +367,12 @@ public class TemplarEntity extends MinibossEntity{
         super.mobTick();
 
     }
+
+    @Override
+    public float getMovementSpeed() {
+        return (this.is_twirl ? 1.5F : 1F ) * super.getMovementSpeed();
+    }
+
     public int defensetime = 80;
 
     public int defensetimer;

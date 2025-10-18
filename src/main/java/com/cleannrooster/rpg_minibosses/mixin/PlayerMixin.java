@@ -1,7 +1,6 @@
 package com.cleannrooster.rpg_minibosses.mixin;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import com.cleannrooster.spellblades.mixin.SpellContainerHelperMixin;
 import net.minecraft.block.pattern.CachedBlockPosition;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;

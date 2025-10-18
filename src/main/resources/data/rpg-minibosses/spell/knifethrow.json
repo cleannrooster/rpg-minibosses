@@ -29,7 +29,6 @@
           "velocity": 0.8
         },
         "projectile": {
-          "homing_angle": 2.0,
           "perks": {
             "bounce": 1
           },
