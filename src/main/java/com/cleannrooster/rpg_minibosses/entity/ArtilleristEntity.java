@@ -276,7 +276,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
         if (state.isMoving()) {
             if(this.getDataTracker().get(RUNNING)){
-                state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.2F : 1F));
+                state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.4F : 1F));
 
                 return state.setAndContinue(RUN);
 

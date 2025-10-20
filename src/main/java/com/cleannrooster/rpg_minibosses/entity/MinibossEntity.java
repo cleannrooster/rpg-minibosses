@@ -264,7 +264,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
 
         animationData.add(new AnimationController<MinibossEntity>(this, "walk",
-                0, this::predicate2)
+                10, this::predicate2)
         );
 
 

@@ -155,8 +155,8 @@ public class TemplarEntity extends MinibossEntity{
 
     public static final RawAnimation TWIRL = RawAnimation.begin().thenPlay("animation.valkyrie.twirl");
     public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("animation.valkyrie.idle");
-    public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
-    public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1_2h", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2_2h", Animation.LoopType.PLAY_ONCE);
 
     @Override
     protected void initCustomGoals() {
@@ -275,8 +275,9 @@ public class TemplarEntity extends MinibossEntity{
 
         animationData.add(
                 new AnimationController<MinibossEntity>(this, "actions",
-                        0, this::predicateTemplar)
-                        .triggerableAnim("swing1", SWING1).triggerableAnim("swing2",SWING2)  .triggerableAnim("staff", STAFF));
+                        1, this::predicateTemplar)
+                        .triggerableAnim("staff", STAFF).triggerableAnim("swing1", SWING1).triggerableAnim("swing2",SWING2)  );
+
 
 
 
@@ -357,7 +358,7 @@ public class TemplarEntity extends MinibossEntity{
                 );
 
             }
-            this.stafftimer = 300 - (int)(300*this.getCooldownCoeff());
+            this.stafftimer = -(int)(300*this.getCooldownCoeff());
             this.is_staff = true;
             this.performing = true;
         }
@@ -432,7 +433,7 @@ public class TemplarEntity extends MinibossEntity{
         if(this.isAttacking() && !this.getDataTracker().get(DOWN)){
             if(this.getVelocity().length() > 0.2F){
                 state.setAnimation(SPRINT_AGGRO);
-                state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.2F : 1F));
+                state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.4F : 1F));
 
                 return PlayState.CONTINUE;
 
@@ -472,18 +473,20 @@ public class TemplarEntity extends MinibossEntity{
     }
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if(!performing && this.parryTimer <= 0 ) {
+        if(!performing) {
 
-            if(source.getAttacker() != null && source.getAttacker() instanceof LivingEntity && source.isDirect() && source.getAttacker().distanceTo(this) < 2F+ 3.5F){
+            if(this.parryTimer <= 0 && source.getAttacker() != null && source.getAttacker() instanceof LivingEntity && source.isDirect() && source.getAttacker().distanceTo(this) < 2F+ 3.5F){
                 this.parryTimer =  (int)(160*this.getCooldownCoeff());
 
                 this.tryAttack(source.getAttacker());
                 amount *= 0.5F;
                 SoundHelper.playSoundEvent(this.getWorld(),this, SoundEvents.BLOCK_ANVIL_PLACE);
             }
-        }
+            return super.damage(source, amount);
 
-        return super.damage(source, amount);
+        }
+        return false;
+
     }
     @Override
     public void tick() {
@@ -505,8 +508,10 @@ public class TemplarEntity extends MinibossEntity{
                 swingBool = true;
 
             }
+            return super.tryAttack(target);
+
         }
-        return super.tryAttack(target);
+        return false;
 
     }
 
