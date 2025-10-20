@@ -3,6 +3,7 @@ package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
+import com.cleannrooster.rpg_minibosses.entity.TemplarEntity;
 import mod.azure.azurelib.common.api.client.renderer.layer.BlockAndItemGeoLayer;
 import mod.azure.azurelib.common.internal.client.renderer.GeoRenderer;
 import mod.azure.azurelib.common.internal.common.cache.object.GeoBone;
@@ -49,6 +50,10 @@ public class RenderLayerItemMinibossEntity<T extends MinibossEntity> extends Blo
         if(animatable instanceof JuggernautEntity){
             poseStack.translate(0,3/16F,-3/16F);
             poseStack.scale(2F,2F,2F);
+        }
+        if(animatable instanceof TemplarEntity){
+            poseStack.translate(0,3/16F,-3/16F);
+            poseStack.scale(1.5F,1.5F,1.5F);
         }
        /* if (stack == animatable.getMainHandStack()) {
             poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-90f));
