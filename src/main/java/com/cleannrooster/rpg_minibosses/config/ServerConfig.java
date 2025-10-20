@@ -6,7 +6,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
 import java.util.LinkedHashMap;
 
-@Config(name = "server_v4")
+@Config(name = "server_v5")
 public class ServerConfig  implements ConfigData {
     public ServerConfig(){}
     @Comment("Chance for Forsaken Templars to spawn naturally")
@@ -17,7 +17,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Forsaken Templar Armor ")
     public  float templarGreaterArmor = 16F;
     @Comment("Forsaken Templar Attack Damage ")
-    public  float templarGreaterAttackDamage = 8F;
+    public  float templarGreaterAttackDamage = 0F;
     @Comment("Forsaken Templar Movement Speed ")
     public  float templarGreaterMovementSpeed = 1.4F;
     @Comment("Forsaken Templar Healing Power ")
@@ -84,7 +84,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Lesser Templar Armor ")
     public  float templarLesserArmor = 12F;
     @Comment("Lesser Templar Attack Damage ")
-    public  float templarLesserAttackDamage = 8F;
+    public  float templarLesserAttackDamage = 0F;
     @Comment("Lesser Templar Movement Speed ")
     public  float templarLesserMovementSpeed = 1.4F;
     @Comment("Lesser Templar Healing Power ")

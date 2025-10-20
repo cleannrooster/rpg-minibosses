@@ -1,5 +1,6 @@
 package com.cleannrooster.rpg_minibosses.patrols;
 
+import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityData;
@@ -135,15 +136,11 @@ public class Patrol {
 
         if (!SpawnHelper.isClearForSpawn(world, pos, blockState, blockState.getFluidState(), EntityType.PILLAGER)) {
             return false;
-        } else if (!PatrolEntity.canSpawn(type, world, SpawnReason.PATROL, pos, random)) {
+        } else if (!MinibossEntity.canSpawn(type, world, SpawnReason.PATROL, pos, random)) {
             return false;
         } else {
-            PatrolEntity patrolEntity = (PatrolEntity) ((EntityType<? extends PatrolEntity>) type).create(world);
+            MinibossEntity patrolEntity = (MinibossEntity) ((EntityType<? extends MinibossEntity>) type).create(world);
             if (patrolEntity != null) {
-                if (captain) {
-                    patrolEntity.setPatrolLeader(true);
-                    patrolEntity.setRandomPatrolTarget();
-                }
 
                 patrolEntity.setPosition((double) pos.getX(), (double) pos.getY(), (double) pos.getZ());
                 patrolEntity.initialize(world, world.getLocalDifficulty(pos), SpawnReason.PATROL, (EntityData) null,null);

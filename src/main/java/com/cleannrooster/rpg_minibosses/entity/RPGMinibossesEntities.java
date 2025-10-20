@@ -306,7 +306,7 @@ public class RPGMinibossesEntities {
 
             }
 
-            SpawnRestriction.register((EntityType<? extends PatrolEntity>)entry.entityType, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, PatrolEntity::canSpawn);
+            SpawnRestriction.register((EntityType<? extends PathAwareEntity>)entry.entityType, SpawnRestriction.Location.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MinibossEntity::canSpawn);
 
             FabricDefaultAttributeRegistry.register(entry.entityType, entry.attributes);
 

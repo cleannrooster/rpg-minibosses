@@ -74,7 +74,7 @@ public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityMod
             RenderUtils.rotateMatrixAroundBone(poseStack, bone);
             RenderUtils.scaleMatrixForBone(poseStack, bone);
 
-            if (!(bool )) {
+            if (!(bool ||animatable instanceof TemplarEntity templarEntity)) {
             /*    if((bool2 && animatable instanceof ArtilleristEntity)){
                     poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( animatable.bodyYaw-animatable.getYaw(partialTick), -180, 180)));
 
