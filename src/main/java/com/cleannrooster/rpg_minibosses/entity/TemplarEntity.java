@@ -442,8 +442,12 @@ public class TemplarEntity extends MinibossEntity{
 
 
     private PlayState predicateTemplar(AnimationState<MinibossEntity> state) {
+        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
+
         if(this.isAttacking()){
             if(this.getVelocity().length() > 0.2F){
+                state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.4F : 1F));
+
                 state.setAnimation(SPRINT_AGGRO);
             }
             else{
@@ -485,8 +489,9 @@ public class TemplarEntity extends MinibossEntity{
         if(!performing && this.parryTimer <= 0 ) {
 
             if(source.getAttacker() != null && source.getAttacker() instanceof LivingEntity && !source.isIndirect() && source.getAttacker().distanceTo(this) < 2+ sqrt( this.squaredAttackRange((LivingEntity) source.getAttacker()))){
-                this.tryAttack(source.getAttacker());
                 this.parryTimer =  (int)(160*this.getCooldownCoeff());
+
+                this.tryAttack(source.getAttacker());
                 amount *= 0.5F;
                 SoundHelper.playSoundEvent(this.getWorld(),this, SoundEvents.BLOCK_ANVIL_PLACE);
             }
