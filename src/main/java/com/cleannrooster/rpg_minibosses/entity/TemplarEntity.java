@@ -162,8 +162,8 @@ public class TemplarEntity extends MinibossEntity{
 
     public static final RawAnimation TWIRL = RawAnimation.begin().thenPlay("animation.valkyrie.twirl");
     public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("animation.valkyrie.idle");
-    public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
-    public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1_2h", Animation.LoopType.PLAY_ONCE);
+    public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2_2h", Animation.LoopType.PLAY_ONCE);
 
     @Override
     protected void initCustomGoals() {
@@ -286,7 +286,7 @@ public class TemplarEntity extends MinibossEntity{
 
         animationData.add(
                 new AnimationController<MinibossEntity>(this, "actions",
-                        0, this::predicateTemplar)
+                        1, this::predicateTemplar)
                         .triggerableAnim("swing1", SWING1).triggerableAnim("swing2",SWING2)  .triggerableAnim("staff", STAFF));
 
 
@@ -377,7 +377,7 @@ public class TemplarEntity extends MinibossEntity{
                 );
 
             }
-            this.stafftimer = 300 - (int)(300*this.getCooldownCoeff());
+            this.stafftimer =  - (int)(300*this.getCooldownCoeff());
             this.is_staff = true;
             this.performing = true;
         }
