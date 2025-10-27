@@ -229,7 +229,12 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
         LONG_NOVA.addAll(List.of(
                 Identifier.of(RPGMinibosses.MOD_ID,"phoenix_nova"),
                 Identifier.of(RPGMinibosses.MOD_ID,"arcane_nova"),
-                Identifier.of(RPGMinibosses.MOD_ID,"deathchill_nova")
+                Identifier.of(RPGMinibosses.MOD_ID,"deathchill_nova"),
+                Identifier.of(RPGMinibosses.MOD_ID,"frostferno"),
+                Identifier.of(RPGMinibosses.MOD_ID,"self_immolate"),
+                Identifier.of(RPGMinibosses.MOD_ID,"rain_of_fire"),
+
+                Identifier.of(RPGMinibosses.MOD_ID,"supernova")
         ));
 
         SHOCKWAVES.addAll(List.of(
@@ -245,7 +250,9 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
         LONGCASTPROJECTILE.addAll(List.of(
                 Identifier.of(RPGMinibosses.MOD_ID,"greater_fireball"),
                 Identifier.of(RPGMinibosses.MOD_ID,"amethyst_chunk"),
-                Identifier.of(RPGMinibosses.MOD_ID,"ice_chunk")));
+                Identifier.of(RPGMinibosses.MOD_ID,"ice_chunk"),
+                Identifier.of(RPGMinibosses.MOD_ID,"plasma_blast")));
+
         INDICATOR = DataTracker.registerData(MagusPrimeEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
     }
@@ -498,7 +505,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
                     spell = SpellRegistry.from(this.getWorld()).get(id);
                     SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), spellReference.get(),
-                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(spellReference.get().value().school, this)).position(this.getPos()));
 
                     ParticleHelper.sendBatches(this, spell.release.particles);
                 }
@@ -511,7 +518,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
                 for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
                     boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
-                            spell.impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
+                            spell.impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(spellReference.get().value().school,this)).position(this.getPos()));
 
                 }
                 ParticleHelper.sendBatches(this,spell.release.particles);
@@ -558,7 +565,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
 
                             SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), finalSpellReference.get(),
-                                    new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                                    new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(finalSpellReference.get().value().school, this)).position(this.getPos()));
 
                             ParticleHelper.sendBatches(this, finalSpell.release.particles);
                         }
@@ -568,7 +575,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
                             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
                                 boolean bool =  SpellHelper.performImpacts(this.getWorld(), this, entity, this, finalSpellReference.get(),
-                                        finalSpell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
+                                        finalSpell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(finalSpellReference.get().value().school, this)).position(this.getPos()));
 
                             }
                             ParticleHelper.sendBatches(this, finalSpell.release.particles);

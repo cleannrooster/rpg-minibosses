@@ -171,7 +171,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
     @Override
     protected void mobTick() {
 
-        if(this.getTarget() != null ) {
+        if(this.getTarget() != null && this.canSee(this.getTarget()) ) {
             if( this.getTarget().distanceTo(this) > 8){
                 this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
             }
@@ -183,7 +183,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
                 this.getLookControl().lookAt(this.getTarget(),360,360);
             }
         }
-        if(!this.getWorld().isClient() && jumptimer > 160 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
+        if(!this.getWorld().isClient() && jumptimer > 160 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) < 4 ) {
             if(this.getTarget() != null) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
             }
@@ -194,9 +194,9 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.setVelocity(vec3);
             this.jumptimer = 320 - (int)(320*this.getCooldownCoeff());
         }
-        if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
             ((ArchmageFireEntity)this).triggerAnim("throw1","throw1");
-            if(this.getTarget() != null) {
+            if(this.getTarget() != null && this.canSee(this.getTarget())) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
             }
             SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
@@ -224,7 +224,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.throwtimer = 40 - (int)(40*this.getCooldownCoeff());
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
             this.resetIndicator();
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
 
@@ -247,7 +247,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.feathertimer = 320 - (int)(320*this.getCooldownCoeff());
             this.performing = true;
         }
-        if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 6) {
+        if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.canSee(this.getTarget()) && this.distanceTo(this.getTarget()) < 6) {
             this.resetIndicator();
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
 

@@ -15,14 +15,13 @@ import net.minecraft.entity.ai.RangedAttackMob;
 import net.minecraft.entity.ai.brain.task.PanicTask;
 import net.minecraft.entity.ai.control.LookControl;
 import net.minecraft.entity.ai.control.MoveControl;
-import net.minecraft.entity.ai.goal.AttackGoal;
-import net.minecraft.entity.ai.goal.CrossbowAttackGoal;
-import net.minecraft.entity.ai.goal.EscapeDangerGoal;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.entity.ai.goal.*;
+import net.minecraft.entity.ai.pathing.PathNodeType;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.*;
+import net.minecraft.entity.passive.CowEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.CrossbowItem;
@@ -37,6 +36,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -50,6 +50,8 @@ import net.spell_power.api.SpellPower;
 
 import java.util.List;
 import java.util.Optional;
+
+import static net.spell_engine.utils.VectorHelper.angleBetween;
 
 
 public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob, CrossbowUser {
@@ -204,7 +206,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     protected void mobTick() {
 
         super.mobTick();
-        if((this.getTarget() != null && !this.performing) && ((this.getTarget().distanceTo(this) < 4 && this.sinceRunning > 180) || this.sinceRunning > 260 )){
+        if((this.getTarget() != null && this.canSee(this.getTarget()) && !this.performing) && ((this.getTarget().distanceTo(this) < 4 && this.sinceRunning > 180) || this.sinceRunning > 260 )){
             this.resetIndicator();
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
@@ -254,7 +256,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
             this.getNavigation().stop();
 
         }
-        if(!this.getDataTracker().get(RUNNING) && this.getTarget() != null){
+        if(!this.getDataTracker().get(RUNNING) && this.getTarget() != null && this.canSee(this.getTarget())){
             this.getNavigation().stop();
         }
         if(!this.getWorld().isClient()){
@@ -263,10 +265,29 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
 
     }
+
     public boolean startRunning = false;
     public int runningTick = 0;
     public int runningCooldown = 160;
     public int sinceRunning = 0;
+
+
+
+/*    @Override
+    public float getPathfindingFavor(BlockPos pos) {
+        var add = 1F;
+        var mult = 0F;
+        if(this.getTarget()  != null){
+            var angle = angleBetween(this.getTarget().getRotationVector(),pos.toCenterPos().subtract(this.getTarget().getPos()));
+            mult += angle/5F;
+            if(pos.getY() > this.getTarget().getY()){
+                add +=  (1F*(float)(pos.getY()-this.getTarget().getY()));
+            }
+            add += 4F - this.getWorld().getLightLevel(pos)/4F;
+        }
+        return add*mult*1F + super.getPathfindingFavor(pos);
+    }*/
+
 
     private PlayState predicateShoot(AnimationState<MinibossEntity> state) {
         state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
@@ -276,12 +297,12 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
         if (state.isMoving()) {
             if(this.getDataTracker().get(RUNNING)){
-                state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.4F : 1F));
+                state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.2F : 1F));
 
                 return state.setAndContinue(RUN);
 
             }
-            return this.isAttacking() ? state.setAndContinue(WALK) : this.getVelocity().length() > 0.2F ? state.setAndContinue(SPRINT):  state.setAndContinue(WALK_NO_AGGRO);
+            return this.isAttacking() ? state.setAndContinue(WALK) : this.getVelocity().length() > 0.1F ? state.setAndContinue(SPRINT):  state.setAndContinue(WALK_NO_AGGRO);
         }
         else{
             return this.isAttacking() ? state.setAndContinue(IDLE) : state.setAndContinue(IDLE_TRUE);

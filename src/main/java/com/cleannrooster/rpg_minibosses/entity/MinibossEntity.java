@@ -28,14 +28,12 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentLevelEntry;
 import net.minecraft.enchantment.provider.TradeRebalanceEnchantmentProviders;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.brain.task.OpenDoorsTask;
 import net.minecraft.entity.ai.control.JumpControl;
 import net.minecraft.entity.ai.control.LookControl;
 import net.minecraft.entity.ai.control.MoveControl;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.ai.pathing.EntityNavigation;
-import net.minecraft.entity.ai.pathing.LandPathNodeMaker;
-import net.minecraft.entity.ai.pathing.PathNodeMaker;
-import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.ai.pathing.*;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
@@ -89,6 +87,7 @@ import net.spell_engine.api.effect.Synchronized;
 import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
+import net.spell_engine.rpg_series.loot.LootHelper;
 import net.spell_engine.utils.SoundHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
@@ -110,10 +109,11 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         this.lookControl = new MinibossLookControl(this);
         this.moveControl = new MinibossMoveConrol(this);
 
-    }
+        this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
 
+    }
     public TradeOffer create(ItemStack stack, int price, int maxUses, int experience, int multiplier,  Entity entity, Random random) {
-        return new TradeOffer( new TradedItem(Registries.ITEM.get(Identifier.tryParse(RPGMinibossesEntities.config.tradeItem)), price),new ItemStack(stack.getItem()), maxUses, experience, multiplier*RPGMinibossesEntities.config.tradeMultiplier);
+        return new TradeOffer( new TradedItem(Registries.ITEM.get(Identifier.tryParse(RPGMinibossesEntities.config.tradeItem)), price),new ItemStack(stack.getItem()), maxUses, experience, 1);
     }
 
 
@@ -128,6 +128,8 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         this.moveControl = new MinibossMoveConrol(this);
 
         this.lookControl = new MinibossLookControl(this);
+        this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
+
     }
     public List<String> NAMES = List.of(
             ((TranslatableTextContent)this.getType().getName().getContent()).getKey()+".name.1",
@@ -146,6 +148,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         builder.add(CANTHIRE, false);
 
     }
+
 
     @Override
     public @Nullable EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData) {
@@ -218,6 +221,9 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         return this.getDataTracker().get(MinibossEntity.LESSER);
 
     }
+
+
+
     private static final TrackedData<Boolean> HAS_ROLLED ;
     public static final TrackedData<Boolean> DOWN;
 
@@ -264,7 +270,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
 
         animationData.add(new AnimationController<MinibossEntity>(this, "walk",
-                10, this::predicate2)
+                1, this::predicate2)
         );
 
 
@@ -523,6 +529,9 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     @Override
     protected void mobTick() {
 
+        ((MobNavigation)this.getNavigation()).setCanPathThroughDoors(true);
+        ((MobNavigation)this.getNavigation()).setCanEnterOpenDoors(true);
+        ((MobNavigation)this.getNavigation()).setCanWalkOverFences(true);
         super.mobTick();
 
     }
@@ -753,8 +762,9 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         this.goalSelector.add(8, new LookAroundGoal(this));
         this.goalSelector.add(7, new WanderAroundFarGoal(this, 1.0));
         this.goalSelector.add(6, new MinibossFollowOwner(this, 1.6, 6.0F, 2.0F));
+        this.goalSelector.add(1, new DoorInteractGoalLong(this, true));
 
-        this.goalSelector.add(1, new SwimGoal(this));
+        this.goalSelector.add(0, new SwimGoal(this));
         if(RPGMinibossesEntities.config.betrayal) {
             this.targetSelector.add(2, new ActiveTargetGoal(this, MinibossEntity.class, true, (target) -> !this.isTamed() || (target instanceof LivingEntity living && this.isTamed() && this.canAttackWithOwner((LivingEntity) living,this.getOwner()))));
 
@@ -1084,10 +1094,9 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
                 this.offers.addAll(
                         List.of(
-                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(),this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount,this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()),
-                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(),this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount,this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()),
-
-                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(),this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount,this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom())))
+                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(), (int) (this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount*RPGMinibossesEntities.config.tradeMultiplier),this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()),
+                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(), (int) (this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount*RPGMinibossesEntities.config.tradeMultiplier),this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()),
+                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(), (int) (this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount*RPGMinibossesEntities.config.tradeMultiplier),this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom())))
 
                 ;
                 lootTable.generateLoot(lootContextParameterSet, this.getLootTableSeed(), (itemStack) ->{
@@ -1284,7 +1293,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         }
 
         public void strafeTo(float forward, float sideways,float speed) {
-            super.strafeTo(forward, sideways);
+           super.strafeTo(forward, sideways);
             this.speed = speed;
 
         }

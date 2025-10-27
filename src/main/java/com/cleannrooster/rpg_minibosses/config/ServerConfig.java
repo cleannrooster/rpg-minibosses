@@ -6,7 +6,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
 import java.util.LinkedHashMap;
 
-@Config(name = "server_v5")
+@Config(name = "server_v7")
 public class ServerConfig  implements ConfigData {
 
 
@@ -39,7 +39,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Forsaken Templar Attack Damage ")
     public  float templarGreaterAttackDamage = 0F;
     @Comment("Forsaken Templar Movement Speed ")
-    public  float templarGreaterMovementSpeed = 0.9F;
+    public  float templarGreaterMovementSpeed = 1.3F;
     @Comment("Forsaken Templar Healing Power ")
     public  float templarGreaterHealingPower = 6F;
 
@@ -79,7 +79,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Forsaken Rogues Attack Damage ")
     public  float rogueGreaterAttackDamage = 1.0F;
     @Comment("Forsaken Rogues Movement Speed ")
-    public  float rogueGreaterMovementSpeed = 1.5F;
+    public  float rogueGreaterMovementSpeed = 1.4F;
     @Comment("Forsaken Rogues Suppress ")
     public  float rogueGreaterSuppress = 60F;
     @Comment("Forsaken Rogues Evasion ")
@@ -106,7 +106,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Lesser Templar Attack Damage ")
     public  float templarLesserAttackDamage = 0F;
     @Comment("Lesser Templar Movement Speed ")
-    public  float templarLesserMovementSpeed = 0.9F;
+    public  float templarLesserMovementSpeed = 1.3F;
     @Comment("Lesser Templar Healing Power ")
     public  float templarLesserHealingPower = 4F;
 
@@ -148,7 +148,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Lesser Rogues Attack Damage ")
     public  float rogueLesserAttackDamage = 1.0F;
     @Comment("Lesser Rogues Movement Speed ")
-    public  float rogueLesserMovementSpeed = 1.5F;
+    public  float rogueLesserMovementSpeed = 1.4F;
     @Comment("Lesser Rogues Suppress ")
     public  float rogueLesserSuppress = 40F;
     @Comment("Lesser Rogues Evasion ")

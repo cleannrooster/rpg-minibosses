@@ -13,7 +13,7 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_frost_spell_ascend",
+          "particle_id": "spell_engine:magic_frost_ascend",
           "origin": "FEET",
           "shape": "WIDE_PIPE",
           "count": 1.0,
@@ -43,7 +43,7 @@
         "max_speed": 0.3
       },
       {
-        "particle_id": "spell_engine:magic_frost_spell_ascend",
+        "particle_id": "spell_engine:magic_frost_ascend",
         "origin": "FEET",
         "shape": "PIPE",
         "count": 10.0,

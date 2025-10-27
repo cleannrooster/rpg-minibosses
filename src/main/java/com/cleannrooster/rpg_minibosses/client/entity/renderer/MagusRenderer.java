@@ -55,10 +55,15 @@ public class MagusRenderer<T extends MagusPrimeEntity, M extends BipedEntityMode
             return;
         }
         super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
-        for(Synchronized.Effect effect: Synchronized.effectsOf(animatable)){
-            if(CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
-                CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(effect.amplifier(), animatable, partialTick, poseStack, bufferSource, packedLight);
+        try {
+            for (Synchronized.Effect effect : Synchronized.effectsOf(animatable)) {
+                if (effect != null && effect.effect() != null && CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
+                    CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(effect.amplifier(), animatable, partialTick, poseStack, bufferSource, packedLight);
+                }
             }
+        }
+        catch (Exception ignored){
+
         }
     }
 

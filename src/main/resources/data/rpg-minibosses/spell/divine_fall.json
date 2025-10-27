@@ -12,7 +12,7 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_holy_spell_ascend",
+          "particle_id": "spell_engine:magic_spell_ascend",
           "origin": "FEET",
           "shape": "WIDE_PIPE",
           "count": 1.0,
@@ -26,21 +26,21 @@
     "animation": "spellbladenext:seraph_strike",
     "particles": [
       {
-        "particle_id": "spell_engine:magic_holy_spark_ascend",
+        "particle_id": "spell_engine:magic_spark_ascend",
         "origin": "FEET",
         "shape": "CIRCLE",
         "count": 30.0,
         "min_speed": 0.8
       },
       {
-        "particle_id": "spell_engine:magic_holy_spell_ascend",
+        "particle_id": "spell_engine:magic_spell_ascend",
         "origin": "FEET",
         "shape": "CIRCLE",
         "count": 10.0,
         "min_speed": 0.5
       },
       {
-        "particle_id": "spell_engine:magic_holy_stripe_ascend",
+        "particle_id": "spell_engine:magic_stripe_ascend",
         "origin": "FEET",
         "shape": "CIRCLE",
         "count": 10.0,
@@ -69,7 +69,7 @@
 
             "travel_particles": [
             {
-              "particle_id": "spell_engine:magic_holy_spell_float",
+              "particle_id": "spell_engine:magic_spell_float",
               "origin": "CENTER",
               "shape": "CIRCLE",
               "count": 5.0,
@@ -78,7 +78,7 @@
               "angle": 360.0
             },
             {
-              "particle_id": "spell_engine:magic_holy_spark_float",
+              "particle_id": "spell_engine:magic_spark_float",
               "origin": "CENTER",
               "shape": "CIRCLE",
               "count": 5.0,
@@ -108,7 +108,7 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_holy_impact_burst",
+          "particle_id": "spell_engine:magic_spell_burst",
           "origin": "CENTER",
           "shape": "CIRCLE",
           "rotation": "LOOK",
@@ -127,7 +127,7 @@
     "radius": 4.0,
     "particles": [
       {
-        "particle_id": "spell_engine:magic_holy_spark_float",
+        "particle_id": "spell_engine:magic_spark_float",
         "origin": "CENTER",
         "shape": "SPHERE",
         "count": 100.0,
@@ -135,7 +135,7 @@
         "angle": 360.0
       },
       {
-        "particle_id": "spell_engine:magic_holy_spell_float",
+        "particle_id": "spell_engine:magic_spell_float",
         "origin": "CENTER",
         "shape": "SPHERE",
         "count": 100.0,

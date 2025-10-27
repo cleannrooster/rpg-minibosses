@@ -164,11 +164,11 @@ public class JuggernautEntity extends MinibossEntity{
     @Override
     protected void mobTick() {
 
-        if (this.getTarget() != null) {
+        if (this.getTarget() != null && this.canSee(this.getTarget())) {
             this.getLookControl().lookAt(this.getTarget(),360,360);
         }
-        if(defensetimer > 0) {
-            if(this.getTarget()  != null ) {
+        if(defensetimer >= 0 && !this.getWorld().isClient()) {
+            if(this.getTarget()  != null  && this.canSee(this.getTarget())) {
                 if (this.getTarget().distanceTo(this) > 4) {
                     this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
                 } else {
@@ -202,7 +202,7 @@ public class JuggernautEntity extends MinibossEntity{
                 this.defensetime = 80 + this.getRandom().nextInt(80);
             }
         }
-        if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
+        if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget()) && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
             this.resetIndicator();
 
                 ((JuggernautEntity) this).triggerAnim("twohandwave", "twohandwave");
@@ -245,7 +245,7 @@ public class JuggernautEntity extends MinibossEntity{
             this.performing = true;
 
         }
-        if(!this.getWorld().isClient() && leapTimer > 160 && !this.performing && this.getTarget() != null && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
+        if(!this.getWorld().isClient() && leapTimer > 160 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget()) && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
             this.resetIndicator();
 
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {

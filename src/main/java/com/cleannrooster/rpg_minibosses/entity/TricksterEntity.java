@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.entity.AI.RogueNodeMaker;
 import mod.azure.azurelib.core.animation.AnimatableManager;
 import mod.azure.azurelib.core.animation.Animation;
 import mod.azure.azurelib.core.animation.AnimationController;
@@ -13,13 +14,12 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.AttackGoal;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.entity.ai.goal.ZombieAttackGoal;
+import net.minecraft.entity.ai.pathing.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.mob.PatrolEntity;
-import net.minecraft.entity.mob.ZombieEntity;
+import net.minecraft.entity.mob.*;
+import net.minecraft.entity.passive.SnifferEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -30,6 +30,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
@@ -46,11 +47,15 @@ import net.spell_power.api.SpellSchools;
 import java.util.List;
 import java.util.Optional;
 
+import static net.spell_engine.utils.VectorHelper.angleBetween;
+
 public class TricksterEntity extends MinibossEntity{
     List<Item> bonusList = List.of();
+    private boolean ambushing;
 
     protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
+
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
                         ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
@@ -59,7 +64,10 @@ public class TricksterEntity extends MinibossEntity{
                         && ( new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/sickle")))
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/dagger"))))
                 ;}).toList();
+
+
     }
+
     protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
         if(lesser) {
@@ -111,6 +119,7 @@ public class TricksterEntity extends MinibossEntity{
                     ;}).toList();
         }
 
+
     }
     public boolean skipOffHand(){
         return true;
@@ -132,6 +141,11 @@ public class TricksterEntity extends MinibossEntity{
         this.goalSelector.add(2, new MeleeAttackGoal(this,1F,true));
 
         super.initCustomGoals();
+    }
+
+    @Override
+    protected EntityNavigation createNavigation(World world) {
+        return new TricksterNavigation(this);
     }
 
     public Item getDefaultItem(){
@@ -162,6 +176,9 @@ public class TricksterEntity extends MinibossEntity{
 
     @Override
     protected void mobTick() {
+
+
+
         if (this.getTarget() != null) {
             this.getLookControl().lookAt(this.getTarget(),360,360);
         }
@@ -169,7 +186,7 @@ public class TricksterEntity extends MinibossEntity{
             ((TricksterEntity)this).triggerAnim("roll","roll");
                 this.addVelocity(this.getRotationVector().multiply(2F));
 
-            this.rolltimer = 80 - (int)(80*this.getCooldownCoeff());
+            this.rolltimer = 80 - (int)(180*this.getCooldownCoeff());
         }
 
         if(pommelTick == 120){
@@ -183,11 +200,10 @@ public class TricksterEntity extends MinibossEntity{
             defensetimer++;
             throwtimer++;
         }
-        if(defensetimer > 0){
+        if(defensetimer >= 0 && !this.getWorld().isClient()){
+            if(this.getTarget()  != null && this.canSee(this.getTarget()) ){
 
-            if(this.getTarget()  != null ){
                 if( this.getTarget().distanceTo(this) > 4){
-                    this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 0.2F);
                 }
                 else{
                     ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2.5F, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.75F);
@@ -224,7 +240,7 @@ public class TricksterEntity extends MinibossEntity{
                         });
 
                     });
-                    this.throwtimer = 80 - (int)(80*this.getCooldownCoeff());
+                    this.throwtimer = 80 - (int)(180*this.getCooldownCoeff());
                     this.performing = true;
                 }
 
@@ -233,6 +249,10 @@ public class TricksterEntity extends MinibossEntity{
                 this.defensetimer = -80 - this.getRandom().nextInt(80);
                 this.defensetime = 80 + this.getRandom().nextInt(80);
             }
+        }
+        if(!this.ambushing && this.getTarget() != null && this.distanceTo(this.getTarget()) > 12){
+            this.ambushing = true;
+
         }
         super.mobTick();
 
@@ -263,15 +283,31 @@ public class TricksterEntity extends MinibossEntity{
                     }
             );
             this.dashtimer = 0;
+            this.defensetimer += 40;
             this.performing = true;
             this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
             return false;
         }
         return super.damage(source, amount);
     }
+    public class TricksterNavigation extends MobNavigation{
 
+        public TricksterNavigation(MobEntity entity) {
+            super(entity, entity.getWorld());
+            this.nodeMaker = new RogueNodeMaker();
+
+        }
+
+        protected PathNodeNavigator createPathNodeNavigator(int range) {
+            this.nodeMaker = new RogueNodeMaker();
+            this.nodeMaker.setCanEnterOpenDoors(true);
+            return new PathNodeNavigator(this.nodeMaker, range);
+        }
+    }
     @Override
     public boolean tryAttack(Entity target) {
+        this.ambushing = false;
+
         if(pommelTick > 120){
 
             ((TricksterEntity)this).triggerAnim("pommelstrike","pommelstrike");

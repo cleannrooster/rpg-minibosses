@@ -1,6 +1,6 @@
 {
-  "school": "spell_power:fire",
-  "range": 64.0,
+  "school": "spell_power:arcane",
+  "range": 32.0,
   "tier": 3,
   "learn": {},
   "active": {
@@ -26,7 +26,7 @@
           "scale": 2.0
         },
         {
-          "particle_id": "spell_engine:flame_medium_a",
+          "particle_id": "spell_engine:magic_stripe_float",
           "origin": "LAUNCH_POINT",
           "shape": "CIRCLE",
           "rotation": "LOOK",
@@ -36,11 +36,11 @@
           "min_speed": 0.02,
           "max_speed": 0.02,
           "pre_spawn_travel": 50.0,
-          "color_rgba": 4284889343,
+          "color_rgba": 4284940287,
           "scale": 2.0
         },
         {
-          "particle_id": "spell_engine:flame_spark",
+          "particle_id": "spell_engine:magic_spark_float",
           "origin": "LAUNCH_POINT",
           "shape": "CIRCLE",
           "rotation": "LOOK",
@@ -50,7 +50,7 @@
           "min_speed": 0.02,
           "max_speed": 0.02,
           "pre_spawn_travel": 75.0,
-          "color_rgba": 4284889343,
+          "color_rgba": 4284940287,
           "scale": 2.0
         }
       ]
@@ -62,31 +62,44 @@
       {
         "particle_id": "spell_engine:flame",
         "origin": "LAUNCH_POINT",
-        "shape": "CONE",
+        "shape": "CIRCLE",
         "rotation": "LOOK",
-        "count": 200.0,
-        "min_speed": 2.0,
-        "max_speed": 4.0,
-        "angle": 20.0
+        "roll": 45.0,
+        "roll_offset": 45.0,
+        "count": 100.0,
+        "min_speed": 0.2,
+        "max_speed": 0.2,
+        "pre_spawn_travel": 10.0,
+        "color_rgba": 4278190335,
+        "scale": 2.0
       },
       {
-        "particle_id": "spell_engine:flame_medium_a",
+        "particle_id": "spell_engine:magic_stripe_float",
         "origin": "LAUNCH_POINT",
-        "shape": "CONE",
+        "shape": "CIRCLE",
         "rotation": "LOOK",
+        "roll": 45.0,
+        "roll_offset": 45.0,
         "count": 100.0,
-        "min_speed": 1.0,
-        "max_speed": 2.0,
-        "angle": 40.0
+        "min_speed": 0.02,
+        "max_speed": 0.02,
+        "pre_spawn_travel": 50.0,
+        "color_rgba": 4284940287,
+        "scale": 2.0
       },
       {
-        "particle_id": "spell_engine:flame_medium_b",
+        "particle_id": "spell_engine:magic_spark_float",
         "origin": "LAUNCH_POINT",
-        "shape": "CONE",
+        "shape": "CIRCLE",
         "rotation": "LOOK",
+        "roll": 45.0,
+        "roll_offset": 45.0,
         "count": 100.0,
-        "min_speed": 0.5,
-        "angle": 75.0
+        "min_speed": 0.02,
+        "max_speed": 0.02,
+        "pre_spawn_travel": 75.0,
+        "color_rgba": 4284940287,
+        "scale": 2.0
       }
     ],
     "sound": {
@@ -95,61 +108,20 @@
   },
   "target": {
     "type": "AIM",
-    "aim": {}
+    "aim": {
+      "required": true,
+      "sticky": true
+    }
   },
   "deliver": {
-    "type": "PROJECTILE",
-    "projectile": {
-      "direct_towards_target": true,
-      "launch_properties": {
-        "velocity": 3.0
-      },
+    "type": "METEOR",
+    "meteor": {
+      "launch_height": 0.0,
       "projectile": {
-        "homing_angle": 30.0,
-        "homing_after_absolute_distance": 4.0,
-        "homing_after_relative_distance": 0.4,
         "client_data": {
-          "travel_particles": [
-            {
-              "particle_id": "spell_engine:flame",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 3.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
-            },
-            {
-              "particle_id": "spell_engine:flame_medium_a",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 1.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
-            },
-            {
-              "particle_id": "spell_engine:flame_medium_b",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 1.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
-            },
-            {
-              "particle_id": "minecraft:smoke",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 2.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
-            }
-          ],
           "model": {
             "model_id": "wizards:projectile/fire_blast",
-            "scale": 3.0
+            "scale": 0.0
           }
         }
       }
@@ -173,7 +145,6 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 1.8,
           "knockback": 2.0
         }
       },
@@ -202,6 +173,38 @@
       "sound": {
         "id": "minecraft:entity.player.hurt_on_fire"
       }
+    },
+    {
+      "school": "spell_power:arcane",
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "knockback": 2.0
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:magic_arcane_spark_float",
+          "origin": "CENTER",
+          "shape": "SPHERE",
+          "count": 20.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1,
+          "angle": 360.0
+        },
+        {
+          "particle_id": "spell_engine:magic_spark_float",
+          "origin": "CENTER",
+          "shape": "SPHERE",
+          "count": 20.0,
+          "min_speed": 0.05,
+          "max_speed": 0.1,
+          "angle": 360.0
+        }
+      ],
+      "sound": {
+        "id": "spell_engine:generic_arcane_release"
+      }
     }
   ],
   "area_impact": {
@@ -217,6 +220,16 @@
         "count": 2.0,
         "min_speed": 0.3,
         "max_speed": 0.5
+      },
+      {
+        "particle_id": "spell_engine:area_effect_293",
+        "origin": "FEET",
+        "shape": "WIDE_PIPE",
+        "count": 1.0,
+        "max_speed": 0.0,
+        "pre_spawn_travel": 1.0,
+        "color_rgba": 4284940287,
+        "scale": 8.0
       },
       {
         "particle_id": "spell_engine:flame",
@@ -235,20 +248,22 @@
         "max_speed": 0.8
       },
       {
-        "particle_id": "spell_engine:flame_medium_b",
+        "particle_id": "spell_engine:magic_spell_float",
         "origin": "CENTER",
         "shape": "SPHERE",
         "count": 450.0,
         "min_speed": 0.7,
-        "max_speed": 0.8
+        "max_speed": 0.8,
+        "color_rgba": 4278190335
       },
       {
-        "particle_id": "spell_engine:flame_medium_a",
+        "particle_id": "spell_engine:magic_stripe_float",
         "origin": "CENTER",
         "shape": "SPHERE",
         "count": 450.0,
         "min_speed": 0.4,
-        "max_speed": 0.4
+        "max_speed": 0.4,
+        "color_rgba": 4278190335
       },
       {
         "particle_id": "spell_engine:flame_medium_b",

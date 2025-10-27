@@ -75,7 +75,7 @@ import net.minecraft.world.gen.structure.Structures;
 import net.spell_engine.api.config.ConfigFile;
 import net.spell_engine.api.render.CustomModels;
 import net.spell_engine.mixin.entity.PlayerEntityEvents;
-import net.tinyconfig.ConfigManager;
+import net.tiny_config.ConfigManager;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

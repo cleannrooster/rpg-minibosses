@@ -37,6 +37,10 @@ public class RPGMinibossesClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+        EntityRendererRegistry.register(RPGMinibosses.ORBENTITY, OrbRenderer::new);
+        CustomModels.registerModelIds(List.of(Identifier.of(RPGMinibosses.MOD_ID,"projectile/iron_dagger")));
+
+        CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());
 		EntityRendererRegistry.register(RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType,(context) ->  new MinibossRenderer<>(context, new JuggernautModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArtilleristModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TricksterModel<>()));
@@ -51,11 +55,9 @@ public class RPGMinibossesClient implements ClientModInitializer {
 		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_ALPHA.entityType, (context) ->  new GeminiRenderer<>(context, new GeminiModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_BETA.entityType, (context) ->  new GeminiRenderer<>(context, new GeminiModel<>()));
 
-		EntityRendererRegistry.register(RPGMinibosses.ORBENTITY, OrbRenderer::new);
-		CustomModels.registerModelIds(List.of(Identifier.of(RPGMinibosses.MOD_ID,"projectile/iron_dagger")));
 		EntityRendererRegistry.register(RPGMinibossesEntities.TRAP, TrapRenderer::new);
 
-		CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());
+
 		ModelPredicateProviderRegistry.register(RPGMinibosses.LAVOSHORN, Identifier.of(MOD_ID,"tooting"), (stack, world, entity, seed) -> {
 			return entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0F : 0.0F;		});
 		ClientTickEvents.START_CLIENT_TICK.register((client) -> {

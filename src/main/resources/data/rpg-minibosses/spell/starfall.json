@@ -27,7 +27,7 @@
           "scale": 2.0
         },
         {
-          "particle_id": "spell_engine:magic_arcane_stripe_float",
+          "particle_id": "spell_engine:magic_arcane_float",
           "origin": "LAUNCH_POINT",
           "shape": "CIRCLE",
           "rotation": "LOOK",
@@ -75,7 +75,7 @@
         "scale": 2.0
       },
       {
-        "particle_id": "spell_engine:magic_arcane_stripe_float",
+        "particle_id": "spell_engine:magic_arcane_float",
         "origin": "LAUNCH_POINT",
         "shape": "CIRCLE",
         "rotation": "LOOK",
@@ -234,7 +234,7 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_arcane_spark_float",
+          "particle_id": "spell_engine:magic_arcane_float",
           "origin": "CENTER",
           "shape": "SPHERE",
           "count": 20.0,
@@ -243,7 +243,7 @@
           "angle": 360.0
         },
         {
-          "particle_id": "spell_engine:magic_arcane_spark_float",
+          "particle_id": "spell_engine:magic_arcane_float",
           "origin": "CENTER",
           "shape": "SPHERE",
           "count": 20.0,
@@ -298,7 +298,7 @@
         "max_speed": 0.7
       },
       {
-        "particle_id": "spell_engine:magic_arcane_spell_float",
+        "particle_id": "spell_engine:magic_spell_float",
         "origin": "CENTER",
         "shape": "SPHERE",
         "count": 150.0,
@@ -314,7 +314,7 @@
         "max_speed": 0.4
       },
       {
-        "particle_id": "spell_engine:magic_arcane_stripe_float",
+        "particle_id": "spell_engine:magic_arcane_float",
         "origin": "CENTER",
         "shape": "SPHERE",
         "count": 150.0,

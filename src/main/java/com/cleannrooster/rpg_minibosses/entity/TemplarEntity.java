@@ -73,6 +73,7 @@ public class TemplarEntity extends MinibossEntity{
     private boolean is_twirl = false;
     List<Item> bonusList = List.of();
     private int parryTimer = 0;
+    private boolean dashing = false;
 
 
     protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
@@ -310,22 +311,42 @@ public class TemplarEntity extends MinibossEntity{
 
 
 
-
-        if (this.getTarget() != null) {
+        if (this.getTarget() != null && this.canSee(this.getTarget()) ) {
             this.getLookControl().lookAt(this.getTarget(),360,360);
+            if(!dashing && this.dashtimer >= 80 && this.getTarget().distanceTo(this) >5){
+                this.dashtimer = 0;
+                this.resetIndicator();
+                this.performing = true;
+                this.dashing = true;
+            }
+        }
+        if(!this.dashing && !this.performing) {
+            if ((this.getTarget() != null && (this.getTarget().distanceTo(this) > 5)) && this.canSee(this.getTarget())) {
+
+                dashtimer = Math.min(dashtimer + 1, 80);
+            } else {
+                dashtimer = Math.max(dashtimer - 1, 1);
+            }
+        }
+        if( !this.is_staff && this.getTarget() != null && this.canSee(this.getTarget())){
+            if(this.getTarget().distanceTo(this) <5){
+                this.dashing = false;
+                this.performing = false;
+
+                this.dashtimer = 0;
+            }
         }
         if(!this.getWorld().isClient()) {
             stafftimer++;
             twirltimer++;
             defensetimer++;
-            dashtimer++;
             dash_attack_timer++;
             cooldown++;
             this.parryTimer--;
         }
 
 
-        if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null ) {
+        if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null  && this.canSee(this.getTarget())) {
             this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
 
             ((TemplarEntity)this).triggerAnim("actions","staff");
@@ -339,7 +360,7 @@ public class TemplarEntity extends MinibossEntity{
             this.getNavigation().stop();
             for(int i = 0 ; i < 5; i++) {
                 ((WorldScheduler) this.getWorld()).schedule(20*(i+1), () -> {
-                            if (this.getTarget() != null && this.canSee(this.getTarget())) {
+                            if (this.getTarget() != null && this.canSee(this.getTarget()) ) {
 
                                 SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0);
                                 SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
@@ -364,7 +385,7 @@ public class TemplarEntity extends MinibossEntity{
         }
 
 
-        if(this.is_twirl && this.getTarget() != null && !this.getWorld().isClient()){
+        if(this.is_twirl && this.getTarget() != null && !this.getWorld().isClient() && this.canSee(this.getTarget())){
             if(this.age % 4 == 0) {
                 ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
             }
@@ -380,7 +401,7 @@ public class TemplarEntity extends MinibossEntity{
 
     @Override
     public float getMovementSpeed() {
-        return (this.getTarget() != null && this.getTarget().distanceTo(this) > 4F ? 2.0F : 1.0F ) * super.getMovementSpeed();
+        return (this.dashing && this.getDataTracker().get(INDICATOR) >= 40 ? 2.0F : 1.0F ) * super.getMovementSpeed();
     }
 
     public int defensetime = 80;
@@ -433,12 +454,12 @@ public class TemplarEntity extends MinibossEntity{
         if(this.isAttacking() && !this.getDataTracker().get(DOWN)){
             if(this.getVelocity().length() > 0.2F){
                 state.setAnimation(SPRINT_AGGRO);
-                state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.4F : 1F));
+                state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.2F : 1F));
 
                 return PlayState.CONTINUE;
 
             }
-            state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.2F : 1F));
+            state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
 
             state.setAnimation(AGGRO_TEMPLAR);
 
@@ -485,7 +506,7 @@ public class TemplarEntity extends MinibossEntity{
             return super.damage(source, amount);
 
         }
-        return false;
+        return super.damage(source, amount);
 
     }
     @Override

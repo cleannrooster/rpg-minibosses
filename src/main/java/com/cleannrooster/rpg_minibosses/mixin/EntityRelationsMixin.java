@@ -26,8 +26,15 @@ public class EntityRelationsMixin {
 
     private static void actionAllowedRPGMinibosses(SpellTarget.FocusMode focusMode, SpellTarget.Intent intent, LivingEntity attacker, Entity target, CallbackInfoReturnable<Boolean> cir) {
         if( attacker instanceof MinibossEntity minibossEntity && attacker != target ){
-            if(target instanceof MinibossEntity miniTarget && (!( minibossEntity.isTamed()) || ( miniTarget.getDataTracker().get(DOWN)))) {
-                cir.setReturnValue(false);
+            if(target instanceof MinibossEntity miniTarget ) {
+                if(!( minibossEntity.isTamed())){
+                    cir.setReturnValue(minibossEntity.getTarget() != null && minibossEntity.getTarget().equals(target));
+
+
+                }
+                if(miniTarget.getDataTracker().get(DOWN)){
+                    cir.setReturnValue(false);
+                }
 
             }
             else{

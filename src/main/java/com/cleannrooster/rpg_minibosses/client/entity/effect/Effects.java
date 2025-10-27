@@ -26,6 +26,16 @@ public class Effects {
             this.effect = effect;
             entries.add(this);
         }
+        public Entry(String name, StatusEffect effect, boolean shouldSync) {
+            this.id = Identifier.of(RPGMinibosses.MOD_ID, name);
+            this.effect = effect;
+            entries.add(this);
+
+            if(shouldSync) {
+                Synchronized.configure(effect, true);
+            }
+
+        }
 
         public void register() {
             registryEntry = Registry.registerReference(Registries.STATUS_EFFECT, id, effect);
@@ -38,7 +48,7 @@ public class Effects {
 
 
     public static final Entry FEATHER = new Entry("feather",
-            new Feather(StatusEffectCategory.BENEFICIAL, 0xff0000));
+            new Feather(StatusEffectCategory.BENEFICIAL, 0xff0000),true);
     public static final Entry PETRIFIED = new Entry("petrified",
             new CustomEffect(StatusEffectCategory.HARMFUL, 0xff0000));
     public static final Entry DARK_MATTER = new Entry("dark_matter",
@@ -55,7 +65,6 @@ public class Effects {
 
         for (var entry: entries) {
             entry.register();
-            Synchronized.configure(entry.effect, true);
 
         }
     }
