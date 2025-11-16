@@ -1,0 +1,32 @@
+{
+  "bonuses": [
+    {
+      "attributes": {
+        "modifiers": [
+          {
+            "type": "spell_power:critical_damage",
+            "amount": 0.5,
+            "id": "rpg-minibosses:set_bonus",
+            "operation": "add_multiplied_base",
+            "slot": "armor"
+          }
+        ]
+      },
+      "required_piece_count": 2
+    },
+    {
+      "required_piece_count": 2,
+      "spells": {
+        "content": "ANY",
+        "spell_ids": [
+          "rpg-minibosses:savant"
+        ]
+      }
+    }
+  ],
+  "items": [
+    "rpg-minibosses:sanguine_arcane_chest",
+    "rpg-minibosses:sanguine_arcane_legs"
+  ],
+  "name": "savant_purple"
+}

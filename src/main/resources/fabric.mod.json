@@ -21,7 +21,10 @@
 		"client":
 		[
 			"com.cleannrooster.rpg_minibosses.RPGMinibossesClient"
-		]
+		],
+      "fabric-datagen": [
+        "com.cleannrooster.rpg_minibosses.data.DataGenRPG"
+      ]
 	},
 	"mixins": [
 		"rpg-minibosses.mixins.json"

@@ -1,0 +1,32 @@
+{
+  "bonuses": [
+    {
+      "attributes": {
+        "modifiers": [
+          {
+            "type": "spell_engine:evasion_chance",
+            "amount": 0.4000000059604645,
+            "id": "rpg-minibosses:set_bonus",
+            "operation": "add_multiplied_base",
+            "slot": "armor"
+          }
+        ]
+      },
+      "required_piece_count": 2
+    },
+    {
+      "required_piece_count": 2,
+      "spells": {
+        "content": "ANY",
+        "spell_ids": [
+          "rpg-minibosses:foxshade"
+        ]
+      }
+    }
+  ],
+  "items": [
+    "rpg-minibosses:foxshade_chest",
+    "rpg-minibosses:foxshade_legs"
+  ],
+  "name": "foxshade"
+}

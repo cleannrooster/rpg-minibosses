@@ -1,0 +1,66 @@
+{
+  "school": "spell_power:generic",
+  "range": 0.0,
+  "tier": 7,
+  "tooltip": {
+    "show_header": false,
+    "name": {
+      "show_in_compact": false,
+      "show_in_details": false
+    },
+    "description": {
+      "color": "dark_green"
+    }
+  },
+  "type": "PASSIVE",
+  "passive": {
+    "triggers": [
+      {
+        "type": "EVASION",
+        "chance": 1
+      }
+    ]
+  },
+  "release": {
+    "particles": [
+      {
+        "particle_id": "spell_engine:magic_spark_decelerate",
+        "origin": "CENTER",
+        "shape": "SPHERE",
+        "count": 25.0,
+        "min_speed": 0.14,
+        "max_speed": 0.15,
+        "color_rgba": 4294967295
+      },
+      {
+        "particle_id": "spell_engine:magic_spark_decelerate",
+        "origin": "CENTER",
+        "shape": "SPHERE",
+        "count": 25.0,
+        "min_speed": 0.24,
+        "max_speed": 0.25,
+        "color_rgba": 4294967295
+      }
+    ],
+    "sound": {
+      "id": "relics_rpgs:melee_activate_1"
+    }
+  },
+  "impacts": [
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "apply_to_caster": true,
+        "status_effect": {
+          "effect_id": "rpg-minibosses:foxshade",
+          "duration": 4.0
+        }
+      }
+    }
+  ],
+  "cost": {
+    "cooldown": {
+      "duration": 0
+    }
+  }
+}

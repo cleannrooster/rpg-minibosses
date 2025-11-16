@@ -984,7 +984,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             uUID = ServerConfigHandler.getPlayerUuidByName(this.getServer(), string);
         }
         boolean cantHire;
-        if (nbt.containsUuid("cantHire")) {
+        if (nbt.contains("cantHire")) {
             cantHire = nbt.getBoolean("cantHire");
         } else {
             cantHire = false;

@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses;
 
 
+import com.cleannrooster.rpg_minibosses.client.armor.renderer.UniqueArmorRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.FeatherRenderer;
 import com.cleannrooster.rpg_minibosses.client.entity.model.*;
@@ -11,6 +12,11 @@ import com.cleannrooster.rpg_minibosses.client.entity.renderer.OrbRenderer;
 import com.cleannrooster.rpg_minibosses.entity.TrapRenderer;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
+import com.cleannrooster.rpg_minibosses.item.Armors;
+import mod.azure.azurelib.rewrite.render.armor.AzArmorRenderer;
+import mod.azure.azurelib.rewrite.render.armor.AzArmorRendererRegistry;
+import mod.azure.azurelibarmor.common.render.item.AzItemRenderer;
+import mod.azure.azurelibarmor.common.render.item.AzItemRendererRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -19,11 +25,13 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
 import net.spell_engine.api.effect.CustomModelStatusEffect;
+import net.spell_engine.api.item.armor.Armor;
 import net.spell_engine.api.render.CustomModels;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class RPGMinibossesClient implements ClientModInitializer {
 	public static final String MOD_ID = "rpg-minibosses";
@@ -67,8 +75,23 @@ public class RPGMinibossesClient implements ClientModInitializer {
 				}
 			}
 		});
+
+        registerArmorRenderer(Armors.despotArmor, UniqueArmorRenderer::despot);
+        registerArmorRenderer(Armors.foxArmor, UniqueArmorRenderer::foxshade);
+        registerArmorRenderer(Armors.kintsugiArmor, UniqueArmorRenderer::kintsugi);
+        registerArmorRenderer(Armors.sanguine_red, UniqueArmorRenderer::sanguine_fire);
+        registerArmorRenderer(Armors.sanguine_blue, UniqueArmorRenderer::sanguine_frost);
+        registerArmorRenderer(Armors.sanguine_purple, UniqueArmorRenderer::sanguine_arcane);
+
 	}
+    private static void registerArmorRenderer(Armor.Set set, Supplier<AzArmorRenderer> armorRendererSupplier) {
+        AzArmorRendererRegistry.register(armorRendererSupplier, set.head, set.chest, set.legs, set.feet);
+    }
+    private static void registerArmorItemRenderer(Armor.Set set, Supplier<AzItemRenderer> armorRendererSupplier) {
+        AzItemRendererRegistry.register(set.chest, armorRendererSupplier);
+        AzItemRendererRegistry.register(set.legs, armorRendererSupplier);
 
 
+    }
 
 }

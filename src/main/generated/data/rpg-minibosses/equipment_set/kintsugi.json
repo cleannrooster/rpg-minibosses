@@ -1,0 +1,32 @@
+{
+  "bonuses": [
+    {
+      "attributes": {
+        "modifiers": [
+          {
+            "type": "minecraft:generic.armor",
+            "amount": 0.4000000059604645,
+            "id": "rpg-minibosses:set_bonus",
+            "operation": "add_multiplied_base",
+            "slot": "armor"
+          }
+        ]
+      },
+      "required_piece_count": 2
+    },
+    {
+      "required_piece_count": 2,
+      "spells": {
+        "content": "ANY",
+        "spell_ids": [
+          "rpg-minibosses:kintsugi"
+        ]
+      }
+    }
+  ],
+  "items": [
+    "rpg-minibosses:kintsugi_chest",
+    "rpg-minibosses:kintsugi_legs"
+  ],
+  "name": "kintsugi"
+}
