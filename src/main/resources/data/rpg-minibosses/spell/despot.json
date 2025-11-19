@@ -54,7 +54,7 @@
       }
     ],
     "sound": {
-      "id": "relics_rpgs:melee_activate_1"
+      "id": "rpg-minibosses:warcry"
     }
   },
   "impacts": [
@@ -64,14 +64,15 @@
         "type": "STATUS_EFFECT",
         "status_effect": {
           "effect_id": "rpg-minibosses:despot",
-          "duration": 4.0
+          "duration": 4,
+          "refresh_duration" : false
         }
       }
     }
   ],
   "cost": {
     "cooldown": {
-      "duration": 0
+      "duration": 4
     }
   }
 }

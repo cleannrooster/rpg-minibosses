@@ -243,7 +243,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
         ));
         SHORTCASTPROJECTILE.addAll(List.of(
-                Identifier.of(RPGMinibosses.MOD_ID,"fireball"),
+                Identifier.of(RPGMinibosses.MOD_ID,"fire_volley"),
                 Identifier.of(RPGMinibosses.MOD_ID,"arcane_projectile"),
                 Identifier.of(RPGMinibosses.MOD_ID,"ice_bolt")
                 ));
@@ -346,7 +346,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
         if(this.firstUpdate) {
             if (!this.getWorld().isClient()) {
-                (this).triggerAnim("intro", "intro");
+                //(this).triggerAnim("intro", "intro");
                 ((WorldScheduler) this.getWorld()).schedule(30, () -> {
                             this.performing = false;
                             this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry,-1,0,false,false));
@@ -852,7 +852,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if(this.getTarget() != null) {
 
-                    (this).triggerAnim("casting", "casting");
+                    //(this).triggerAnim("casting", "casting");
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
@@ -896,11 +896,11 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if(this.getTarget() != null) {
                     if(this.moveControl.isMoving()){
-                        (this).triggerAnim("castingm","castingm");
+                        //(this).triggerAnim("castingm","castingm");
 
                     }
                     else {
-                        (this).triggerAnim("casting", "casting");
+                        //(this).triggerAnim("casting", "casting");
                     }
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
@@ -925,11 +925,11 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
         }
         if(!this.getWorld().isClient() && quickcast_timer > 80 && !this.performing && this.getTarget() != null ) {
             if(this.moveControl.isMoving()){
-                (this).triggerAnim("castquickm","castquickm");
+                //(this).triggerAnim("castquickm","castquickm");
 
             }
             else {
-                (this).triggerAnim("castquick", "castquick");
+                //(this).triggerAnim("castquick", "castquick");
             }
             this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON);
 
@@ -951,7 +951,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
 
         if(!this.getWorld().isClient() && jumptimer > 200 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
-            (this).triggerAnim("dash","dash");
+            //(this).triggerAnim("dash","dash");
 
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
 
@@ -970,7 +970,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
         }
         if(!this.getWorld().isClient() && dash_attack_timer > 240 && !this.performing && this.getTarget() != null &&  this.distanceTo(this.getTarget()) > 4) {
-            (this).triggerAnim("dash","dash");
+            //(this).triggerAnim("dash","dash");
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
 
             Vec3d vec31 = new Vec3d(this.getTarget().getX() - this.getX(), 0, this.getTarget().getZ() - this.getZ());

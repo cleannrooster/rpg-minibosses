@@ -75,37 +75,37 @@ public class Armors {
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.MOD_ID,"armor"));
 
     public static RegistryEntry<ArmorMaterial> abberrath = material(
-            "abberrath",
+            "abberrath_armor",
             3, 8, 6, 3,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.BLAZE_ROD));
     public static RegistryEntry<ArmorMaterial> despot = material(
-            "despot",
+            "despot_armor",
             3, 8, 6, 3,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.GOLD_BLOCK));
     public static RegistryEntry<ArmorMaterial> kintsugi = material(
-            "kintsugi",
+            "kintsugi_armor",
             2, 6, 4, 2,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.NETHERITE_SCRAP));
     public static RegistryEntry<ArmorMaterial> foxshade = material(
-            "foxshade",
+            "foxshade_armor",
             2, 4, 2, 2,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.LEATHER));
     public static RegistryEntry<ArmorMaterial> sanguine_fire = material(
-            "sanguine_fire",
+            "sanguine_fire_robe",
             1, 4, 2, 1,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.BLAZE_ROD));
     public static RegistryEntry<ArmorMaterial> sanguine_frost = material(
-            "sanguine_frost",
+            "sanguine_frost_robe",
             1, 4, 2, 1,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.PRISMARINE_CRYSTALS));
     public static RegistryEntry<ArmorMaterial> sanguine_arcane = material(
-            "sanguine_arcane",
+            "sanguine_arcane_robe",
             1, 4, 2, 1,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.ENDER_PEARL));
@@ -233,11 +233,11 @@ public class Armors {
                     UniqueArmor::new,
                     ArmorSetConfig.with(
                             null    ,
-                            new ArmorSetConfig.Piece(7)
+                            new ArmorSetConfig.Piece(4)
                                     .addAll(List.of(
 
                                     )),
-                            new ArmorSetConfig.Piece(5)
+                            new ArmorSetConfig.Piece(2)
                                     .addAll(List.of(
                                     )),
                             null

@@ -46,6 +46,7 @@ repositories {
 	// for more information about repositories.
 }
 
+
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -73,22 +74,26 @@ dependencies {
 
 processResources {
 	inputs.property "version", project.version
+    tasks.withType(Copy).configureEach { duplicatesStrategy DuplicatesStrategy.INCLUDE }
 
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
 }
-
+tasks.withType(Copy).configureEach { duplicatesStrategy DuplicatesStrategy.INCLUDE }
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
+
 }
 
 java {
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
 	// If you remove this line, sources will not be generated.
-	withSourcesJar()
-
+	//withSourcesJar()
+    jar {
+        duplicatesStrategy(DuplicatesStrategy.INCLUDE)
+    }
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
 }

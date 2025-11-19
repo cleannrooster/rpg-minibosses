@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.AI.*;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -11,10 +12,10 @@ import com.mojang.logging.LogUtils;
 import com.mojang.serialization.DataResult;
 import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
 import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
-import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
 import mod.azure.azurelib.core.animation.*;
-import mod.azure.azurelib.core.animation.AnimationState;
 import mod.azure.azurelib.core.object.PlayState;
+import mod.azure.azurelib.rewrite.animation.AzAnimatorAccessor;
+import mod.azure.azurelib.rewrite.util.MoveAnalysis;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.advancement.criterion.Criteria;
@@ -99,7 +100,7 @@ import static java.lang.Math.max;
 import static net.minecraft.entity.mob.HostileEntity.canSpawnIgnoreLightLevel;
 import static net.minecraft.entity.mob.HostileEntity.isSpawnDark;
 
-public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEntity, Angerable, Merchant {
+public class MinibossEntity extends PathAwareEntity implements Tameable,  Angerable, Merchant {
     private UUID ownerUuid;
     public boolean performing;
 
@@ -110,7 +111,8 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         this.moveControl = new MinibossMoveConrol(this);
 
         this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
-
+        this.dispatcher = new MinibossAnimationProvider.MinibossAnimationDispatcher(this);
+        this.moveAnalysis = new MoveAnalysis(this);
     }
     public TradeOffer create(ItemStack stack, int price, int maxUses, int experience, int multiplier,  Entity entity, Random random) {
         return new TradeOffer( new TradedItem(Registries.ITEM.get(Identifier.tryParse(RPGMinibossesEntities.config.tradeItem)), price),new ItemStack(stack.getItem()), maxUses, experience, 1);
@@ -129,7 +131,8 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
         this.lookControl = new MinibossLookControl(this);
         this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
-
+        this.dispatcher = new MinibossAnimationProvider.MinibossAnimationDispatcher(this);
+        this.moveAnalysis = new MoveAnalysis(this);
     }
     public List<String> NAMES = List.of(
             ((TranslatableTextContent)this.getType().getName().getContent()).getKey()+".name.1",
@@ -175,7 +178,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
             vec3d = pathAwareEntity.getVelocity().multiply(-1);
             double d = vec3d.horizontalLength();
-            float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
+            float yaw = 180+(float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
             yaw = MathHelper.clamp(yaw,pathAwareEntity.headYaw -45, pathAwareEntity.headYaw+45);
 
 
@@ -189,7 +192,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             }
 
             ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
-            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
+            //((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
         }
     }
     @Environment(value = EnvType.CLIENT)
@@ -211,17 +214,19 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
                 ((PathAwareEntity) entity).prevBodyYaw += 360.0F;
             }
             ((PathAwareEntity) entity).headYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
-            ((PathAwareEntity) entity).prevHeadYaw = ((PathAwareEntity) entity).headYaw;
+           // ((PathAwareEntity) entity).prevHeadYaw = ((PathAwareEntity) entity).headYaw;
 
             ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
-            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
+           // ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
         }
     }
     private boolean isLesser(){
         return this.getDataTracker().get(MinibossEntity.LESSER);
 
     }
+    public final MinibossAnimationProvider.MinibossAnimationDispatcher dispatcher;
 
+    public final MoveAnalysis moveAnalysis;
 
 
     private static final TrackedData<Boolean> HAS_ROLLED ;
@@ -245,7 +250,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
     }
 
-    public static final RawAnimation WALK = RawAnimation.begin().thenLoop("animation.unknown.walk");
+  /*  public static final RawAnimation WALK = RawAnimation.begin().thenLoop("animation.unknown.walk");
     public static final RawAnimation WALK_B = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards");
     public static final RawAnimation WALK_B_2h = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards2_2h");
     public static final RawAnimation WALK_B_T = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards_transition").thenPlay("animation.unknown.walk_backwards");
@@ -263,10 +268,10 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     public static final RawAnimation DOWNANIM = RawAnimation.begin().thenPlayAndHold("animation.generic.down");
     public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation PREPARE = RawAnimation.begin().then("animation.mob.prepare", Animation.LoopType.PLAY_ONCE);
-
+*/
     public float spawnCoeff = 1;
-    public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
-    @Override
+   // public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
+ /*   @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
 
         animationData.add(new AnimationController<MinibossEntity>(this, "walk",
@@ -274,7 +279,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         );
 
 
-    }
+    }*/
         public int getIndicator(){
             return this.getDataTracker().get(INDICATOR);
 
@@ -361,7 +366,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         if(!this.getCantHire()) {
             if (!damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null) {
                 this.setHealth(0.01F);
-                (this).triggerAnim("down", "down");
+                //(this).triggerAnim("down", "down");
 
                 this.getDataTracker().set(DOWN, true);
                 this.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 9, false, false));
@@ -433,7 +438,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         }
         if(this.firstUpdate && !this.getWorld().isClient()){
             if(this.getDataTracker().get(DOWN)){
-                (this).triggerAnim("down","down");
+                //(this).triggerAnim("down","down");
 
             }
             if(this.getDataTracker().get(NAME) == -1){
@@ -471,7 +476,15 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             }
             this.getDataTracker().set(HAS_ROLLED,true);
         }
+        if (this.getWorld().isClient() && this instanceof ArtilleristEntity artilleristEntity && artilleristEntity.getDataTracker().get(ArtilleristEntity.RUNNING) && artilleristEntity.getVelocity().length() > 0.01F) {
+            setRotationAndHeadFromVelocity(this);
+
+        } else if (this.getWorld().isClient() ) {
+            setRotationFromVelocity(this);
+        }
         super.tick();
+        moveAnalysis.update();
+        animTick();
         if(this.getWorld() instanceof ServerWorld){
             this.tickIndicator();
         }
@@ -665,7 +678,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             }
     }
 
-    @Override
+   /* @Override
     public double getTick(Object entity) {
         if(entity instanceof LivingEntity living){
             if(!notPetrified()){
@@ -673,7 +686,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             }
         }
         return GeoEntity.super.getTick(entity);
-    }
+    }*/
 
     @Override
     public double getEyeY() {
@@ -868,7 +881,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
 
 
-    private PlayState predicate2(AnimationState<MinibossEntity> state) {
+ /*   private PlayState predicate2(AnimationState<MinibossEntity> state) {
         state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
         if(this.getDataTracker().get(DOWN)){
             return  state.setAndContinue(DOWNANIM);
@@ -899,7 +912,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         return this.isAttacking() ? state.setAndContinue(IDLE_AGGRO) : state.setAndContinue(IDLE);
 
     }
-
+*/
 
 
     public boolean isMobile() {
@@ -1431,8 +1444,47 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         super.checkDespawn();
     }
 
+    public boolean shouldRun(){
+        return this.getVelocity().subtract(0,this.getVelocity().getY(),0).length()>0.2F;
+    }
+    public void animTick(){
+        if (this.getWorld().isClient) {
+            ((AzAnimatorAccessor<Entity>)this).getAnimator().ifPresent( entity -> {
+                var controller = entity.getAnimationControllerContainer().getOrNull("base_controller");
+                if(controller != null){
+                    controller.animationProperties().withAnimationSpeed(this.getVelocity().subtract(0,this.getVelocity().getY(),0).length()/0.2F);
+                }
+
+                    });
+            var isMovingOnGround = moveAnalysis.isMovingHorizontally() && this.isOnGround();
+            Runnable animationRunner;
+            if (isMovingOnGround) {
+                if (this.isAttacking()) { // if moving and aggressive, play running
+                    if(this.shouldRun()){
+                        animationRunner = dispatcher::run;
+
+                    }
+                    else {
+                        animationRunner = dispatcher::walkAggro;
+                    }
+                } else { // if moving but not aggressive play walk
+                    animationRunner = dispatcher::walk;
+                }
+            } else { // Play the default idle animation
+                if (this.isAttacking()) {
+                    animationRunner = dispatcher::idleAggro;
+                }
+                else {
+                    animationRunner = dispatcher::idle;
+                }
+            }
+            animationRunner.run();
+        }
+    }
+/*
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return instanceCache;
     }
+*/
 }

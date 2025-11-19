@@ -126,7 +126,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
         }
     }
-    public static final RawAnimation IDLESHOOT = RawAnimation.begin().thenLoop("animation.mob.idleshoot");
+   /* public static final RawAnimation IDLESHOOT = RawAnimation.begin().thenLoop("animation.mob.idleshoot");
     public static final RawAnimation SHOOTWALK_BACKWARDS = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards_shoot");
     public static final RawAnimation SHOOTWALK_BACKWARDST = RawAnimation.begin().thenPlay("animation.unknown.walk_backwards_shoot_transition").thenLoop("animation.unknown.walk_backwards_shoot");
 
@@ -141,7 +141,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     public static final RawAnimation RELOAD = RawAnimation.begin().thenPlay("animation.unknown.merc.reload");
     public static final RawAnimation RELOADLONGER = RawAnimation.begin().thenPlay("animation.unknown.merc.reloadlonger");
-
+*/
     @Override
     public MoveControl getMoveControl() {
         return super.getMoveControl();
@@ -288,6 +288,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         return add*mult*1F + super.getPathfindingFavor(pos);
     }*/
 
+/*
 
     private PlayState predicateShoot(AnimationState<MinibossEntity> state) {
         state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
@@ -310,6 +311,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         }
 
     }
+*/
 
     @Override
     public void onAttacking(Entity target) {
@@ -320,7 +322,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         super.onAttacking(target);
     }
 
-    @Override
+/*    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         animationData.add(new AnimationController<MinibossEntity>(this,"shoot",
                 0,this::predicateShoot)
@@ -333,7 +335,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
                 new AnimationController<>(this, "shoot_heavy_many", event -> PlayState.CONTINUE)
                         .triggerableAnim("shoot_heavy_many", SHOOT_HEAVY_MANY));
 
-    }
+    }*/
 
     public static final TrackedData<Boolean> CHARGING;
     public static final TrackedData<Boolean> EXTRACHARGE;

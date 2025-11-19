@@ -13,6 +13,8 @@ import mod.azure.azurelib.common.internal.client.util.RenderUtils;
 import mod.azure.azurelib.common.internal.common.cache.object.BakedGeoModel;
 import mod.azure.azurelib.common.internal.common.cache.object.GeoBone;
 import mod.azure.azurelib.core.object.Color;
+import mod.azure.azurelib.rewrite.render.entity.AzEntityRenderer;
+import mod.azure.azurelib.rewrite.render.entity.AzEntityRendererConfig;
 import net.fabricmc.fabric.impl.client.indigo.renderer.helper.ColorHelper;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -27,203 +29,95 @@ import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.spell_engine.api.effect.CustomModelStatusEffect;
 import net.spell_engine.api.effect.Synchronized;
 import net.spell_power.api.SpellSchools;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 import java.awt.*;
 import java.util.List;
 
-public class MinibossRenderer<T extends MinibossEntity, M extends BipedEntityModel<T>> extends DynamicGeoEntityRenderer<T> {
+public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
 
-    GeoModel<T> model;
-
-    public MinibossRenderer(EntityRendererFactory.Context renderManager, GeoModel<T> model) {
-        super(renderManager, model);
-        addRenderLayer(new RenderLayerItemMinibossEntity(this));
-        addRenderLayer(new RenderBackLayerItemMinibossEntity(this));
-        this.model = (GeoModel<T>) model;
+    protected MinibossRenderer(AzEntityRendererConfig<MinibossEntity> config, EntityRendererFactory.Context context) {
+        super(config, context);
     }
+    public static final Identifier TEMPLAR_MODEL = Identifier.of(
+            RPGMinibosses.MOD_ID, "geo/templarmob.geo.json"
+    );
+    public static final Identifier TEMPLAR_TEXTURE = Identifier.of(
+            RPGMinibosses.MOD_ID, "textures/mob/templar.png"
+    );
+    public static final Identifier ROGUE_MODEL = Identifier.of(
+            RPGMinibosses.MOD_ID, "geo/thiefmob.json"
+    );
+    public static final Identifier ROGUE_TEXTURE = Identifier.of(
+            RPGMinibosses.MOD_ID, "textures/mob/thieftexture.png"
+    );
+    public static final Identifier JUGG_MODEL = Identifier.of(
+            RPGMinibosses.MOD_ID, "geo/juggmob.json"
+    );
+    public static final Identifier JUGG_TEXTURE = Identifier.of(
+            RPGMinibosses.MOD_ID, "textures/mob/juggtexture.png"
+    );
+    public static final Identifier FIREMAGE_MODEL = Identifier.of(
+            RPGMinibosses.MOD_ID, "geo/archmagefire.json"
+    );
+    public static final Identifier FIREMAGE_TEXTURE = Identifier.of(
+            RPGMinibosses.MOD_ID, "textures/mob/archmagetexturefire.png"
+    );
+    public static final Identifier MERCENARY_MODEL = Identifier.of(
+            RPGMinibosses.MOD_ID, "geo/artmob.json"
+    );
+    public static final Identifier MERCENARY_TEXTURE = Identifier.of(
+            RPGMinibosses.MOD_ID, "textures/mob/artillerist.png"
+    );
 
-    @Override
-    public Color getRenderColor(T animatable, float partialTick, int packedLight) {
-        if(animatable.getIndicator()<20) {
 
-            return Color.ofHSB(1F,((float)Math.sin((Math.PI*((float)animatable.getIndicator()+partialTick))/20F)),1);
-        }
-        return super.getRenderColor(animatable, partialTick, packedLight);
+
+    public MinibossRenderer(EntityRendererFactory.Context context, Identifier model, Identifier texture) {
+        super(
+                AzEntityRendererConfig.<MinibossEntity>builder(model  ,texture)
+                        .setModelRenderer(MinibossModelRenderer::new)
+                        .setAnimatorProvider(MinibossAnimationProvider::new) // Custom animator
+                        .setDeathMaxRotation(180F) // Custom death rotation
+                        .setShadowRadius(1.0F) // Sets a shadow radius
+                        .setShadowRadius(exampleEntity -> 1.0F) // Sets a shadow radius with context
+
+                        .setRenderType(RenderLayer.getEntityTranslucent(texture)) // Sets RenderType
+                        .setRenderType(exampleEntity -> RenderLayer.getEntityTranslucent(texture)) // Sets RenderType with context
+                       // .addRenderLayer(new CustomEntityRenderLayer()) // Add render layers
+                      //  .setModelRenderer(ExampleCustomEntityModelRenderer::new) // Sets the Model Renderer of your render to the ExampleCustomEntityModelRenderer
+                        //.setPipelineContext(ExampleEntityRendererPipelineContext::new) // Sets the Pipeline Context to the ExampleEntityRendererPipelineContext
+                        .setPrerenderEntry(context2 -> {
+                            // Insert code you want to run here
+
+                            return context2;
+                        }) // Pre-render hook
+                        .setRenderEntry(context3 -> {
+
+
+                            // Insert code you want to run here
+                            return context3;
+                        }) // Render hook
+                        .setPostRenderEntry(context2 -> {
+                            // Insert code you want to run here
+
+                            return context2;
+                        }) // Post-render hook
+                        .setAlpha(exampleEntity -> 1.0F) // Alpha with context
+                        .setAlpha(1.0F) // Alpha with just a value
+                        .setScale(1.0F, 1.0F) // Scale for width and height
+                        .setScale(1.0F) // Scale for width and height being the same
+                        .setScale(exampleEntity -> 1.0F) // Scale for width and height being the same with context
+                        .setScale(exampleEntity -> 1.0F, exampleEntity -> 1.0F) // Scale for width and height with context
+                        .build(),
+                context
+        );
     }
-
-
-    @Override
-    public void renderRecursively(MatrixStack poseStack, T animatable, GeoBone bone, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
-        var bool = ((bone.getName().equals("rightArm")));
-        var bool2 = ((bone.getName().equals("leftArm")));
-        var bool3 = animatable instanceof JuggernautEntity || animatable instanceof TemplarEntity ;
-
-        if (((bone.getName().equals("head")) || bool || bool2)) {
-            poseStack.push();
-            RenderUtils.translateMatrixToBone(poseStack, bone);
-            RenderUtils.translateToPivotPoint(poseStack, bone);
-            RenderUtils.rotateMatrixAroundBone(poseStack, bone);
-            RenderUtils.scaleMatrixForBone(poseStack, bone);
-
-            if (!(bool )) {
-            /*    if((bool2 && animatable instanceof ArtilleristEntity)){
-                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(MathHelper.clamp( animatable.bodyYaw-animatable.getYaw(partialTick), -180, 180)));
-
-                }*/
-                    poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw - animatable.getYaw(partialTick), -180, 180)));
-
-                    poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
-
-
-
-            } else if (!bool3 ) {
-                if(bool2 ){
-                    poseStack.multiply(RotationAxis.NEGATIVE_Y.rotationDegrees(MathHelper.clamp(animatable.bodyYaw - animatable.getYaw(partialTick), -180, 180)));
-
-                    poseStack.multiply(RotationAxis.NEGATIVE_X.rotationDegrees(-animatable.getPitch(partialTick)));
-
-                    //poseStack.multiply(RotationAxis.NEGATIVE_Z.rotationDegrees(MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
-
-                }else {
-                    poseStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((animatable.isAttacking() ?  animatable instanceof ArtilleristEntity artilleristEntity ? 0.8F : 1.0F : 0F)*MathHelper.clamp(-animatable.bodyYaw + animatable.getYaw(partialTick), -180, 180)));
-                }
-
-            }
-
-            if (bone.isTrackingMatrices()) {
-                Matrix4f poseState = new Matrix4f(poseStack.peek().getPositionMatrix());
-                Matrix4f localMatrix = RenderUtils.invertAndMultiplyMatrices(poseState, this.entityRenderTranslations);
-
-                bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-                bone.setLocalSpaceMatrix(
-                        RenderUtils.translateMatrix(localMatrix, getPositionOffset(this.animatable, 1).toVector3f())
-                );
-                bone.setWorldSpaceMatrix(
-                        RenderUtils.translateMatrix(new Matrix4f(localMatrix), this.animatable.getPos().toVector3f())
-                );
-            }
-
-            RenderUtils.translateAwayFromPivotPoint(poseStack, bone);
-
-            this.textureOverride = getTextureOverrideForBone(bone, this.animatable, partialTick);
-            Identifier texture = this.textureOverride == null
-                    ? getTexture(this.animatable)
-                    : this.textureOverride;
-            RenderLayer renderTypeOverride = getRenderTypeOverrideForBone(
-                    bone,
-                    this.animatable,
-                    texture,
-                    bufferSource,
-                    partialTick
-            );
-
-            if (texture != null && renderTypeOverride == null)
-                renderTypeOverride = getRenderType(this.animatable, texture, bufferSource, partialTick);
-
-            if (renderTypeOverride != null)
-                buffer = bufferSource.getBuffer(renderTypeOverride);
-
-            if (
-                    !boneRenderOverride(
-                            poseStack,
-                            bone,
-                            bufferSource,
-                            buffer,
-                            partialTick,
-                            packedLight,
-                            packedOverlay,
-                            colour
-                    )
-            )
-                super.renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, colour);
-
-            if (renderTypeOverride != null)
-                buffer = bufferSource.getBuffer(
-                        getRenderType(this.animatable, getTexture(this.animatable), bufferSource, partialTick)
-                );
-
-            if (!isReRender)
-                applyRenderLayersForBone(
-                        poseStack,
-                        animatable,
-                        bone,
-                        renderType,
-                        bufferSource,
-                        buffer,
-                        partialTick,
-                        packedLight,
-                        packedOverlay
-                );
-
-            super.renderChildBones(
-                    poseStack,
-                    animatable,
-                    bone,
-                    renderType,
-                    bufferSource,
-                    buffer,
-                    isReRender,
-                    partialTick,
-                    packedLight,
-                    packedOverlay,
-                    colour
-            );
-
-            poseStack.pop();
-        }
-        else {
-
-
-            super.renderRecursively(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
-        }
-
-
-    }
-
-    @Override
-    public void actuallyRender(MatrixStack poseStack, T animatable, BakedGeoModel model, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
-        super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
-        try {
-
-        for(Synchronized.Effect effect: Synchronized.effectsOf(animatable)){
-            if(effect != null && effect.effect() != null &&   CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
-                CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(effect.amplifier(), animatable, partialTick, poseStack, bufferSource, packedLight);
-            }
-        }
-        }
-        catch (Exception ignored){
-
-        }
-    }
-
-    @Override
-    public boolean hasLabel(T animatable) {
-        return animatable.notPetrified();
-    }
-
-    @Override
-    protected void applyRotations(T animatable, MatrixStack poseStack, float ageInTicks, float rotationYaw, float partialTick) {
-        List<PlayerEntity> list =  animatable.getWorld().getTargets(PlayerEntity.class, TargetPredicate.DEFAULT,animatable,animatable.getBoundingBox().expand(12));
-
-
-        super.applyRotations(animatable, poseStack, ageInTicks, rotationYaw, partialTick);
-    }
-
-    public Identifier getTextureLocation(T p_114891_) {
-        Identifier identifier = model.getTextureResource(p_114891_);
-        if(p_114891_.hasStatusEffect(Effects.PETRIFIED.registryEntry)) {
-            identifier = Identifier.of("minecraft", "textures/" + "stone" + ".png");
-        }
-
-        return identifier;
-    }
-
-
 }

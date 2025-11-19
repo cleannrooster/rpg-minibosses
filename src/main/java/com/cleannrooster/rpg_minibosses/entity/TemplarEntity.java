@@ -149,6 +149,7 @@ public class TemplarEntity extends MinibossEntity{
     }
 
 
+/*
     public static final RawAnimation STAFF = RawAnimation.begin().thenPlay("animation.valkyrie.staff");
     public static final RawAnimation DASHRIGHT = RawAnimation.begin().thenPlay("animation.valkyrie.dashright");
     public static final RawAnimation DASHLEFT = RawAnimation.begin().thenPlay("animation.valkyrie.dashleft");
@@ -158,6 +159,7 @@ public class TemplarEntity extends MinibossEntity{
     public static final RawAnimation IDLE = RawAnimation.begin().thenPlay("animation.valkyrie.idle");
     public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1_2h", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2_2h", Animation.LoopType.PLAY_ONCE);
+*/
 
     @Override
     protected void initCustomGoals() {
@@ -267,7 +269,7 @@ public class TemplarEntity extends MinibossEntity{
         return vec3;
     }
 
-    @Override
+/*    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
 
@@ -282,7 +284,7 @@ public class TemplarEntity extends MinibossEntity{
 
 
 
-    }
+    }*/
 
 
 
@@ -349,7 +351,7 @@ public class TemplarEntity extends MinibossEntity{
         if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null  && this.canSee(this.getTarget())) {
             this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
 
-            ((TemplarEntity)this).triggerAnim("actions","staff");
+           //(this).triggerAnimtriggerAnim("actions","staff");
             ((WorldScheduler) this.getWorld()).schedule(160, () -> {
                 this.performing = false;
                 this.is_staff = false;
@@ -449,7 +451,7 @@ public class TemplarEntity extends MinibossEntity{
         return hit.getType() != HitResult.Type.BLOCK;
     }
     public int cooldown;
-    private PlayState predicateTemplar(AnimationState<MinibossEntity> state) {
+ /*   private PlayState predicateTemplar(AnimationState<MinibossEntity> state) {
 
         if(this.isAttacking() && !this.getDataTracker().get(DOWN)){
             if(this.getVelocity().length() > 0.2F){
@@ -467,11 +469,13 @@ public class TemplarEntity extends MinibossEntity{
         }
         return PlayState.STOP;
 
-    }
+    }*/
+/*
     public static final RawAnimation IDLE_AGGRO = RawAnimation.begin().thenPlay("animation.unknown.idle");
     public static final RawAnimation SPRINT_AGGRO = RawAnimation.begin().thenPlay("animation.templar.heavy_run");
 
     public static final RawAnimation AGGRO_TEMPLAR = RawAnimation.begin().thenPlay("animation.mob.walk_templar");
+*/
 
     public int dashtimer;
     public int dash_attack_timer;
@@ -509,11 +513,7 @@ public class TemplarEntity extends MinibossEntity{
         return super.damage(source, amount);
 
     }
-    @Override
-    public void tick() {
 
-        super.tick();
-    }
     public boolean tryAttack(Entity target) {
         if(!performing && target instanceof LivingEntity living) {
             if(this.getWorld() instanceof ServerWorld serverWorld) {
@@ -521,11 +521,11 @@ public class TemplarEntity extends MinibossEntity{
 
             }
             if (swingBool) {
-                (this).triggerAnim("actions", "swing1");
+                //(this).triggerAnim("actions", "swing1");
                 swingBool = false;
 
             } else {
-                (this).triggerAnim("actions", "swing2");
+                //(this).triggerAnim("actions", "swing2");
                 swingBool = true;
 
             }

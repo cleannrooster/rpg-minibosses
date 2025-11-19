@@ -124,10 +124,12 @@ public class TricksterEntity extends MinibossEntity{
     public boolean skipOffHand(){
         return true;
     }
+/*
     public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation POMMELSTRIKE = RawAnimation.begin().then("animation.mob.trickster.pommelstrike", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation ROLL = RawAnimation.begin().then("animation.mob.trickster.roll", Animation.LoopType.PLAY_ONCE);
+*/
 
     public boolean   swingBool;
     @Override
@@ -167,11 +169,13 @@ public class TricksterEntity extends MinibossEntity{
     public int dashtimer = 80;
 
     public int throwtimer;
+/*
     public static final RawAnimation THROW1 = RawAnimation.begin().then("animation.mob.throw1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation THROW2 = RawAnimation.begin().then("animation.mob.throw2", Animation.LoopType.PLAY_ONCE);
 
     public static final RawAnimation DASHRIGHT = RawAnimation.begin().thenPlay("animation.valkyrie.dashright");
     public static final RawAnimation DASHLEFT = RawAnimation.begin().thenPlay("animation.valkyrie.dashleft");
+*/
 
 
     @Override
@@ -183,7 +187,7 @@ public class TricksterEntity extends MinibossEntity{
             this.getLookControl().lookAt(this.getTarget(),360,360);
         }
         if(!this.getWorld().isClient() && rolltimer > 80 &&  this.getTarget() != null && this.isAttacking()) {
-            ((TricksterEntity)this).triggerAnim("roll","roll");
+           dispatcher.roll();
                 this.addVelocity(this.getRotationVector().multiply(2F));
 
             this.rolltimer = 80 - (int)(180*this.getCooldownCoeff());
@@ -211,10 +215,11 @@ public class TricksterEntity extends MinibossEntity{
                 }
                 if(!this.getWorld().isClient() && throwtimer > 80 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
                     this.resetIndicator();
-                    (this).triggerAnim("prepare", "prepare");
+                    dispatcher.setPrepare();
+
                     ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
-                        (this).triggerAnim("throw1", "throw1");
+                        dispatcher.throw1();
                         if (this.getTarget() != null) {
                             this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.getTarget().getEyePos());
                         }
@@ -225,7 +230,7 @@ public class TricksterEntity extends MinibossEntity{
                         ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
 
                         ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                            this.triggerAnim("throw2", "throw2");
+                            dispatcher.throw2();
                             this.performing = false;
                             if (this.getTarget() != null) {
                                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.getTarget().getEyePos());
@@ -267,11 +272,11 @@ public class TricksterEntity extends MinibossEntity{
     public boolean damage(DamageSource source, float amount) {
         if(!this.getDataTracker().get(DOWN) &&  amount > 4 && !this.getWorld().isClient() && this.defensetimer > 0 && dashtimer > 80 && !this.performing && this.getTarget() != null  ) {
             if(this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ) {
-                (this).triggerAnim("dashleft", "dashleft");
+                dispatcher.dashleft();
                 this.setVelocity(this.getRotationVector().crossProduct(new Vec3d(0,-1,0)).multiply(2));
             }
             else{
-                (this).triggerAnim("dashright", "dashright");
+                dispatcher.dashright();
                 this.setVelocity(this.getRotationVector().crossProduct(new Vec3d(0,1,0)).multiply(2));
 
             }
@@ -310,7 +315,7 @@ public class TricksterEntity extends MinibossEntity{
 
         if(pommelTick > 120){
 
-            ((TricksterEntity)this).triggerAnim("pommelstrike","pommelstrike");
+            dispatcher.setPommelstrike();
             if(target instanceof LivingEntity living){
                 living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS,20,10));
                 living.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS,10,10));
@@ -320,19 +325,19 @@ public class TricksterEntity extends MinibossEntity{
             return super.tryAttack(target);
         }
         else if(swingBool){
-            ((TricksterEntity)this).triggerAnim("swing1","swing1");
+            dispatcher.setSwing();
             swingBool = false;
             return super.tryAttack(target);
 
         }
         else{
-            ((TricksterEntity)this).triggerAnim("swing2","swing2");
+            dispatcher.setSwing2();
             swingBool = true;
             return super.tryAttack(target);
 
         }
     }
-    @Override
+   /* @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
         animationData.add(
@@ -366,5 +371,5 @@ public class TricksterEntity extends MinibossEntity{
                         .triggerableAnim("dashright", DASHRIGHT));
 
 
-    }
+    }*/
 }

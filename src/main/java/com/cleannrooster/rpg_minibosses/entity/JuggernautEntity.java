@@ -3,10 +3,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.AI.JuggernautLeapSlamGoal;
-import mod.azure.azurelib.core.animation.AnimatableManager;
-import mod.azure.azurelib.core.animation.Animation;
-import mod.azure.azurelib.core.animation.AnimationController;
-import mod.azure.azurelib.core.animation.RawAnimation;
+
 import mod.azure.azurelib.core.object.PlayState;
 import net.minecraft.client.render.entity.CreeperEntityRenderer;
 import net.minecraft.client.render.entity.feature.CreeperChargeFeatureRenderer;
@@ -119,6 +116,7 @@ public class JuggernautEntity extends MinibossEntity{
         }
 
     }
+/*
     public static final RawAnimation LEAPSLAM = RawAnimation.begin().thenPlay("animation.mob.jugg.leapslam");
     public static final RawAnimation TWOHANDWAVE = RawAnimation.begin().then("animation.mob.wizard.staffwave2", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation TWOHANDSPIN = RawAnimation.begin().thenPlayXTimes("animation.mob.spin_2h", 4);
@@ -127,6 +125,7 @@ public class JuggernautEntity extends MinibossEntity{
     public static final RawAnimation SLAM = RawAnimation.begin().thenPlayXTimes("animation.mob.heavy.slam", 1);
     public static final RawAnimation SWING1 = RawAnimation.begin().then("animation.mob.swing1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation SWING2 = RawAnimation.begin().then("animation.mob.swing2", Animation.LoopType.PLAY_ONCE);
+*/
 
     public boolean skipOffHand(){
         return true;
@@ -179,7 +178,7 @@ public class JuggernautEntity extends MinibossEntity{
                     this.resetIndicator();
                     ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
-                        ((JuggernautEntity) this).triggerAnim("slam", "slam");
+                        //(this).triggerAnim("slam", "slam");
                         ((WorldScheduler) this.getWorld()).schedule(20, () -> {
                             ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
                             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
@@ -205,16 +204,16 @@ public class JuggernautEntity extends MinibossEntity{
         if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget()) && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
             this.resetIndicator();
 
-                ((JuggernautEntity) this).triggerAnim("twohandwave", "twohandwave");
+                //(this).triggerAnim("twohandwave", "twohandwave");
 
                 ((WorldScheduler) this.getWorld()).schedule(40, () -> {
                     ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
 
-                    ((JuggernautEntity) this).triggerAnim("twohandspin", "twohandspin");
+                    //(this).triggerAnim("twohandspin", "twohandspin");
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
                     ((WorldScheduler) this.getWorld()).schedule(4*(2*20), () -> {
 
-                        ((JuggernautEntity) this).triggerAnim("winddown", "winddown");
+                        //(this).triggerAnim("winddown", "winddown");
                         ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
                             this.performing = false;
@@ -250,7 +249,7 @@ public class JuggernautEntity extends MinibossEntity{
 
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
-                ((JuggernautEntity) this).triggerAnim("leapslam", "leapslam");
+                //(this).triggerAnim("leapslam", "leapslam");
                 ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                     this.addVelocity(this.getRotationVector().subtract(0,this.getRotationVector().getY(),0).multiply(2).add(0, 0.5, 0));
                 });
@@ -291,21 +290,17 @@ public class JuggernautEntity extends MinibossEntity{
 
     public int slamtimer = 60;
 
-    @Override
-    public void tick() {
 
-        super.tick();
-    }
     public boolean   swingBool;
 
     public boolean tryAttack(Entity target) {
         if(!performing) {
             if (swingBool) {
-                (this).triggerAnim("swing1", "swing1");
+                //(this).triggerAnim("swing1", "swing1");
                 swingBool = false;
 
             } else {
-                (this).triggerAnim("swing2", "swing2");
+                //(this).triggerAnim("swing2", "swing2");
                 swingBool = true;
 
             }
@@ -313,7 +308,7 @@ public class JuggernautEntity extends MinibossEntity{
         return super.tryAttack(target);
 
     }
-    @Override
+/*    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
         animationData.add(
@@ -337,5 +332,5 @@ public class JuggernautEntity extends MinibossEntity{
         animationData.add(
                 new AnimationController<>(this, "swing2", event -> PlayState.CONTINUE)
                         .triggerableAnim("swing2", SWING2));
-    }
+    }*/
 }

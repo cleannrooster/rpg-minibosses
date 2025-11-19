@@ -7,8 +7,8 @@
 		"PatrolSpawnerMixin",
 		"PlayerMixin",
 		"EntityRelationsMixin",
-		"ServerPlayerEntityMixin"
-
+		"ServerPlayerEntityMixin",
+        "SpellProjectileMixin"
 	],
 	"client": [
 		"EndSkyMixin",

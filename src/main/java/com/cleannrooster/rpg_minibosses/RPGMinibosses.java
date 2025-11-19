@@ -97,9 +97,11 @@ public class RPGMinibosses implements ModInitializer {
 
 	public static final Identifier EXPLOSION = Identifier.of("rpg-minibosses:explosion");
 	public static final Identifier ANTICIPATION = Identifier.of("rpg-minibosses:boom");
+    public static final Identifier WARCRY = Identifier.of("rpg-minibosses:warcry");
 
 	public static SoundEvent EXPLOSION_SOUND = SoundEvent.of(EXPLOSION);
 	public static SoundEvent ANTICIPATION_SOUND = SoundEvent.of(ANTICIPATION);
+    public static SoundEvent WARCRY_SOUND = SoundEvent.of(WARCRY);
 
 	public static EntityType<OrbEntity> ORBENTITY;
 	public static final Identifier INFAMY = Identifier.of(MOD_ID, "infamy");
@@ -112,7 +114,7 @@ public class RPGMinibosses implements ModInitializer {
 			.sanitize(true)
 			.build();
 	public static ConfigManager<ConfigFile.Equipment> itemConfig = new ConfigManager<ConfigFile.Equipment>
-			("items", Default.itemConfig)
+			("items_v2", Default.itemConfig)
 			.builder()
 			.setDirectory(MOD_ID)
 			.sanitize(true)
@@ -143,7 +145,9 @@ public class RPGMinibosses implements ModInitializer {
             StructurePoolAPI.injectAll(villageConfig.value);
         }
 		Registry.register(Registries.SOUND_EVENT, EXPLOSION, EXPLOSION_SOUND);
-		Registry.register(Registries.SOUND_EVENT, ANTICIPATION, ANTICIPATION_SOUND);
+        Registry.register(Registries.SOUND_EVENT, WARCRY, WARCRY_SOUND);
+
+        Registry.register(Registries.SOUND_EVENT, ANTICIPATION, ANTICIPATION_SOUND);
 
 		Effects.register();
 		CustomModels.registerModelIds(List.of(

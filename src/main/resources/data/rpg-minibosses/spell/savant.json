@@ -60,14 +60,15 @@
         "apply_to_caster": true,
         "status_effect": {
           "effect_id": "rpg-minibosses:savant",
-          "duration": 4.0
+          "duration": 4.0,
+          "refresh_duration" : false
         }
       }
     }
   ],
   "cost": {
     "cooldown": {
-      "duration": 0
+      "duration": 4
     }
   }
 }

@@ -1,0 +1,7 @@
+// 1.21.1	2025-11-16T09:33:54.1595157	ANARCHY - RPG Minibosses/Tags for minecraft:item
+b63aa81bc5307c0277548daf2b694dc3b2a88df3 data\minecraft\tags\item\chest_armor.json
+679b7976157582a0c4b99727169b24e80c1ecf34 data\rpg_series\tags\item\loot_tier\tier_5_armors.json
+67e5cc455a2f5d5e4e73416eb71252d41814aa63 data\rpg_series\tags\item\armor_type\magic.json
+75a13d82d7ba3a42a53e13aa9a9249e635d614cb data\minecraft\tags\item\leg_armor.json
+bad338d719bf3efb7c3cc532b18c234758be2a4d data\rpg_series\tags\item\loot_tier\tier_2_armors.json
+69334fdd2d10f4b6de58e0ea519e0c5e9ab54067 data\rpg_series\tags\item\armor_type\melee.json

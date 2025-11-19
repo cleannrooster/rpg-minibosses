@@ -171,7 +171,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 this.actor.getLookControl().lookAt(livingEntity);
                 this.actor.lookAtEntity(livingEntity,30,30);
                 if(this.longanim) {
-                    ((ArtilleristEntity) this.actor).triggerAnim("shoot_heavy_many", "shoot_heavy_many");
+                   //(this).triggerAnim("shoot_heavy_many", "shoot_heavy_many");
                         ((WorldScheduler) this.actor.getWorld()).schedule(28, () -> {
 
                             this.actor.getLookControl().lookAt(livingEntity);
@@ -215,7 +215,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                     );
                 }
                 else{
-                    ((ArtilleristEntity) this.actor).triggerAnim("shoot_heavy", "shoot_heavy");
+                   //(this).triggerAnim("shoot_heavy", "shoot_heavy");
                     ((WorldScheduler) this.actor.getWorld()).schedule(20, () -> {
                         this.actor.lookAtEntity(livingEntity,30,30);
 

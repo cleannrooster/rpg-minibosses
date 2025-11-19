@@ -10,6 +10,12 @@
     "sounds": [
       "rpg-minibosses:boom"
     ]
+  },
+  "warcry": {
+    "subtitle": "subtitles.rpg-minibosses.warcry",
+    "sounds": [
+      "rpg-minibosses:warcry"
+    ]
   }
 }
 

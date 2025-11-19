@@ -49,17 +49,17 @@ public class RPGMinibossesClient implements ClientModInitializer {
         CustomModels.registerModelIds(List.of(Identifier.of(RPGMinibosses.MOD_ID,"projectile/iron_dagger")));
 
         CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());
-		EntityRendererRegistry.register(RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType,(context) ->  new MinibossRenderer<>(context, new JuggernautModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArtilleristModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TricksterModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArchmageFireModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TemplarModel<>()));
+		EntityRendererRegistry.register(RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType,(context) ->  new MinibossRenderer(context,MinibossRenderer.JUGG_MODEL,MinibossRenderer.JUGG_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL,MinibossRenderer.MERCENARY_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL,MinibossRenderer.ROGUE_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL,MinibossRenderer.FIREMAGE_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL,MinibossRenderer.TEMPLAR_TEXTURE));
 		EntityRendererRegistry.register(RPGMinibossesEntities.MAGuS_PRIME.entityType, (context) ->  new MagusRenderer<>(context, new MagusModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.M_ARTILLERIST_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArtilleristModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.M_TRICKSTER_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TricksterModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new TemplarModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new JuggernautModel<>()));
-		EntityRendererRegistry.register(RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer<>(context, new ArchmageFireModel<>()));
+		EntityRendererRegistry.register(RPGMinibossesEntities.M_ARTILLERIST_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL,MinibossRenderer.MERCENARY_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.M_TRICKSTER_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL,MinibossRenderer.ROGUE_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL,MinibossRenderer.TEMPLAR_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL,MinibossRenderer.JUGG_TEXTURE));
+		EntityRendererRegistry.register(RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) ->  new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL,MinibossRenderer.FIREMAGE_TEXTURE));
 		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_ALPHA.entityType, (context) ->  new GeminiRenderer<>(context, new GeminiModel<>()));
 		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_BETA.entityType, (context) ->  new GeminiRenderer<>(context, new GeminiModel<>()));
 

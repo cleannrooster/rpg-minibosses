@@ -123,10 +123,12 @@ public class ArchmageFireEntity extends MinibossEntity  {
     public boolean skipOffHand(){
         return true;
     }
+/*
     public static final RawAnimation THROW1 = RawAnimation.begin().then("animation.mob.throw1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation THROW2 = RawAnimation.begin().then("animation.mob.throw2", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation WAVE_LEFTHAND = RawAnimation.begin().then("animation.mob.wave_lefthand", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation WALK_WAVE_LEFTHAND = RawAnimation.begin().then("animation.unknown.walk_wave_lefthand", Animation.LoopType.PLAY_ONCE);
+*/
 
     public static Stream<Item> itemList;
     @Override
@@ -195,7 +197,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             this.jumptimer = 320 - (int)(320*this.getCooldownCoeff());
         }
         if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
-            ((ArchmageFireEntity)this).triggerAnim("throw1","throw1");
+           //(this).triggerAnimtriggerAnim("throw1","throw1");
             if(this.getTarget() != null && this.canSee(this.getTarget())) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
             }
@@ -206,7 +208,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
             ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                ((ArchmageFireEntity)this).triggerAnim("throw2","throw2");
+               //(this).triggerAnimtriggerAnim("throw2","throw2");
                 this.performing = false;
                 if(this.getTarget() != null) {
                     this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
@@ -229,10 +231,10 @@ public class ArchmageFireEntity extends MinibossEntity  {
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
 
                 if (this.getMoveControl().isMoving()) {
-                    ((ArchmageFireEntity) this).triggerAnim("walk_wave", "walk_wave");
+                    //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
 
                 } else {
-                    ((ArchmageFireEntity) this).triggerAnim("wave", "wave");
+                    //(this).triggerAnim.triggerAnim("wave", "wave");
 
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
@@ -252,10 +254,10 @@ public class ArchmageFireEntity extends MinibossEntity  {
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
 
                 if (this.getMoveControl().isMoving()) {
-                    ((ArchmageFireEntity) this).triggerAnim("walk_wave", "walk_wave");
+                    //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
 
                 } else {
-                    ((ArchmageFireEntity) this).triggerAnim("wave", "wave");
+                    //(this).triggerAnim.triggerAnim("wave", "wave");
 
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
@@ -287,6 +289,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
     }
 
 
+/*
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
         super.registerControllers(animationData);
@@ -303,6 +306,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     }
 
+*/
 
 
 }

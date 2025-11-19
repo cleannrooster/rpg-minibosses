@@ -5,7 +5,7 @@
         "modifiers": [
           {
             "type": "spell_power:critical_damage",
-            "amount": 0.5,
+            "amount": 1.0,
             "id": "rpg-minibosses:set_bonus",
             "operation": "add_multiplied_base",
             "slot": "armor"
