@@ -28,7 +28,7 @@ public abstract class WorldRendererMixin {
     public abstract boolean hasBlindnessOrDarkness(Camera camera);
         @Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
     private void renderLayer_RPGMINI(RenderLayer renderLayer, double x, double y, double z, Matrix4f matrix4f, Matrix4f positionMatrix, CallbackInfo info) {
-        if (!FabricLoader.getInstance().isModLoaded("distanthorizons") &&  MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+        if (!FabricLoader.getInstance().isModLoaded("distanthorizons") &&  MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.hasStatusEffect(Effects.DARK_MATTER.registryEntry)){
             MatrixStack matrixStack = new MatrixStack();
             matrixStack.multiplyPositionMatrix(matrix4f);
 
@@ -37,7 +37,7 @@ public abstract class WorldRendererMixin {
     }
     @Inject(at = @At("HEAD"), method = "renderSky", cancellable = true)
     public void renderSkyrpg(Matrix4f matrix4f, Matrix4f projectionMatrix, float tickDelta, Camera camera, boolean thickFog, Runnable fogCallback, CallbackInfo info) {
-        if (  MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect)) || MinecraftClient.getInstance().world.getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
+        if (  MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.hasStatusEffect(Effects.DARK_MATTER.registryEntry) || MinecraftClient.getInstance().world.getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
             if (!thickFog) {
                 CameraSubmersionType cameraSubmersionType = camera.getSubmersionType();
                 if (cameraSubmersionType != CameraSubmersionType.POWDER_SNOW && cameraSubmersionType != CameraSubmersionType.LAVA && !this.hasBlindnessOrDarkness(camera)) {
@@ -52,7 +52,7 @@ public abstract class WorldRendererMixin {
     }
         @Inject(at = @At("HEAD"), method = "renderEntity", cancellable = true)
     private void renderEntity_RPGMINI(Entity entity, double cameraX, double cameraY, double cameraZ, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, CallbackInfo info) {
-        if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))){
+        if (MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.hasStatusEffect(Effects.DARK_MATTER.registryEntry)){
             if(entity instanceof LivingEntity living && !(entity instanceof PlayerEntity player || entity instanceof MagusPrimeEntity magusPrimeEntity)) {
                 info.cancel();
             }
@@ -60,7 +60,7 @@ public abstract class WorldRendererMixin {
     }
     @Inject(at = @At("HEAD"), method = "renderClouds", cancellable = true)
     public void renderClouds_RPGMINI(MatrixStack matrices, Matrix4f matrix4f, Matrix4f matrix4f2, float tickDelta, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
-        if (MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect)) || MinecraftClient.getInstance().world.getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
+        if (MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.hasStatusEffect(Effects.DARK_MATTER.registryEntry) || MinecraftClient.getInstance().world.getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
             info.cancel();
         }
     }

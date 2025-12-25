@@ -5,7 +5,7 @@
         "modifiers": [
           {
             "type": "minecraft:generic.armor",
-            "amount": 0.4000000059604645,
+            "amount": 0.25,
             "id": "rpg-minibosses:set_bonus",
             "operation": "add_multiplied_base",
             "slot": "armor"

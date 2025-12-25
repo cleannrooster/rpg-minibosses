@@ -58,7 +58,7 @@ public class SetBonuses {
                 List.of(
                         EquipmentSet.Bonus.withAttributes(2, attribute(
                                 SpellPowerMechanics.CRITICAL_DAMAGE.attributeEntry,
-                                0.5F,
+                                1F,
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
@@ -75,7 +75,7 @@ public class SetBonuses {
                 List.of(
                         EquipmentSet.Bonus.withAttributes(2, attribute(
                                 SpellPowerMechanics.CRITICAL_DAMAGE.attributeEntry,
-                                0.5F,
+                                1F,
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
@@ -92,7 +92,7 @@ public class SetBonuses {
                 List.of(
                         EquipmentSet.Bonus.withAttributes(2, attribute(
                                 SpellPowerMechanics.CRITICAL_DAMAGE.attributeEntry,
-                                0.5F,
+                                1F,
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
@@ -127,7 +127,7 @@ public class SetBonuses {
                 List.of(
                         EquipmentSet.Bonus.withAttributes(2, attribute(
                                 EntityAttributes.GENERIC_ARMOR,
-                                0.4F,
+                                0.25F,
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),

@@ -1,0 +1,116 @@
+{
+  "values": [
+    {
+      "id": "spellbladenext:magus_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:magus_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:magus_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:magus_feet",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:arcaneherald_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:arcaneherald_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:arcaneherald_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:arcaneherald_feet",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frostherald_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frostherald_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frostherald_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frostherald_feet",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:ashherald_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:ashherald_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:ashherald_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:ashherald_feet",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:gleaming_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:gleaming_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:gleaming_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:gleaming_feet",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:blazing_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:blazing_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:blazing_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:blazing_feet",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frozen_head",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frozen_chest",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frozen_legs",
+      "required": false
+    },
+    {
+      "id": "spellbladenext:frozen_feet",
+      "required": false
+    }
+  ]
+}

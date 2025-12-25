@@ -16,7 +16,7 @@
   "passive": {
     "triggers": [
       {
-        "type": "EVASION",
+        "type": "DAMAGE_TAKEN",
         "chance": 1
       }
     ]
@@ -53,14 +53,15 @@
         "apply_to_caster": true,
         "status_effect": {
           "effect_id": "rpg-minibosses:foxshade",
-          "duration": 4.0
+          "duration": 4.0,
+          "refresh_duration" : false
         }
       }
     }
   ],
   "cost": {
     "cooldown": {
-      "duration": 0
+      "duration": 4
     }
   }
 }

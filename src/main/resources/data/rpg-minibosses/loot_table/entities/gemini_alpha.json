@@ -19,6 +19,37 @@
           "name": "rpg-minibosses:whispering_ice"
         }
       ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:despot_chest"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:kintsugi_chest"
+
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:foxshade_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:sanguine_arcane_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:sanguine_frost_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:sanguine_fire_chest"
+        }
+      ]
     }
   ],
   "random_sequence": "minecraft:entities/gemini_alpha"

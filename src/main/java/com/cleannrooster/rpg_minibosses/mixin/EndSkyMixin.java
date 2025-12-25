@@ -33,7 +33,7 @@ public class EndSkyMixin  {
         if(key.equals(RPGMinibosses.DIMENSIONKEY)){
             callbackInfo.setReturnValue(SKY_RENDERERS.get(World.END));
         }
-        if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().player != null && Synchronized.effectsOf(MinecraftClient.getInstance().player).stream().anyMatch(effect -> effect.effect().equals(Effects.DARK_MATTER.effect))) {
+        if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().player != null && MinecraftClient.getInstance().player.hasStatusEffect(Effects.DARK_MATTER.registryEntry)) {
             callbackInfo.setReturnValue(SKY_RENDERERS.get(World.END));
 
         }

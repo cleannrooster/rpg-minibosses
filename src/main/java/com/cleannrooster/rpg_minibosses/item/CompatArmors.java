@@ -16,13 +16,13 @@ import java.util.List;
 
 public class CompatArmors {
     public static RegistryEntry<ArmorMaterial> juggernaut = Armors.material(
-            "juggernaut",
+            "juggernaut_armor",
             3, 8, 6, 3,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_NETHERITE, () -> Ingredient.ofItems(Items.NETHERITE_SCRAP));
 
     public static RegistryEntry<ArmorMaterial> trickster = Armors.material(
-            "trickster",
+            "trickster_armor",
             2, 6, 4, 2,
             30,
             SoundEvents.ITEM_ARMOR_EQUIP_LEATHER, () -> Ingredient.ofItems(Items.LEATHER,Items.IRON_INGOT));

@@ -68,14 +68,14 @@ public class Effects {
                     .addAttributeModifier(SpellPowerMechanics.CRITICAL_DAMAGE.attributeEntry,Identifier.of(RPGMinibosses.MOD_ID,"savant"),-1, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
     public static final Entry DESPOT = new Entry("despot",
             new CustomEffect(StatusEffectCategory.HARMFUL, 0xff0000)
-                    .addAttributeModifier(EntityAttributes.GENERIC_ATTACK_DAMAGE,Identifier.of(RPGMinibosses.MOD_ID,"despot"),-0.5, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                    .addAttributeModifier(EntityAttributes.GENERIC_ATTACK_DAMAGE,Identifier.of(RPGMinibosses.MOD_ID,"despot"),-0.5F, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
     public static final Entry KINTSUGI = new Entry("kintsugi",
             new CustomEffect(StatusEffectCategory.BENEFICIAL, 0xff0000)
                     .addAttributeModifier(EntityAttributes.GENERIC_ATTACK_DAMAGE,Identifier.of(RPGMinibosses.MOD_ID,"kintsugi"),-0.5, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
     public static final Entry MAGUS_BARRIER = new Entry("magus_barrier",
             new CustomEffect(StatusEffectCategory.BENEFICIAL, 0xff0000)
-                    .addAttributeModifier(SpellEngineAttributes.DAMAGE_TAKEN.entry,Identifier.of(RPGMinibosses.MOD_ID,"magus_barrier"),-0.95, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                    .addAttributeModifier(SpellEngineAttributes.DAMAGE_TAKEN.entry,Identifier.of(RPGMinibosses.MOD_ID,"magus_barrier"),-0.80, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
     public static void register() {
 
         for (var entry: entries) {

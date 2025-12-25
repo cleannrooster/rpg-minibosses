@@ -1,0 +1,28 @@
+{
+  "values": [
+    {
+      "id": "rpg-minibosses:sanguine_fire_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_fire_legs",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_frost_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_frost_legs",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_arcane_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_arcane_legs",
+      "required": false
+    }
+  ]
+}

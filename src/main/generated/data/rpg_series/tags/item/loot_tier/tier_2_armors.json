@@ -1,0 +1,36 @@
+{
+  "values": [
+    {
+      "id": "rpg-minibosses:trickster_head",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:trickster_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:trickster_legs",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:trickster_feet",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_head",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_legs",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_feet",
+      "required": false
+    }
+  ]
+}
