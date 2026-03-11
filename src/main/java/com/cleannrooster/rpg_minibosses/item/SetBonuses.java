@@ -10,7 +10,6 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.spell_engine.api.config.ArmorSetConfig;
 import net.spell_engine.api.entity.SpellEngineAttributes;
-import net.spell_engine.api.item.armor.Armor;
 import net.spell_engine.api.item.set.EquipmentSet;
 import net.spell_engine.api.spell.container.SpellContainerHelper;
 import net.spell_power.api.SpellPowerMechanics;

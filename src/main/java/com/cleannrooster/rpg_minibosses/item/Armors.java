@@ -33,12 +33,13 @@ import net.spell_engine.api.config.ArmorSetConfig;
 import net.spell_engine.api.config.AttributeModifier;
 import net.spell_engine.api.config.WeaponConfig;
 import net.spell_engine.api.entity.SpellEngineAttributes;
-import net.spell_engine.api.item.Equipment;
-import net.spell_engine.api.item.armor.Armor;
-import net.spell_engine.api.item.armor.ConfigurableAttributes;
-import net.spell_engine.api.item.weapon.Weapon;
+
 import net.spell_engine.api.spell.SpellDataComponents;
 import net.spell_engine.fabric.FabricMod;
+import net.spell_engine.rpg_series.item.Armor;
+import net.spell_engine.rpg_series.item.ConfigurableAttributes;
+import net.spell_engine.rpg_series.item.Equipment;
+import net.spell_engine.rpg_series.item.Weapon;
 import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +50,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static net.spell_engine.api.item.set.EquipmentSet.attributesFrom;
 
 public class Armors {
 
@@ -118,7 +118,7 @@ public class Armors {
                 durability,
                 factory,
                 defaults,
-                Equipment.LootProperties.of(tier));
+                net.spell_engine.rpg_series.item.Equipment.LootProperties.of(tier));
         armorentries.add(entry);
 
         return entry;
@@ -131,7 +131,7 @@ public class Armors {
     private static Weapon.Entry entry(String name, Weapon.CustomMaterial material, Weapon.Factory item, WeaponConfig defaults) {
         return entry(null, name, material, item, defaults);
     }
-    public static Armor.Entry createUniqueSet(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults, Equipment.LootProperties lootProperties, @Nullable Armor.ItemSettingsTweaker settingsTweaker) {
+    public static Armor.Entry createUniqueSet(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults, net.spell_engine.rpg_series.item.Equipment.LootProperties lootProperties, @Nullable Armor.ItemSettingsTweaker settingsTweaker) {
         Item.Settings helmetSettings = (new Item.Settings()).maxDamage(ArmorItem.Type.HELMET.getMaxDamage(durability));
         Item.Settings chestplateSettings = (new Item.Settings()).maxDamage(ArmorItem.Type.CHESTPLATE.getMaxDamage(durability));
         Item.Settings leggingsSettings = (new Item.Settings()).maxDamage(ArmorItem.Type.LEGGINGS.getMaxDamage(durability));
@@ -160,10 +160,10 @@ public class Armors {
     }
 
     public static Armor.Entry createUniqueSet(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults) {
-        return createUniqueSet(material, id, durability, factory, defaults, Equipment.LootProperties.EMPTY);
+        return createUniqueSet(material, id, durability, factory, defaults, net.spell_engine.rpg_series.item.Equipment.LootProperties.EMPTY);
     }
 
-    public static Armor.Entry createUniqueSet(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults, Equipment.LootProperties lootProperties) {
+    public static Armor.Entry createUniqueSet(RegistryEntry<ArmorMaterial> material, Identifier id, int durability, Armor.Set.ItemFactory factory, ArmorSetConfig defaults, net.spell_engine.rpg_series.item.Equipment.LootProperties lootProperties) {
         return createUniqueSet(material, id, durability, factory, defaults, lootProperties, (Armor.ItemSettingsTweaker)null);
     }
 
@@ -174,7 +174,7 @@ public class Armors {
                 durability,
                 factory,
                 defaults,
-                Equipment.LootProperties.of(5),
+                net.spell_engine.rpg_series.item.Equipment.LootProperties.of(5),
                 tweaker);
         armorentries.add(entry);
 
@@ -301,12 +301,12 @@ public class Armors {
     public static final Weapon.Entry whispering_ice = whispering_ice(null,"whispering_ice",
             Weapon.CustomMaterial.matching(ToolMaterials.DIAMOND, () -> Ingredient.ofItems(Items.PRISMARINE_CRYSTALS)), 4F, SpellSchools.FROST)
             .attribute(AttributeModifier.bonus((SpellSchools.FROST).id, 7))
-            .loot(Equipment.LootProperties.of(6));
+            .loot(net.spell_engine.rpg_series.item.Equipment.LootProperties.of(6));
 
     private static Weapon.Entry whispering_ice(String requiredMod, String name, Weapon.CustomMaterial material, float damage, SpellSchool school) {
         var settings = new Item.Settings();
         return entry(requiredMod, name, material, WhisperingIceStaff::new, new WeaponConfig(damage, -3F))
-                .loot(Equipment.LootProperties.of(6));
+                .loot(net.spell_engine.rpg_series.item.Equipment.LootProperties.of(6));
     }
 
     public static void register(Map<String, WeaponConfig> configs){

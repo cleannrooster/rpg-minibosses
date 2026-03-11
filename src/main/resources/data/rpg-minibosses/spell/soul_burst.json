@@ -6,7 +6,9 @@
   "active": {
     "scroll": {},
     "cast": {
-      "animation": "spell_engine:one_handed_healing_charge",
+              "animation": {"id":""},
+
+
       "sound": {
         "id": "spell_engine:generic_healing_casting"
       },
@@ -23,7 +25,9 @@
     }
   },
   "release": {
-    "animation": "spellbladenext:seraph_strike",
+            "animation": {"id":""},
+
+
     "particles": [
       {
         "particle_id": "spell_engine:magic_spell_float",

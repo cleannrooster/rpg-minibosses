@@ -42,10 +42,15 @@ public class GeminiRenderer<T extends GeminiEntity, M extends BipedEntityModel<T
     @Override
     public void actuallyRender(MatrixStack poseStack, T animatable, BakedGeoModel model, RenderLayer renderType, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
         super.actuallyRender(poseStack, animatable, model, renderType, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
-        for(Synchronized.Effect effect: Synchronized.effectsOf(animatable)){
-            if(CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
-                CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(effect.amplifier(), animatable, partialTick, poseStack, bufferSource, packedLight);
+        try {
+            for (Synchronized.Effect effect : Synchronized.effectsOf(animatable)) {
+                if (effect != null && effect.effect() != null && CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
+                    CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(effect.amplifier(), animatable, partialTick, poseStack, bufferSource, packedLight);
+                }
             }
+        }
+        catch (Exception ignored){
+
         }
     }
 

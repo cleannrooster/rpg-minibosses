@@ -136,7 +136,7 @@ public class TrapCleann extends Explosive implements GeoEntity {
                 if(this.getOwner() instanceof LivingEntity player) {
 
                     if (this.getSpellEntry().isPresent() && this.context != null) {
-                        ArrayList<Entity> targets = new ArrayList<>(TargetHelper.targetsFromArea(this, this.getBoundingBox().getCenter(), 2, new Spell.Target.Area(), (entity) ->actionAllowed(SpellTarget.FocusMode.AREA, SpellTarget.Intent.HARMFUL,(LivingEntity) this.getOwner(),entity)));
+                        ArrayList<Entity> targets = new ArrayList<>(TargetHelper.targetsFromArea(this, 2, new Spell.Target.Area(), (entity) ->actionAllowed(SpellTarget.FocusMode.AREA, SpellTarget.Intent.HARMFUL,(LivingEntity) this.getOwner(),entity)));
                         if (!targets.isEmpty()) {
                             if(perhapsExplode(targets,player)){
                                 discard();

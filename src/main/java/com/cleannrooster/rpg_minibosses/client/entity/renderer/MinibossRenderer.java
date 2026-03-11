@@ -7,14 +7,11 @@ import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.TemplarEntity;
-import mod.azure.azurelib.common.api.client.model.GeoModel;
-import mod.azure.azurelib.common.api.client.renderer.DynamicGeoEntityRenderer;
-import mod.azure.azurelib.common.internal.client.util.RenderUtils;
-import mod.azure.azurelib.common.internal.common.cache.object.BakedGeoModel;
-import mod.azure.azurelib.common.internal.common.cache.object.GeoBone;
+
 import mod.azure.azurelib.core.object.Color;
 import mod.azure.azurelib.rewrite.render.entity.AzEntityRenderer;
 import mod.azure.azurelib.rewrite.render.entity.AzEntityRendererConfig;
+import mod.azure.azurelib.rewrite.render.layer.AzBlockAndItemLayer;
 import net.fabricmc.fabric.impl.client.indigo.renderer.helper.ColorHelper;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
@@ -23,6 +20,7 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.client.render.item.HeldItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
@@ -43,9 +41,10 @@ import java.awt.*;
 import java.util.List;
 
 public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
-
+    AzBlockAndItemLayer renderer = new AzBlockAndItemLayer<>();
     protected MinibossRenderer(AzEntityRendererConfig<MinibossEntity> config, EntityRendererFactory.Context context) {
         super(config, context);
+
     }
     public static final Identifier TEMPLAR_MODEL = Identifier.of(
             RPGMinibosses.MOD_ID, "geo/templarmob.geo.json"
@@ -85,13 +84,15 @@ public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
                 AzEntityRendererConfig.<MinibossEntity>builder(model  ,texture)
                         .setModelRenderer(MinibossModelRenderer::new)
                         .setAnimatorProvider(MinibossAnimationProvider::new) // Custom animator
+
                         .setDeathMaxRotation(180F) // Custom death rotation
                         .setShadowRadius(1.0F) // Sets a shadow radius
                         .setShadowRadius(exampleEntity -> 1.0F) // Sets a shadow radius with context
 
                         .setRenderType(RenderLayer.getEntityTranslucent(texture)) // Sets RenderType
                         .setRenderType(exampleEntity -> RenderLayer.getEntityTranslucent(texture)) // Sets RenderType with context
-                       // .addRenderLayer(new CustomEntityRenderLayer()) // Add render layers
+
+                        .addRenderLayer(new MinibossItemRenderer<>()) // Add render layers
                       //  .setModelRenderer(ExampleCustomEntityModelRenderer::new) // Sets the Model Renderer of your render to the ExampleCustomEntityModelRenderer
                         //.setPipelineContext(ExampleEntityRendererPipelineContext::new) // Sets the Pipeline Context to the ExampleEntityRendererPipelineContext
                         .setPrerenderEntry(context2 -> {

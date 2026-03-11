@@ -179,6 +179,7 @@ public class JuggernautEntity extends MinibossEntity{
                     ((WorldScheduler) this.getWorld()).schedule(20, () -> {
 
                         //(this).triggerAnim("slam", "slam");
+                        dispatcher.setSlam();
                         ((WorldScheduler) this.getWorld()).schedule(20, () -> {
                             ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
                             for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
@@ -205,10 +206,10 @@ public class JuggernautEntity extends MinibossEntity{
             this.resetIndicator();
 
                 //(this).triggerAnim("twohandwave", "twohandwave");
-
+                dispatcher.setWave();
                 ((WorldScheduler) this.getWorld()).schedule(40, () -> {
                     ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-
+                    dispatcher.setSpin();
                     //(this).triggerAnim("twohandspin", "twohandspin");
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
                     ((WorldScheduler) this.getWorld()).schedule(4*(2*20), () -> {
@@ -223,18 +224,21 @@ public class JuggernautEntity extends MinibossEntity{
 
                 ((WorldScheduler) this.getWorld()).schedule(40 * 2, () -> {
                     ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    dispatcher.setSpin();
 
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
 
                 });
                 ((WorldScheduler) this.getWorld()).schedule(40 * 3, () -> {
                     ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    dispatcher.setSpin();
 
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
 
                 });
                 ((WorldScheduler) this.getWorld()).schedule(40 * 4, () -> {
                     ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
+                    dispatcher.setSpin();
 
                     this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
 
@@ -248,7 +252,7 @@ public class JuggernautEntity extends MinibossEntity{
             this.resetIndicator();
 
             ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-
+                dispatcher.setLeap();
                 //(this).triggerAnim("leapslam", "leapslam");
                 ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                     this.addVelocity(this.getRotationVector().subtract(0,this.getRotationVector().getY(),0).multiply(2).add(0, 0.5, 0));
@@ -296,11 +300,13 @@ public class JuggernautEntity extends MinibossEntity{
     public boolean tryAttack(Entity target) {
         if(!performing) {
             if (swingBool) {
-                //(this).triggerAnim("swing1", "swing1");
+                dispatcher.setSwing();
                 swingBool = false;
 
             } else {
                 //(this).triggerAnim("swing2", "swing2");
+                dispatcher.setSwing2();
+
                 swingBool = true;
 
             }

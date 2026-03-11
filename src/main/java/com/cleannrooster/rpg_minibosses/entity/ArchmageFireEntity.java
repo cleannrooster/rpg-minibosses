@@ -198,6 +198,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
         }
         if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
            //(this).triggerAnimtriggerAnim("throw1","throw1");
+            dispatcher.throw1();
             if(this.getTarget() != null && this.canSee(this.getTarget())) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
             }
@@ -209,6 +210,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                //(this).triggerAnimtriggerAnim("throw2","throw2");
+                dispatcher.throw2();
                 this.performing = false;
                 if(this.getTarget() != null) {
                     this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
@@ -228,22 +230,35 @@ public class ArchmageFireEntity extends MinibossEntity  {
         }
         if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
             this.resetIndicator();
-            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
+            if (this.getMoveControl().isMoving()) {
+                //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
+                dispatcher.setWalkwave();
+            } else {
+                //(this).triggerAnim.triggerAnim("wave", "wave");
+                dispatcher.setWAVE_1h();
+            }
+            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
+                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-                if (this.getMoveControl().isMoving()) {
-                    //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
+                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_volley")).release.particles);
 
-                } else {
-                    //(this).triggerAnim.triggerAnim("wave", "wave");
+            });
+            ((WorldScheduler) this.getWorld()).schedule(40, () -> {
+                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-                }
-                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_volley")).release.particles);
 
-                    this.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.registryEntry, 40, 10));
-                    this.performing = false;
+            });
+            ((WorldScheduler) this.getWorld()).schedule(60, () -> {
 
-                });
+
+                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"lesser_fire_volley")).get(),
+                        new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
+
+                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"lesser_fire_volley")).release.particles);
+
+                this.performing = false;
 
             });
             this.feathertimer = 320 - (int)(320*this.getCooldownCoeff());
@@ -255,10 +270,10 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
                 if (this.getMoveControl().isMoving()) {
                     //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
-
+                    dispatcher.setWalkwave();
                 } else {
                     //(this).triggerAnim.triggerAnim("wave", "wave");
-
+                    dispatcher.setWAVE_1h();
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
                             SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));

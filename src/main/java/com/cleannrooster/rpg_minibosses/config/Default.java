@@ -3,8 +3,8 @@ package com.cleannrooster.rpg_minibosses.config;
 import com.cleannrooster.rpg_minibosses.item.Armors;
 import net.fabric_extras.structure_pool.api.StructurePoolConfig;
 import net.spell_engine.api.config.ConfigFile;
-import net.spell_engine.api.item.armor.Armor;
-import net.spell_engine.api.item.weapon.Weapon;
+import net.spell_engine.rpg_series.item.Weapon;
+
 
 import java.util.*;
 import java.util.stream.Collectors;

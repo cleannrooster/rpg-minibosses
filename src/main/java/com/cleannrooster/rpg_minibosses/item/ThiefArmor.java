@@ -17,7 +17,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
-import net.spell_engine.api.item.armor.Armor;
+import net.spell_engine.rpg_series.item.Armor;
 
 import java.util.function.Consumer;
 

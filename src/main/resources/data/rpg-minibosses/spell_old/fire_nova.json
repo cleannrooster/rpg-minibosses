@@ -9,7 +9,7 @@
   },
   "cast": {
     "duration": 0.5,
-    "animation": "spell_engine:one_handed_area_charge",
+    "animation": {"id":"spell_engine:one_handed_area_charge"},
     "sound": {
       "id": "spell_engine:generic_fire_casting",
       "randomness": 0
@@ -32,7 +32,9 @@
         "vertical_range_multiplier": 0.5
       }
     },
-    "animation": "spell_engine:one_handed_area_release",
+            "animation": {"id":""},
+,
+
     "sound": {
       "id": "spell_engine:generic_fire_release"
     },

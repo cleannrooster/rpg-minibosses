@@ -6,7 +6,9 @@
   "active": {
     "cast": {
       "duration": 1.0,
-      "animation": "invoke:one_handed_area_charge",
+              "animation": {"id":""},
+
+
       "sound": {
         "id": "spell_engine:generic_fire_casting"
       },
@@ -57,7 +59,9 @@
     }
   },
   "release": {
-    "animation": "invoke:one_handed_area_release",
+            "animation": {"id":""},
+
+
     "particles": [
       {
         "particle_id": "spell_engine:flame",
@@ -166,7 +170,7 @@
             }
           ],
           "model": {
-            "model_id": "wizards:projectile/fire_blast",
+            "model_id": "wizards:spell_projectile/fire_blast",
             "scale": 0.8
           }
         }

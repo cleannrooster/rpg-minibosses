@@ -1,6 +1,6 @@
 {
   "school": "spell_power:fire",
-  "range": 64.0,
+  "range": 128.0,
   "tier": 3,
   "learn": {},
   "active": {
@@ -66,52 +66,82 @@
       {
         "particle_id": "spell_engine:flame",
         "origin": "LAUNCH_POINT",
-        "shape": "CONE",
+        "shape": "CIRCLE",
         "rotation": "LOOK",
-        "count": 200.0,
-        "min_speed": 2.0,
-        "max_speed": 4.0,
-        "angle": 20.0
+        "roll": 45.0,
+        "roll_offset": 45.0,
+        "count": 100.0,
+        "min_speed": 0.2,
+        "max_speed": 0.2,
+        "pre_spawn_travel": 10.0,
+        "color_rgba": 4278190335,
+        "scale": 2.0
       },
       {
         "particle_id": "spell_engine:flame_medium_a",
         "origin": "LAUNCH_POINT",
-        "shape": "CONE",
+        "shape": "CIRCLE",
         "rotation": "LOOK",
+        "roll": 45.0,
+        "roll_offset": 45.0,
         "count": 100.0,
-        "min_speed": 1.0,
-        "max_speed": 2.0,
-        "angle": 40.0
+        "min_speed": 0.02,
+        "max_speed": 0.02,
+        "pre_spawn_travel": 50.0,
+        "color_rgba": 4278190335,
+        "scale": 2.0
       },
       {
-        "particle_id": "spell_engine:flame_medium_b",
+        "particle_id": "spell_engine:flame_spark",
         "origin": "LAUNCH_POINT",
-        "shape": "CONE",
+        "shape": "CIRCLE",
         "rotation": "LOOK",
+        "roll": 45.0,
+        "roll_offset": 45.0,
         "count": 100.0,
-        "min_speed": 0.5,
-        "angle": 75.0
+        "min_speed": 0.02,
+        "max_speed": 0.02,
+        "pre_spawn_travel": 75.0,
+        "color_rgba": 4278190335,
+        "scale": 2.0
       }
     ],
     "sound": {
       "id": "spell_engine:generic_fire_release"
     }
   },
-  "target": {
-    "type": "AIM",
-    "aim": {}
-  },
   "deliver": {
     "type": "PROJECTILE",
     "projectile": {
-      "direct_towards_target": true,
+      "direction_offsets": [
+        {
+          "yaw": 45.0,
+          "pitch": -45.0
+        },
+        {
+          "yaw": -45.0,
+          "pitch": -45.0
+        },
+        {
+          "yaw": 135.0,
+          "pitch": -45.0
+        },
+        {
+          "yaw": -135.0,
+          "pitch": -45.0
+        }
+      ],
       "launch_properties": {
-        "velocity": 3.0
+        "extra_launch_count": 3
       },
       "projectile": {
-        "homing_angle": 30.0,
+        "homing_angle": 20.0,
         "homing_after_absolute_distance": 4.0,
-        "homing_after_relative_distance": 0.4,
+        "homing_after_relative_distance": 0.2,
+        "perks": {
+          "bounce": 99,
+          "pierce": 99
+        },
         "client_data": {
           "travel_particles": [
             {
@@ -153,7 +183,7 @@
           ],
           "model": {
             "model_id": "wizards:spell_projectile/fire_blast",
-            "scale": 3.0
+            "scale": 0.8
           }
         }
       }
@@ -177,7 +207,7 @@
       "action": {
         "type": "DAMAGE",
         "damage": {
-          "spell_power_coefficient": 1.8,
+          "spell_power_coefficient": 0.8,
           "knockback": 2.0
         }
       },
@@ -209,7 +239,7 @@
     }
   ],
   "area_impact": {
-    "radius": 8.0,
+    "radius": 4.0,
     "area": {
       "angle_degrees": 360.0
     },
@@ -226,41 +256,41 @@
         "particle_id": "spell_engine:flame",
         "origin": "CENTER",
         "shape": "SPHERE",
-        "count": 450.0,
-        "min_speed": 0.7,
-        "max_speed": 0.8
+        "count": 15.0,
+        "min_speed": 0.1,
+        "max_speed": 0.2
       },
       {
         "particle_id": "spell_engine:flame_medium_a",
         "origin": "CENTER",
         "shape": "SPHERE",
-        "count": 450.0,
-        "min_speed": 0.7,
-        "max_speed": 0.8
+        "count": 15.0,
+        "min_speed": 0.1,
+        "max_speed": 0.2
       },
       {
         "particle_id": "spell_engine:flame_medium_b",
         "origin": "CENTER",
         "shape": "SPHERE",
-        "count": 450.0,
-        "min_speed": 0.7,
-        "max_speed": 0.8
+        "count": 15.0,
+        "min_speed": 0.1,
+        "max_speed": 0.2
       },
       {
         "particle_id": "spell_engine:flame_medium_a",
         "origin": "CENTER",
         "shape": "SPHERE",
-        "count": 450.0,
-        "min_speed": 0.4,
-        "max_speed": 0.4
+        "count": 15.0,
+        "min_speed": 0.1,
+        "max_speed": 0.2
       },
       {
         "particle_id": "spell_engine:flame_medium_b",
         "origin": "CENTER",
         "shape": "SPHERE",
-        "count": 450.0,
-        "min_speed": 0.4,
-        "max_speed": 0.4
+        "count": 15.0,
+        "min_speed": 0.05,
+        "max_speed": 0.05
       }
     ],
     "sound": {

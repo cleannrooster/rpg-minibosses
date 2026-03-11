@@ -10,7 +10,8 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.spell_engine.api.config.ArmorSetConfig;
 import net.spell_engine.api.config.AttributeModifier;
-import net.spell_engine.api.item.armor.Armor;
+import net.spell_engine.rpg_series.item.Armor;
+import net.spell_engine.rpg_series.item.Armor.*;
 
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class CompatArmors {
                             ))
             ),2)
             .armorSet();
-    public static final Armor.Set juggernautArmor = Armors.create(
+    public static final Set juggernautArmor = Armors.create(
             juggernaut,
             Identifier.of(RPGMinibosses.MOD_ID, "juggernaut"),
             30,

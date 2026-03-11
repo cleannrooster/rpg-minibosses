@@ -6,7 +6,9 @@
   "active": {
     "cast": {
       "duration": 1.0,
-      "animation": "invoke:one_handed_projectile_charge",
+              "animation": {"id":""},
+
+
       "sound": {
         "id": "spell_engine:generic_fire_casting"
       },
@@ -57,7 +59,9 @@
     }
   },
   "release": {
-    "animation": "invoke:one_handed_projectile_release",
+            "animation": {"id":""},
+
+
     "particles": [
       {
         "particle_id": "spell_engine:flame",
@@ -183,7 +187,7 @@
             }
           ],
           "model": {
-            "model_id": "wizards:projectile/arcane_missile",
+            "model_id": "wizards:spell_projectile/arcane_missile",
             "scale": 3.0
           }
         }

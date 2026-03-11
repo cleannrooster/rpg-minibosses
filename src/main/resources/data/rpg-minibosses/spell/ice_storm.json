@@ -7,7 +7,7 @@
     "scroll": {},
     "cast": {
       "duration": 0.4,
-      "animation": "spell_engine:one_handed_area_charge",
+      "animation": {"id":"spell_engine:one_handed_area_charge"},
       "sound": {
         "id": "spell_engine:generic_frost_casting"
       },
@@ -24,7 +24,7 @@
     }
   },
   "release": {
-    "animation": "spell_engine:one_handed_area_release",
+    "animation": {"id":"spell_engine:one_handed_area_release"},
     "particles": [
       {
         "particle_id": "spell_engine:snowflake",
@@ -73,7 +73,7 @@
         "divergence": 15.0,
         "client_data": {
           "model": {
-            "model_id": "wizards:projectile/frost_shard"
+            "model_id": "wizards:spell_projectile/frost_shard"
           }
         }
       }

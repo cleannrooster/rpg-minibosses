@@ -328,7 +328,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     if (bool) break;
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -336,7 +336,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
                 ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -345,7 +345,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
                 ((WorldScheduler) this.getWorld()).schedule(36, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -368,7 +368,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -377,7 +377,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
                 ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -386,7 +386,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
                 ((WorldScheduler) this.getWorld()).schedule(36, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -408,7 +408,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
                 ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -519,7 +519,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -528,7 +528,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
                 ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -537,7 +537,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
                 ((WorldScheduler) this.getWorld()).schedule(36, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }
@@ -560,7 +560,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
                 ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, this.getEyePos(), spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
+                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
                     for (Entity entity : entityList) {
                         boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellHelper.ImpactContext().position(this.getPos()));
                     }

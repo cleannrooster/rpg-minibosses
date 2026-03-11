@@ -17,7 +17,7 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.spell_engine.api.item.armor.Armor;
+import net.spell_engine.rpg_series.item.Armor;
 import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 

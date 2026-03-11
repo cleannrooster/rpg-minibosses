@@ -23,7 +23,9 @@
     }
   },
   "release": {
-    "animation": "spell_engine:one_handed_projectile_release"
+            "animation": {"id":""}
+
+
 
   },
   "impacts": [

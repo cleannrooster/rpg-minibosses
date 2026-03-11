@@ -212,7 +212,7 @@ public class Explosive extends PersistentProjectileEntity implements GeoEntity {
                         if (this.getSpellEntry().get().value().active.cast.channel_ticks > 0) {
                             this.channeling = true;
                         } else if(this.getSpellEntry().get().value().deliver.type.equals(Spell.Delivery.Type.PROJECTILE) && !this.shotprojectile){
-                            List<Entity> list = TargetHelper.targetsFromArea(this,this.getPos(),6,new Spell.Target.Area(),
+                            List<Entity> list = TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(),
                                     (target) ->  actionAllowed(SpellTarget.FocusMode.AREA, SpellTarget.Intent.HARMFUL,player, target) && target instanceof LivingEntity);
                             ArrayList<LivingEntity> list1 = new ArrayList<>();
                             list.forEach(target -> {if(target instanceof LivingEntity living){

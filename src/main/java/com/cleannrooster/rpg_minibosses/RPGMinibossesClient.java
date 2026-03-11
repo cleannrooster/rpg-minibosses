@@ -25,8 +25,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
 import net.spell_engine.api.effect.CustomModelStatusEffect;
-import net.spell_engine.api.item.armor.Armor;
 import net.spell_engine.api.render.CustomModels;
+import net.spell_engine.rpg_series.item.Armor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,10 +84,10 @@ public class RPGMinibossesClient implements ClientModInitializer {
         registerArmorRenderer(Armors.sanguine_purple, UniqueArmorRenderer::sanguine_arcane);
 
 	}
-    private static void registerArmorRenderer(Armor.Set set, Supplier<AzArmorRenderer> armorRendererSupplier) {
+    private static void registerArmorRenderer(net.spell_engine.rpg_series.item.Armor.Set set, Supplier<AzArmorRenderer> armorRendererSupplier) {
         AzArmorRendererRegistry.register(armorRendererSupplier, set.head, set.chest, set.legs, set.feet);
     }
-    private static void registerArmorItemRenderer(Armor.Set set, Supplier<AzItemRenderer> armorRendererSupplier) {
+    private static void registerArmorItemRenderer(net.spell_engine.rpg_series.item.Armor.Set set, Supplier<AzItemRenderer> armorRendererSupplier) {
         AzItemRendererRegistry.register(set.chest, armorRendererSupplier);
         AzItemRendererRegistry.register(set.legs, armorRendererSupplier);
 

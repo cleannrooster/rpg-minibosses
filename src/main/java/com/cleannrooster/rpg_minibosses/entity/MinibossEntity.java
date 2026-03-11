@@ -489,7 +489,6 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
             this.tickIndicator();
         }
             if (this.getWorld().isClient() && this instanceof ArtilleristEntity artilleristEntity && artilleristEntity.getDataTracker().get(ArtilleristEntity.RUNNING) && artilleristEntity.getVelocity().length() > 0.01F) {
-                setRotationAndHeadFromVelocity(this);
 
             } else if (this.getWorld().isClient() ) {
                 setRotationFromVelocity(this);
@@ -1449,26 +1448,31 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
     }
     public void animTick(){
         if (this.getWorld().isClient) {
-            ((AzAnimatorAccessor<Entity>)this).getAnimator().ifPresent( entity -> {
-                var controller = entity.getAnimationControllerContainer().getOrNull("base_controller");
-                if(controller != null){
-                    controller.animationProperties().withAnimationSpeed(this.getVelocity().subtract(0,this.getVelocity().getY(),0).length()/0.2F);
-                }
 
-                    });
-            var isMovingOnGround = moveAnalysis.isMovingHorizontally() && this.isOnGround();
+            float speed  = (float) (this.getVelocity().subtract(0,this.getVelocity().getY(),0).length()/0.2F);
+            var isMovingOnGround = speed != 0 && this.isOnGround();
             Runnable animationRunner;
+            if(this.getDataTracker().get(DOWN)){
+                animationRunner = dispatcher::setDown;
+            }
+            else
             if (isMovingOnGround) {
                 if (this.isAttacking()) { // if moving and aggressive, play running
+
                     if(this.shouldRun()){
-                        animationRunner = dispatcher::run;
+                        animationRunner = () -> dispatcher.run(speed);
 
                     }
                     else {
-                        animationRunner = dispatcher::walkAggro;
+                        animationRunner = () -> dispatcher.walkAggro(speed);
                     }
                 } else { // if moving but not aggressive play walk
-                    animationRunner = dispatcher::walk;
+                    if (this instanceof ArtilleristEntity) {
+                        animationRunner = () -> dispatcher.walkAggro(speed);
+
+                    } else {
+                        animationRunner = () -> dispatcher.walk(speed);
+                    }
                 }
             } else { // Play the default idle animation
                 if (this.isAttacking()) {

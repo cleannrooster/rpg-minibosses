@@ -8,11 +8,13 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
-import net.spell_engine.api.item.Equipment;
-import net.spell_engine.api.item.armor.Armor;
-import net.spell_engine.api.item.weapon.Weapon;
 import net.spell_engine.api.tags.SpellEngineItemTags;
 import net.spell_engine.rpg_series.datagen.RPGSeriesDataGen;
+import net.spell_engine.rpg_series.item.Armor;
+
+import net.spell_engine.rpg_series.item.Equipment;
+import net.spell_engine.rpg_series.item.Equipment.*;
+import net.spell_engine.rpg_series.item.Weapon;
 import net.spell_engine.rpg_series.tags.RPGSeriesItemTags;
 import net.spell_power.api.SpellPowerTags;
 
@@ -69,8 +71,8 @@ public class RPGMINIDatagen {
                 this.getOrCreateTagBuilder((TagKey)entry.getValue());
             }
 
-            List<Equipment.WeaponType> fullSpellWeaponTypes = List.of(net.spell_engine.api.item.Equipment.WeaponType.DAMAGE_STAFF, net.spell_engine.api.item.Equipment.WeaponType.DAMAGE_WAND, net.spell_engine.api.item.Equipment.WeaponType.HEALING_STAFF, net.spell_engine.api.item.Equipment.WeaponType.HEALING_WAND, net.spell_engine.api.item.Equipment.WeaponType.SPELL_BLADE, net.spell_engine.api.item.Equipment.WeaponType.SPELL_SCYTHE);
-            List<Equipment.WeaponType> meleeSpellWeaponTypes = List.of(net.spell_engine.api.item.Equipment.WeaponType.SWORD, net.spell_engine.api.item.Equipment.WeaponType.CLAYMORE, net.spell_engine.api.item.Equipment.WeaponType.MACE, net.spell_engine.api.item.Equipment.WeaponType.HAMMER, net.spell_engine.api.item.Equipment.WeaponType.GLAIVE);
+            List<Equipment.WeaponType> fullSpellWeaponTypes = List.of(WeaponType.DAMAGE_STAFF, WeaponType.DAMAGE_WAND, WeaponType.HEALING_STAFF, WeaponType.HEALING_WAND, WeaponType.SPELL_BLADE, WeaponType.SPELL_SCYTHE);
+            List<Equipment.WeaponType> meleeSpellWeaponTypes = List.of(WeaponType.SWORD, WeaponType.CLAYMORE, WeaponType.MACE, WeaponType.HAMMER, WeaponType.GLAIVE);
             List<Equipment.WeaponType> spellInfinityTypes = RPGSeriesDataGen.<Equipment.WeaponType>combine(fullSpellWeaponTypes, meleeSpellWeaponTypes);
             FabricTagProvider<Item>.FabricTagBuilder spellInfinityTag = this.getOrCreateTagBuilder(SpellEngineItemTags.ENCHANTABLE_SPELL_INFINITY);
 
@@ -99,33 +101,33 @@ public class RPGMINIDatagen {
 
             FabricTagProvider<Item>.FabricTagBuilder spellVolatilityTag = this.getOrCreateTagBuilder(SpellPowerTags.Items.Enchantable.CRITICAL_CHANCE);
             spellVolatilityTag.addTag(RPGSeriesItemTags.ArmorType.get(RPGSeriesItemTags.ArmorMetaType.MAGIC));
-            Equipment.WeaponType[] unbreakingTypes = net.spell_engine.api.item.Equipment.WeaponType.values();
+            WeaponType[] unbreakingTypes = WeaponType.values();
             FabricTagProvider<Item>.FabricTagBuilder unbreakingTag = this.getOrCreateTagBuilder(ItemTags.DURABILITY_ENCHANTABLE);
 
             for(Equipment.WeaponType type : unbreakingTypes) {
                 unbreakingTag.addTag(RPGSeriesItemTags.WeaponType.get(type));
             }
 
-            List<Equipment.WeaponType> sharpWeaponTypes = List.of(net.spell_engine.api.item.Equipment.WeaponType.SWORD, net.spell_engine.api.item.Equipment.WeaponType.SPEAR, net.spell_engine.api.item.Equipment.WeaponType.CLAYMORE, net.spell_engine.api.item.Equipment.WeaponType.MACE, net.spell_engine.api.item.Equipment.WeaponType.HAMMER, net.spell_engine.api.item.Equipment.WeaponType.DAGGER, net.spell_engine.api.item.Equipment.WeaponType.SICKLE, net.spell_engine.api.item.Equipment.WeaponType.DOUBLE_AXE, net.spell_engine.api.item.Equipment.WeaponType.GLAIVE, net.spell_engine.api.item.Equipment.WeaponType.SPELL_BLADE, net.spell_engine.api.item.Equipment.WeaponType.SPELL_SCYTHE);
+            List<Equipment.WeaponType> sharpWeaponTypes = List.of(WeaponType.SWORD, WeaponType.SPEAR, WeaponType.CLAYMORE, WeaponType.MACE, WeaponType.HAMMER, WeaponType.DAGGER, WeaponType.SICKLE, WeaponType.DOUBLE_AXE, WeaponType.GLAIVE, WeaponType.SPELL_BLADE, WeaponType.SPELL_SCYTHE);
             FabricTagProvider<Item>.FabricTagBuilder sharpTag = this.getOrCreateTagBuilder(ItemTags.SHARP_WEAPON_ENCHANTABLE);
 
             for(Equipment.WeaponType type : sharpWeaponTypes) {
                 sharpTag.addTag(RPGSeriesItemTags.WeaponType.get(type));
             }
 
-            List<Equipment.WeaponType> meleeWeaponTypes = List.of(net.spell_engine.api.item.Equipment.WeaponType.SWORD, net.spell_engine.api.item.Equipment.WeaponType.CLAYMORE, net.spell_engine.api.item.Equipment.WeaponType.MACE, net.spell_engine.api.item.Equipment.WeaponType.HAMMER, net.spell_engine.api.item.Equipment.WeaponType.SPEAR, net.spell_engine.api.item.Equipment.WeaponType.DAGGER, net.spell_engine.api.item.Equipment.WeaponType.SICKLE, net.spell_engine.api.item.Equipment.WeaponType.DOUBLE_AXE, net.spell_engine.api.item.Equipment.WeaponType.GLAIVE);
+            List<Equipment.WeaponType> meleeWeaponTypes = List.of(WeaponType.SWORD, WeaponType.CLAYMORE, WeaponType.MACE, WeaponType.HAMMER, WeaponType.SPEAR, WeaponType.DAGGER, WeaponType.SICKLE, WeaponType.DOUBLE_AXE, WeaponType.GLAIVE);
             FabricTagProvider<Item>.FabricTagBuilder meleeTag = this.getOrCreateTagBuilder(ItemTags.SWORDS);
 
             for(Equipment.WeaponType type : meleeWeaponTypes) {
                 meleeTag.addTag(RPGSeriesItemTags.WeaponType.get(type));
             }
 
-            for(Equipment.WeaponType type : List.of(net.spell_engine.api.item.Equipment.WeaponType.SHORT_BOW, net.spell_engine.api.item.Equipment.WeaponType.LONG_BOW)) {
+            for(Equipment.WeaponType type : List.of(WeaponType.SHORT_BOW, WeaponType.LONG_BOW)) {
                 FabricTagProvider<Item>.FabricTagBuilder tag = this.getOrCreateTagBuilder(ItemTags.BOW_ENCHANTABLE);
                 tag.addTag(RPGSeriesItemTags.WeaponType.get(type));
             }
 
-            for(Equipment.WeaponType type : List.of(net.spell_engine.api.item.Equipment.WeaponType.RAPID_CROSSBOW, net.spell_engine.api.item.Equipment.WeaponType.HEAVY_CROSSBOW)) {
+            for(Equipment.WeaponType type : List.of(WeaponType.RAPID_CROSSBOW, WeaponType.HEAVY_CROSSBOW)) {
                 FabricTagProvider<Item>.FabricTagBuilder tag = this.getOrCreateTagBuilder(ItemTags.CROSSBOW_ENCHANTABLE);
                 tag.addTag(RPGSeriesItemTags.WeaponType.get(type));
             }
@@ -133,10 +135,10 @@ public class RPGMINIDatagen {
         }
     }
 
-    public static record ShieldEntry(Identifier id, Equipment.LootProperties lootProperties) {
+    public static record ShieldEntry(Identifier id, LootProperties lootProperties) {
     }
 
-    public static record BowEntry(Identifier id, Equipment.WeaponType weaponType, Equipment.LootProperties lootProperties) {
+    public static record BowEntry(Identifier id, WeaponType weaponType, LootProperties lootProperties) {
     }
 
     public abstract static class ItemTagGenerator extends FabricTagProvider<Item> {
@@ -236,7 +238,7 @@ public class RPGMINIDatagen {
         public void generateShieldTags(List<RPGSeriesDataGen.ShieldEntry> shields) {
             for(RPGSeriesDataGen.ShieldEntry entry : shields) {
                 Identifier id = entry.id();
-                TagKey<Item> weaponType = RPGSeriesItemTags.WeaponType.get(net.spell_engine.api.item.Equipment.WeaponType.SHIELD);
+                TagKey<Item> weaponType = RPGSeriesItemTags.WeaponType.get(WeaponType.SHIELD);
                 FabricTagProvider<Item>.FabricTagBuilder weaponTag = this.getOrCreateTagBuilder(weaponType);
                 weaponTag.addOptional(id);
             }
@@ -244,18 +246,18 @@ public class RPGMINIDatagen {
             this.generateLootTags((Map)shields.stream().collect(Collectors.toMap(RPGSeriesDataGen.ShieldEntry::id, RPGSeriesDataGen.ShieldEntry::lootProperties)), RPGSeriesItemTags.LootCategory.WEAPONS);
         }
 
-        public void generateAccessoryTags(Map<Identifier, Equipment.LootProperties> accessories) {
+        public void generateAccessoryTags(Map<Identifier, LootProperties> accessories) {
             this.generateLootTags(accessories, RPGSeriesItemTags.LootCategory.ACCESSORIES);
         }
 
-        public void generateRelicTags(Map<Identifier, Equipment.LootProperties> relics) {
+        public void generateRelicTags(Map<Identifier, LootProperties> relics) {
             this.generateLootTags(relics, RPGSeriesItemTags.LootCategory.RELICS);
         }
 
-        public void generateLootTags(Map<Identifier, Equipment.LootProperties> items, RPGSeriesItemTags.LootCategory category) {
-            for(Map.Entry<Identifier, Equipment.LootProperties> entry : items.entrySet()) {
+        public void generateLootTags(Map<Identifier, LootProperties> items, RPGSeriesItemTags.LootCategory category) {
+            for(Map.Entry<Identifier, LootProperties> entry : items.entrySet()) {
                 Identifier id = (Identifier)entry.getKey();
-                Equipment.LootProperties lootProperties = (Equipment.LootProperties)entry.getValue();
+                LootProperties lootProperties = (LootProperties)entry.getValue();
                 int tier = lootProperties.tier();
                 if (tier >= 0) {
                     FabricTagProvider<Item>.FabricTagBuilder tierTag = this.getOrCreateTagBuilder(RPGSeriesItemTags.LootTiers.get(tier, category));

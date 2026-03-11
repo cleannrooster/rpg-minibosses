@@ -48,7 +48,9 @@
           }
         }
     },
-    "animation": "spell_engine:one_handed_throw_release_instant",
+            "animation": {"id":""},
+
+
     "sound": {
       "id": "minecraft:entity.player.attack.sweep"
     }

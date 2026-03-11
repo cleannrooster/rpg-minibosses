@@ -22,7 +22,9 @@
     ]
   },
   "release": {
-    "animation": "spell_engine:one_handed_area_release",
+            "animation": {"id":""},
+
+
     "particles": [
       {
         "particle_id": "spell_engine:magic_spell_float",

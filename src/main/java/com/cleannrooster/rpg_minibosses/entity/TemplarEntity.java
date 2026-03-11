@@ -351,7 +351,7 @@ public class TemplarEntity extends MinibossEntity{
         if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null  && this.canSee(this.getTarget())) {
             this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
 
-           //(this).triggerAnimtriggerAnim("actions","staff");
+            dispatcher.setStaff();
             ((WorldScheduler) this.getWorld()).schedule(160, () -> {
                 this.performing = false;
                 this.is_staff = false;
@@ -521,10 +521,14 @@ public class TemplarEntity extends MinibossEntity{
 
             }
             if (swingBool) {
+                dispatcher.setSwing();
+
                 //(this).triggerAnim("actions", "swing1");
                 swingBool = false;
 
             } else {
+                dispatcher.setSwing2();
+
                 //(this).triggerAnim("actions", "swing2");
                 swingBool = true;
 
