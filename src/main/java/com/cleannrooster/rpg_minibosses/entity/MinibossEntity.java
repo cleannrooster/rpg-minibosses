@@ -29,6 +29,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentLevelEntry;
 import net.minecraft.enchantment.provider.TradeRebalanceEnchantmentProviders;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.FuzzyTargeting;
 import net.minecraft.entity.ai.brain.task.OpenDoorsTask;
 import net.minecraft.entity.ai.control.JumpControl;
 import net.minecraft.entity.ai.control.LookControl;
@@ -770,9 +771,47 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
             return false;
         }
     }
+    public boolean shouldWander = false;
+    public boolean shouldWander(){
+        return shouldWander;
+    }
+    public class WanderAroundFarGoalConditional extends WanderAroundGoal {
+        public static final float CHANCE = 0.001F;
+        protected final float probability;
+
+        public WanderAroundFarGoalConditional(MinibossEntity pathAwareEntity, double d) {
+            this(pathAwareEntity, d, 0.001F);
+        }
+
+        @Override
+        public boolean canStart() {
+            return ((MinibossEntity)this.mob).shouldWander() && super.canStart();
+        }
+
+        @Override
+        public boolean canStop() {
+            return super.canStop() || !((MinibossEntity)this.mob).shouldWander();
+        }
+
+        public WanderAroundFarGoalConditional(PathAwareEntity mob, double speed, float probability) {
+            super(mob, speed);
+            this.probability = probability;
+        }
+
+        @Nullable
+        protected Vec3d getWanderTarget() {
+            if (this.mob.isInsideWaterOrBubbleColumn()) {
+                Vec3d vec3d = FuzzyTargeting.find(this.mob, 15, 7);
+                return vec3d == null ? super.getWanderTarget() : vec3d;
+            } else {
+                return this.mob.getRandom().nextFloat() >= this.probability ? FuzzyTargeting.find(this.mob, 10, 7) : super.getWanderTarget();
+            }
+        }
+    }
+
     protected void initGoals() {
         this.goalSelector.add(8, new LookAroundGoal(this));
-        this.goalSelector.add(7, new WanderAroundFarGoal(this, 1.0));
+        this.goalSelector.add(7, new WanderAroundFarGoalConditional(this, 1.0));
         this.goalSelector.add(6, new MinibossFollowOwner(this, 1.6, 6.0F, 2.0F));
         this.goalSelector.add(1, new DoorInteractGoalLong(this, true));
 
@@ -956,6 +995,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
     }
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
+        nbt.putBoolean("shouldWander", this.shouldWander());
         if (this.getOwnerUuid() != null) {
             nbt.putUuid("Owner", this.getOwnerUuid());
         }
@@ -1001,7 +1041,11 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         } else {
             cantHire = false;
         }
-
+        if (nbt.contains("shouldWander")) {
+            shouldWander = nbt.getBoolean("shouldWander");
+        } else {
+            shouldWander = true;
+        }
         if (nbt.contains("Offers")) {
             DataResult var10000 = TradeOfferList.CODEC.parse(this.getRegistryManager().getOps(NbtOps.INSTANCE), nbt.get("Offers"));
             Logger var10002 = LOGGER;
