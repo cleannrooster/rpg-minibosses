@@ -9,6 +9,9 @@ import java.util.LinkedHashMap;
 @Config(name = "server_v6")
 public class ServerConfig  implements ConfigData {
     public ServerConfig(){}
+    @Comment("Recruiting Toggle ")
+    public  boolean recruit = true;
+
     @Comment("Chance for Forsaken Templars to spawn naturally")
     public  float templarGreater = 1.0F;
     @Comment("Forsaken Templar maxHealth ")

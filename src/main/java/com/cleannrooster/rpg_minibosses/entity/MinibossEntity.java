@@ -23,6 +23,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.LeavesBlock;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.FuzzyTargeting;
 import net.minecraft.entity.ai.control.JumpControl;
 import net.minecraft.entity.ai.control.LookControl;
 import net.minecraft.entity.ai.control.MoveControl;
@@ -301,7 +302,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
 
     @Override
     public void onDeath(DamageSource damageSource) {
-        if(!damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null){
+        if(RPGMinibossesEntities.config.recruit && !damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null){
             this.setHealth(0.01F);
             (this).triggerAnim("down","down");
 
@@ -368,6 +369,11 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
                 this.setTarget(null);
             }
         }
+        if (this.wanderPoint[0] == 0 && this.wanderPoint[1]==0 && this.wanderPoint[2]==0){
+            this.wanderPoint = new int[]{(int)this.getPos().getX(), (int)this.getPos().getY(),(int) this.getPos().getZ()};
+
+        }
+
         if(this.firstUpdate && !this.getWorld().isClient()){
             if(this.getDataTracker().get(DOWN)){
                 (this).triggerAnim("down","down");
@@ -681,6 +687,44 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             return false;
         }
     }
+    public int[] wanderPoint = new int[3];
+    public boolean shouldWander = true;
+    public boolean closeWander = false;
+
+    public class WanderAroundFarGoal extends WanderAroundGoal {
+        public static final float CHANCE = 0.001F;
+        protected final float probability;
+
+        public WanderAroundFarGoal(PathAwareEntity pathAwareEntity, double d) {
+            this(pathAwareEntity, d, 0.001F);
+        }
+
+        public WanderAroundFarGoal(PathAwareEntity mob, double speed, float probability) {
+            super(mob, speed);
+            this.probability = probability;
+        }
+
+        @Nullable
+        protected Vec3d getWanderTarget() {
+            if(!((MinibossEntity)this.mob).shouldWander) return null;
+            Vec3d vec3d;
+            if (this.mob.isInsideWaterOrBubbleColumn()) {
+                 vec3d = FuzzyTargeting.find(this.mob, 15, 7);
+            } else {
+                vec3d =  this.mob.getRandom().nextFloat() >= this.probability ? FuzzyTargeting.find(this.mob, 10, 7) : super.getWanderTarget();
+            }
+            if(((MinibossEntity)this.mob).closeWander) {
+                if (vec3d != null) {
+
+                    vec3d = vec3d.squaredDistanceTo(new Vec3d(((MinibossEntity) this.mob).wanderPoint[0], ((MinibossEntity) this.mob).wanderPoint[1], ((MinibossEntity) this.mob).wanderPoint[2])) < 5 * 5 ? vec3d : null;
+                System.out.println(wanderPoint[0] + " " + wanderPoint[1] + " " + wanderPoint[2]);
+                }
+            }
+            return  vec3d;
+
+        }
+    }
+
     protected void initGoals() {
         this.goalSelector.add(8, new LookAroundGoal(this));
         this.goalSelector.add(7, new WanderAroundFarGoal(this, 1.0));
@@ -873,7 +917,22 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
             String string = nbt.getString("Owner");
             uUID = ServerConfigHandler.getPlayerUuidByName(this.getServer(), string);
         }
-
+        if (nbt.contains("shouldWander")) {
+            this.shouldWander = nbt.getBoolean("shouldWander");
+        } else {
+            this.shouldWander = true;
+        }
+        if (nbt.contains("closeWander")) {
+            this.closeWander = nbt.getBoolean("closeWander");
+        } else {
+            this.closeWander = false;
+        }
+        if (nbt.contains("wanderPoint")) {
+            this.wanderPoint = nbt.getIntArray("wanderPoint");
+        }
+        else{
+            this.wanderPoint = new int[]{(int)this.getPos().getX(), (int)this.getPos().getY(), (int)this.getPos().getZ()};;
+        }
         if (nbt.contains("exileName")) {
             this.getDataTracker().set(NAME,nbt.getInt("exileName"));
         }
@@ -889,6 +948,11 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
         if (this.getOwnerUuid() != null) {
             nbt.putUuid("Owner", this.getOwnerUuid());
         }
+        if(this.wanderPoint != null){
+            nbt.putIntArray("wanderPoint", this.wanderPoint);
+        }
+         nbt.putBoolean("shouldWander",this.shouldWander);
+        nbt.putBoolean("closeWander",this.closeWander);
         if (nbt.contains("exileName")) {
             nbt.putInt("exileName",this.dataTracker.get(NAME));
         }
@@ -901,7 +965,9 @@ public class MinibossEntity extends PathAwareEntity implements Tameable, GeoEnti
     }
 
     public void setOwnerUuid(@Nullable UUID uuid) {
-        this.dataTracker.set(OWNER_UUID, Optional.ofNullable(uuid));
+        if (RPGMinibossesEntities.config.recruit) {
+            this.dataTracker.set(OWNER_UUID, Optional.ofNullable(uuid));
+        }
     }
 
     public boolean isSitting() {
