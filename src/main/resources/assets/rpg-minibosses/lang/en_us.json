@@ -139,7 +139,7 @@
   "spell.rpg-minibosses.abberrath_nova.name": "Abberath's Fury",
   "spell.rpg-minibosses.abberrath_nova.description": "Release a Fire Nova every time you sprint 4 meters, dealing {damage} fire damage.",
   "spell.rpg-minibosses.ice_storm.name": "Ice Storm",
-  "spell.rpg-minibosses.ice_storm.description": "Conjure an Ice Storm over a target location, lasting 4 seconds. Each projectile deals {damage} Frost Damage.",
+  "spell.rpg-minibosses.ice_storm.description": "Conjure an Ice Storm over a target location, lasting 2 seconds. Each projectile deals {damage} Frost Damage.",
   "text.rpg-minibosses.abberraths_hooves": "The Goat King's stampede turned all into ash.",
   "text.rpg-minibosses.whispering_ice": "Your darkest thoughts are the cracks through which The Nightmare crawls.",
 

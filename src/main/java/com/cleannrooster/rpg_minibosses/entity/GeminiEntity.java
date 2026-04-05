@@ -2,12 +2,8 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.AI.*;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
-import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
-import mod.azure.azurelib.core.animation.*;
-import mod.azure.azurelib.core.animation.AnimationState;
-import mod.azure.azurelib.core.object.PlayState;
+import mod.azure.azurelib.common.animation.dispatch.command.AzCommand;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
@@ -58,17 +54,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster {
+public class GeminiEntity extends PathAwareEntity implements Monster {
 
     public SpellSchool school;
 
 
-    public static final RawAnimation METEOR_CHARGE = RawAnimation.begin().then("animation.awakener.meteor_charge", Animation.LoopType.PLAY_ONCE);
-
-    public static final RawAnimation METEOR_CHANNEL = RawAnimation.begin().then("animation.awakener.meteor_channel", Animation.LoopType.PLAY_ONCE);
-    public static final RawAnimation BEAM_LARGE  = RawAnimation.begin().then("animation.awakener.beam_large", Animation.LoopType.PLAY_ONCE);
-    public static final RawAnimation BEAM = RawAnimation.begin().then("animation.awakener.beam_1", Animation.LoopType.PLAY_ONCE);
-    public static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.awakener.idle");
     private boolean spawned;
     private  ServerBossBar bossBar;
 
@@ -264,6 +254,9 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
 
     @Override
     public void tick() {
+        if (!this.getWorld().isClient()) {
+            AzCommand.create("idle", "animation.awakener.idle", AzPlayBehaviors.LOOP).sendForEntity(this);
+        }
         if(this.getPartner() == null &&  this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA.entityType) &&  !this.getWorld().isClient() && !this.spawned){
             if(this.getWorld() instanceof ServerWorld serverWorld){
                 serverWorld.iterateEntities().forEach(entity -> {
@@ -320,7 +313,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
         if(this.phase.equals(Phase.PRIMARY)) {
             if (this.getTarget() != null && !acting && clonesTimer <= 0) {
                 acting = true;
-                this.triggerAnim("beam_large", "beam_large");
+                AzCommand.create("beam_large", "animation.awakener.beam_large", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 RegistryEntry<Spell> spell = this.getBeamSpell();
                 for (int i = 0; i < 8; i++) {
                     boolean bool = teleportRandomly();
@@ -394,7 +387,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
-                this.triggerAnim("beam_large", "beam_large");
+                AzCommand.create("beam_large", "animation.awakener.beam_large", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
                 ((WorldScheduler) this.getWorld()).schedule(60, () -> {
                     acting = false;
@@ -403,7 +396,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
             }
             if (this.getTarget() != null && !acting && basicAttackTimer <= 0) {
                 acting = true;
-                this.triggerAnim("beam", "beam");
+                AzCommand.create("beam", "animation.awakener.beam_1", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
@@ -444,7 +437,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
 
             if (this.getTarget() != null && !acting && cloudTimer <= 0) {
                 acting = true;
-                this.triggerAnim("meteor_channel", "meteor_channel");
+                AzCommand.create("meteor_channel", "animation.awakener.meteor_channel", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
                 RegistryEntry<Spell> spell = this.getCloudSpell();;
 
@@ -480,7 +473,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
             }
             if (this.getTarget() != null && !acting && meteorTimer <= 0) {
                 acting = true;
-                this.triggerAnim("meteor_channel", "meteor_channel");
+                AzCommand.create("meteor_channel", "animation.awakener.meteor_channel", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
                 RegistryEntry<Spell> spell = this.getMeteorSpell();;
 
@@ -545,7 +538,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
 
                     ParticleHelper.sendBatches(this, spell.value().release.particles);
                 });
-                this.triggerAnim("beam_large", "beam_large");
+                AzCommand.create("beam_large", "animation.awakener.beam_large", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
                 ((WorldScheduler) this.getWorld()).schedule(60, () -> {
                     acting = false;
@@ -555,7 +548,7 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
 
             if (this.getTarget() != null && !acting && basicAttackTimer <= 0) {
                 acting = true;
-                this.triggerAnim("beam", "beam");
+                AzCommand.create("beam", "animation.awakener.beam_1", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
@@ -610,31 +603,6 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
     @Nullable
     public  GeminiEntity getPartner() {
         return  this.getWorld().isClient() ? null : partnerId == null ? null : (GeminiEntity)((ServerWorld)this.getWorld()).getEntity(partnerId);
-    }
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<GeminiEntity>(this, "idle",
-                0, this::predicate2)
-        );
-        controllers.add(
-                new AnimationController<>(this, "meteor_channel", event -> PlayState.CONTINUE)
-                        .triggerableAnim("meteor_channel", METEOR_CHANNEL));
-        controllers.add(
-                new AnimationController<>(this, "meteor_charge", event -> PlayState.CONTINUE)
-                        .triggerableAnim("meteor_charge", METEOR_CHARGE));
-        controllers.add(
-                new AnimationController<>(this, "beam", event -> PlayState.CONTINUE)
-                        .triggerableAnim("beam", BEAM));
-        controllers.add(
-                new AnimationController<>(this, "beam_large", event -> PlayState.CONTINUE)
-                        .triggerableAnim("beam_large", BEAM_LARGE));
-    }
-    public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
-
-    private PlayState predicate2(AnimationState<GeminiEntity> state) {
-
-        return state.setAndContinue(IDLE);
-
     }
     public class MinibossLookControl extends LookControl {
         protected final MobEntity entity;
@@ -741,9 +709,5 @@ public class GeminiEntity extends PathAwareEntity implements GeoEntity, Monster 
         private static double getLookingHeightFor(Entity entity) {
             return entity instanceof LivingEntity ? entity.getEyeY() : (entity.getBoundingBox().minY + entity.getBoundingBox().maxY) / 2.0;
         }
-    }
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return instanceCache;
     }
 }

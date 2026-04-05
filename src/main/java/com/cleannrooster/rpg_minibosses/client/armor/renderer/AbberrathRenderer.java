@@ -1,20 +1,16 @@
 package com.cleannrooster.rpg_minibosses.client.armor.renderer;
 
-import com.cleannrooster.rpg_minibosses.client.armor.model.AbberrathModel;
-import com.cleannrooster.rpg_minibosses.item.AbberrathArmor;
-import mod.azure.azurelib.common.api.client.renderer.GeoArmorRenderer;
-import mod.azure.azurelib.common.internal.client.util.RenderUtils;
-import mod.azure.azurelib.common.internal.common.cache.object.GeoBone;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.entity.EquipmentSlot;
-import org.jetbrains.annotations.Nullable;
+import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import mod.azure.azurelib.common.render.armor.AzArmorRenderer;
+import mod.azure.azurelib.common.render.armor.AzArmorRendererConfig;
+import net.minecraft.util.Identifier;
 
-public class AbberrathRenderer extends GeoArmorRenderer<AbberrathArmor> {
+public class AbberrathRenderer extends AzArmorRenderer {
+
+    private static final Identifier GEO = Identifier.of(RPGMinibosses.MOD_ID, "geo/abberraths_hooves.json");
+    private static final Identifier TEXTURE = Identifier.of(RPGMinibosses.MOD_ID, "textures/armor/abberrath.png");
 
     public AbberrathRenderer() {
-        super(new AbberrathModel());
-
+        super(AzArmorRendererConfig.builder(GEO, TEXTURE).build());
     }
-
 }

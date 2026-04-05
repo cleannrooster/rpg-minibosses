@@ -1,10 +1,9 @@
 package com.cleannrooster.rpg_minibosses.client.armor.renderer;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import mod.azure.azurelib.rewrite.render.AzRendererConfig;
-import mod.azure.azurelib.rewrite.render.armor.AzArmorRenderer;
-import mod.azure.azurelib.rewrite.render.armor.AzArmorRendererConfig;
-import mod.azure.azurelib.rewrite.render.armor.AzArmorRendererPipeline;
+
+import mod.azure.azurelib.common.render.armor.AzArmorRenderer;
+import mod.azure.azurelib.common.render.armor.AzArmorRendererConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 

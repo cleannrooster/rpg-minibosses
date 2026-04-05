@@ -1,15 +1,8 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
-import mod.azure.azurelib.core.animatable.GeoAnimatable;
-import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
-import mod.azure.azurelib.core.animation.AnimatableManager;
-import mod.azure.azurelib.core.animation.AnimationController;
-import mod.azure.azurelib.core.animation.AnimationState;
-import mod.azure.azurelib.core.animation.RawAnimation;
-import mod.azure.azurelib.core.object.PlayState;
+import mod.azure.azurelib.common.animation.dispatch.command.AzCommand;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -41,10 +34,7 @@ import java.util.Optional;
 
 
 
-public class OrbEntity extends Entity implements GeoEntity, Ownable {
-
-    public static final RawAnimation SPINNING = RawAnimation.begin().thenLoop("idle");
-    public static final RawAnimation INTRO = RawAnimation.begin().thenLoop("intro");
+public class OrbEntity extends Entity implements Ownable {
 
     private Entity owner;
     @Nullable
@@ -87,6 +77,9 @@ public class OrbEntity extends Entity implements GeoEntity, Ownable {
     }
     @Override
     public void tick() {
+        if (!this.getWorld().isClient()) {
+            AzCommand.create("fly", "idle", AzPlayBehaviors.LOOP).sendForEntity(this);
+        }
         if(this.age % 40 == 0) {
             this.playSound(SoundEvents.ENTITY_BLAZE_AMBIENT,1,0.5F);
         }
@@ -124,24 +117,6 @@ public class OrbEntity extends Entity implements GeoEntity, Ownable {
         return false;
     }
 
-    public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
-        animationData.add(
-                new AnimationController<>(this, "intro", event -> PlayState.CONTINUE)
-                        .triggerableAnim("intro", INTRO));
-        animationData.add(new AnimationController<>(this, "fly",
-                0, this::predicate2)
-        );
-    }
-    private <E extends GeoAnimatable> PlayState predicate2(AnimationState<E> event) {
-
-            return event.setAndContinue(SPINNING);
-    }
-    private AnimatableInstanceCache factory = AzureLibUtil.createInstanceCache(this);
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.factory;
-    }
     public void setOwner(@Nullable Entity entity) {
         if (entity != null) {
             this.ownerUuid = entity.getId();

@@ -3,14 +3,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.google.gson.Gson;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.client.util.RenderUtils;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
-import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
-import mod.azure.azurelib.core.animation.AnimatableManager;
-import mod.azure.azurelib.core.animation.AnimationController;
-import mod.azure.azurelib.core.animation.RawAnimation;
-import mod.azure.azurelib.core.object.PlayState;
+
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -45,7 +38,7 @@ import java.util.Optional;
 
 import static net.spell_engine.internals.target.EntityRelations.actionAllowed;
 
-public class Explosive extends PersistentProjectileEntity implements GeoEntity {
+public class Explosive extends PersistentProjectileEntity  {
 
     private boolean shotprojectile;
 
@@ -118,7 +111,6 @@ public class Explosive extends PersistentProjectileEntity implements GeoEntity {
     protected void onEntityHit(EntityHitResult entityHitResult) {
 
     }
-    public static final RawAnimation DROP =  RawAnimation.begin().thenPlayAndHold("animation.model.new");
 
 
     public static Vec3d launchPoint(Entity caster, float forward) {
@@ -244,23 +236,5 @@ public class Explosive extends PersistentProjectileEntity implements GeoEntity {
 
         }
                     return false;
-    }
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(
-                new AnimationController<>(this, "drop", event -> PlayState.CONTINUE)
-                        .triggerableAnim("drop", DROP));
-
-    }
-    private AnimatableInstanceCache factory = AzureLibUtil.createInstanceCache(this);
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return factory;
-    }
-
-    @Override
-    public double getTick(Object object) {
-        return RenderUtils.getCurrentTick();
     }
 }

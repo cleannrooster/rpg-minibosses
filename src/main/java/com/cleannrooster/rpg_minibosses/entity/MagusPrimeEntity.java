@@ -2,17 +2,9 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.client.entity.renderer.MagusPrimeAnimationProvider;
 import com.google.common.base.Predicates;
 import me.shedaniel.math.Color;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
-import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
-import mod.azure.azurelib.core.animation.AnimatableManager;
-import mod.azure.azurelib.core.animation.AnimationController;
-import mod.azure.azurelib.core.animation.AnimationState;
-import mod.azure.azurelib.core.animation.RawAnimation;
-import mod.azure.azurelib.core.object.PlayState;
-import mod.azure.azurelib.sblforked.api.core.behaviour.custom.look.LookAtAttackTarget;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -92,7 +84,7 @@ import static java.lang.Math.max;
 import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
 import static net.spell_power.api.SpellSchools.*;
 
-public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
+public class MagusPrimeEntity extends PathAwareEntity {
     private int arctic;
 
     public MagusPrimeEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
@@ -111,22 +103,6 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
     public static final TrackedData<Boolean> CASTINGBOOL;
 
-    public static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.magus.idle");
-    public static final RawAnimation IDLE_M = RawAnimation.begin().thenLoop("animation.magus.walk_1");
-
-    public static final RawAnimation IDLE2 = RawAnimation.begin().thenPlay("animation.magus.idle2");
-
-    public static final RawAnimation GLOVE = RawAnimation.begin().thenPlay("animation.magus.glovepull");
-    public static final RawAnimation DASH = RawAnimation.begin().thenPlay("animation.magus.dashforward");
-    public static final RawAnimation CAST_QUICK = RawAnimation.begin().thenPlay("animation.magus.cast.quick");
-
-    public static final RawAnimation CASTING = RawAnimation.begin().thenPlay("animation.magus.casting");
-    public static final RawAnimation CAST_QUICK_M = RawAnimation.begin().thenPlay("animation.magus.cast.quick2");
-
-    public static final RawAnimation CASTING_M = RawAnimation.begin().thenPlay("animation.magus.casting2");
-    public static final RawAnimation INTRO = RawAnimation.begin().thenPlay("animation.magus.intro");
-
-    public AnimatableInstanceCache instanceCache = AzureLibUtil.createInstanceCache(this);
     public void playBoom(){
         this.playSound(RPGMinibosses.ANTICIPATION_SOUND);
     }
@@ -136,61 +112,6 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
     }
     public void tickIndicator(){
         this.getDataTracker().set(INDICATOR,this.getDataTracker().get(INDICATOR)+1);
-    }
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
-        animationData.add(new AnimationController<MagusPrimeEntity>(this,"walk",
-                0,this::predicate2)
-        );
-
-        animationData.add(
-                new AnimationController<>(this, "idle2", event -> PlayState.CONTINUE)
-                        .triggerableAnim("idle2", IDLE2));
-        animationData.add(
-                new AnimationController<>(this, "glove", event -> PlayState.CONTINUE)
-                        .triggerableAnim("glove", GLOVE));
-        animationData.add(
-                new AnimationController<>(this, "dash", event -> PlayState.CONTINUE)
-                        .triggerableAnim("dash", DASH));
-        animationData.add(
-                new AnimationController<>(this, "castquickm", event -> PlayState.CONTINUE)
-                        .triggerableAnim("castquickm", CAST_QUICK));
-        animationData.add(
-                new AnimationController<>(this, "castquick", event -> PlayState.CONTINUE)
-                        .triggerableAnim("castquick", CAST_QUICK_M));
-        animationData.add(
-                new AnimationController<>(this, "casting", event -> PlayState.CONTINUE)
-                        .triggerableAnim("casting", CASTING));
-        animationData.add(
-                new AnimationController<>(this, "castingm", event -> PlayState.CONTINUE)
-                        .triggerableAnim("castingm", CASTING_M));
-        animationData.add(
-                new AnimationController<>(this, "intro", event -> PlayState.CONTINUE)
-                        .triggerableAnim("intro", INTRO));
-    }
-
-    private PlayState predicate2(AnimationState<MagusPrimeEntity> state) {
-        state.setControllerSpeed((float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
-
-        if(state.isMoving()){
-            return state.setAndContinue(IDLE_M);
-        }
-        return state.setAndContinue(IDLE);
-
-    }
-    private PlayState predicate3(AnimationState<MagusPrimeEntity> state) {
-        if(state.isMoving()){
-            state.setAndContinue(CASTING_M);
-        }
-        return state.setAndContinue(CASTING);
-
-    }
-    private PlayState predicate4(AnimationState<MagusPrimeEntity> state) {
-        if(state.isMoving()){
-            state.setAndContinue(CAST_QUICK_M);
-        }
-        return state.setAndContinue(CAST_QUICK);
-
     }
     @Override
     public int getSafeFallDistance() {
@@ -318,6 +239,13 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
     public int thornstimer = 0;
     @Override
     public void tick() {
+        if (!this.getWorld().isClient()) {
+            if (this.getVelocity().horizontalLengthSquared() > 0.0001) {
+                MagusPrimeAnimationProvider.WALK_COMMAND.sendForEntity(this);
+            } else {
+                MagusPrimeAnimationProvider.IDLE_COMMAND.sendForEntity(this);
+            }
+        }
         if(this.age % 10 == 0 && !this.getWorld().isClient()){
 
             if(this.hasStatusEffect(Effects.ARCTICARMOR.registryEntry)){
@@ -346,7 +274,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
         if(this.firstUpdate) {
             if (!this.getWorld().isClient()) {
-                (this).triggerAnim("intro", "intro");
+                MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
                 ((WorldScheduler) this.getWorld()).schedule(30, () -> {
                             this.performing = false;
                             this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry,-1,0,false,false));
@@ -437,16 +365,6 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
             this.removeStatusEffect(this.getIntroEffect());
             playReleaseParticlesAndSound();
         }
-    }
-
-    @Override
-    public double getTick(Object entity) {
-        if(entity instanceof LivingEntity living){
-            if(!notPetrified()){
-                return 0;
-            }
-        }
-        return GeoEntity.super.getTick(entity);
     }
 
     public void playReleaseParticlesAndSound(){
@@ -852,7 +770,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if(this.getTarget() != null) {
 
-                    (this).triggerAnim("casting", "casting");
+                    MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
@@ -896,11 +814,10 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if(this.getTarget() != null) {
                     if(this.moveControl.isMoving()){
-                        (this).triggerAnim("castingm","castingm");
-
+                        MagusPrimeAnimationProvider.CASTINGM.sendForEntity(this);
                     }
                     else {
-                        (this).triggerAnim("casting", "casting");
+                        MagusPrimeAnimationProvider.CASTING.sendForEntity(this);
                     }
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
@@ -925,11 +842,10 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
         }
         if(!this.getWorld().isClient() && quickcast_timer > 80 && !this.performing && this.getTarget() != null ) {
             if(this.moveControl.isMoving()){
-                (this).triggerAnim("castquickm","castquickm");
-
+                MagusPrimeAnimationProvider.CASTQUICKM.sendForEntity(this);
             }
             else {
-                (this).triggerAnim("castquick", "castquick");
+                MagusPrimeAnimationProvider.CASTQUICK.sendForEntity(this);
             }
             this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_SUMMON);
 
@@ -951,7 +867,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
 
         if(!this.getWorld().isClient() && jumptimer > 200 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
-            (this).triggerAnim("dash","dash");
+            MagusPrimeAnimationProvider.DASH.sendForEntity(this);
 
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
 
@@ -970,7 +886,7 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
         }
         if(!this.getWorld().isClient() && dash_attack_timer > 240 && !this.performing && this.getTarget() != null &&  this.distanceTo(this.getTarget()) > 4) {
-            (this).triggerAnim("dash","dash");
+            MagusPrimeAnimationProvider.DASH.sendForEntity(this);
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
 
             Vec3d vec31 = new Vec3d(this.getTarget().getX() - this.getX(), 0, this.getTarget().getZ() - this.getZ());
@@ -1107,10 +1023,5 @@ public class MagusPrimeEntity extends PathAwareEntity implements GeoEntity{
 
 
 
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return instanceCache;
-    }
 
 }

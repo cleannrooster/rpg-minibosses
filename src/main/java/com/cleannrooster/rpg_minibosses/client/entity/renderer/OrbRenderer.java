@@ -1,42 +1,39 @@
 package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
-import com.cleannrooster.rpg_minibosses.client.entity.model.OrbModel;
+import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.OrbEntity;
-import mod.azure.azurelib.common.api.client.renderer.GeoEntityRenderer;
-import mod.azure.azurelib.common.internal.common.cache.object.BakedGeoModel;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.VertexConsumer;
+import mod.azure.azurelib.common.render.entity.AzEntityRenderer;
+import mod.azure.azurelib.common.render.entity.AzEntityRendererConfig;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 
-public class OrbRenderer<T extends OrbEntity> extends GeoEntityRenderer<OrbEntity> {
+public class OrbRenderer extends AzEntityRenderer<OrbEntity> {
+
+    private static final Identifier TEXTURE = Identifier.of(RPGMinibosses.MOD_ID, "textures/item/orb_black.png");
+    private static final Identifier GEO = Identifier.of(RPGMinibosses.MOD_ID, "geo/orb.geo.json");
 
     public OrbRenderer(EntityRendererFactory.Context context) {
-        super(context, new OrbModel<>());
-
+        super(
+            AzEntityRendererConfig.<OrbEntity>builder(GEO, TEXTURE)
+                .setAnimatorProvider(OrbAnimationProvider::new)
+                .build(),
+            context
+        );
     }
 
     @Override
-    public void preRender(MatrixStack poseStack, OrbEntity animatable, BakedGeoModel model, VertexConsumerProvider bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
-        this.scaleHeight = 4;
-        this.scaleWidth = 4;
-        if(animatable.age < 40 ){
-
-            this.scaleHeight = (float) (4*(0.025*(animatable.age+partialTick)));
-            this.scaleWidth = (float) (4*(0.025*(animatable.age+partialTick)));
-
+    public void render(OrbEntity entity, float entityYaw, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
+        float scale = 4.0f;
+        if (entity.age < 40) {
+            scale = (float) (4.0 * (0.025 * (entity.age + partialTick)));
+        } else if (entity.age > 200) {
+            scale = (float) (4.0 - 4.0 * (0.025 * (entity.age + partialTick - 200)));
         }
-        if(animatable.age > 200 ){
-
-           this.scaleHeight = (float) (4-4*(0.025*(animatable.age+partialTick-200)));
-            this.scaleWidth = (float) (4-4*(0.025*(animatable.age+partialTick-200)));
-
-        }
-        super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
+        poseStack.push();
+        poseStack.scale(scale, scale, scale);
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        poseStack.pop();
     }
-
-
-
 }

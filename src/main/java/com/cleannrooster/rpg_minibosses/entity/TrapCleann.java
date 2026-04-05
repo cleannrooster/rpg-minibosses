@@ -2,14 +2,8 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 
 import com.google.gson.Gson;
-import mod.azure.azurelib.common.api.common.animatable.GeoEntity;
-import mod.azure.azurelib.common.internal.client.util.RenderUtils;
-import mod.azure.azurelib.common.internal.common.util.AzureLibUtil;
-import mod.azure.azurelib.core.animatable.instance.AnimatableInstanceCache;
-import mod.azure.azurelib.core.animation.AnimatableManager;
-import mod.azure.azurelib.core.animation.AnimationController;
-import mod.azure.azurelib.core.animation.RawAnimation;
-import mod.azure.azurelib.core.object.PlayState;
+import mod.azure.azurelib.common.animation.dispatch.command.AzCommand;
+import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -34,7 +28,7 @@ import java.util.ArrayList;
 
 import static net.spell_engine.internals.target.EntityRelations.actionAllowed;
 
-public class TrapCleann extends Explosive implements GeoEntity {
+public class TrapCleann extends Explosive {
 
     private boolean shotprojectile;
 
@@ -102,8 +96,6 @@ public class TrapCleann extends Explosive implements GeoEntity {
     protected void onEntityHit(EntityHitResult entityHitResult) {
 
     }
-    public static final RawAnimation DROP =  RawAnimation.begin().thenPlayAndHold("animation.model.new");
-
     public static Vec3d launchPoint(Entity caster, float forward) {
         Vec3d look = caster.getRotationVector().multiply((double)(forward));
         return caster.getPos().add(0.0, 0.1, 0.0).add(look);
@@ -127,9 +119,8 @@ public class TrapCleann extends Explosive implements GeoEntity {
 
     @Override
     public void tick() {
-        if(firstUpdate) {
-            this.triggerAnim("drop", "drop");
-
+        if (firstUpdate && !this.getWorld().isClient()) {
+            AzCommand.create("drop", "animation.model.new", AzPlayBehaviors.HOLD_ON_LAST_FRAME).sendForEntity(this);
         }
         if(this.age > 40 && !this.getWorld().isClient()){
             if(this.age > 40 && !this.getWorld().isClient()){
@@ -150,23 +141,5 @@ public class TrapCleann extends Explosive implements GeoEntity {
             this.discard();
         }
             super.tick();
-    }
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(
-                new AnimationController<>(this, "drop", event -> PlayState.CONTINUE)
-                        .triggerableAnim("drop", DROP));
-
-    }
-    private AnimatableInstanceCache factory = AzureLibUtil.createInstanceCache(this);
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return factory;
-    }
-
-    @Override
-    public double getTick(Object object) {
-        return RenderUtils.getCurrentTick();
     }
 }

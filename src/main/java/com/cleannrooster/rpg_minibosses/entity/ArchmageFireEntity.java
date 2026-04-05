@@ -3,8 +3,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
-import mod.azure.azurelib.core.animation.*;
-import mod.azure.azurelib.core.object.PlayState;
+
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.tag.FabricTagKey;
 import net.minecraft.command.argument.EntityAnchorArgumentType;

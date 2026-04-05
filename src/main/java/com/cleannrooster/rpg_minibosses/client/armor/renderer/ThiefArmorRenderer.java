@@ -1,14 +1,16 @@
 package com.cleannrooster.rpg_minibosses.client.armor.renderer;
 
+import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import mod.azure.azurelib.common.render.armor.AzArmorRenderer;
+import mod.azure.azurelib.common.render.armor.AzArmorRendererConfig;
+import net.minecraft.util.Identifier;
 
-import com.cleannrooster.rpg_minibosses.client.armor.model.ThiefModel;
-import com.cleannrooster.rpg_minibosses.item.ThiefArmor;
-import mod.azure.azurelib.common.api.client.renderer.GeoArmorRenderer;
+public class ThiefArmorRenderer extends AzArmorRenderer {
 
-public class ThiefArmorRenderer extends GeoArmorRenderer<ThiefArmor> {
+    private static final Identifier GEO = Identifier.of(RPGMinibosses.MOD_ID, "geo/thiefmodel.geo.json");
+    private static final Identifier TEXTURE = Identifier.of(RPGMinibosses.MOD_ID, "textures/armor/thieftexture.png");
 
     public ThiefArmorRenderer() {
-        super(new ThiefModel());
-
+        super(AzArmorRendererConfig.builder(GEO, TEXTURE).build());
     }
 }
