@@ -22,6 +22,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.EntityTypeTags;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
@@ -48,6 +49,12 @@ import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
+import net.spell_engine.item.ScrollItem;
+
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
@@ -57,10 +64,14 @@ import java.util.function.Predicate;
 public class GeminiEntity extends PathAwareEntity implements Monster {
 
     public SpellSchool school;
-
+    public boolean uber = false;
 
     private boolean spawned;
     private  ServerBossBar bossBar;
+    private int stormEntityId = -1;
+    private int driftTimer = 0;
+    private double driftOffsetX = 0;
+    private double driftOffsetZ = 0;
 
     @Override
     protected Box calculateBoundingBox() {
@@ -98,6 +109,13 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
 
         this.lookControl = new MinibossLookControl(this);
     }
+    protected GeminiEntity(EntityType<? extends PathAwareEntity> entityType, World world, SpellSchool school, boolean uber) {
+        this(entityType, world, school);
+        this.uber = uber;
+        if (uber) {
+            this.bossBar.setColor(BossBar.Color.PURPLE);
+        }
+    }
     public RegistryEntry<Spell> getBeamSpell(){
         return this.school == SpellSchools.FROST ?  SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "beam_cold")).get() : SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "beam")).get();
 
@@ -127,6 +145,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             nbt.putUuid("partner",this.partnerId);
         }
         nbt.putBoolean("spawnedPartner",this.spawned);
+        nbt.putBoolean("Uber", this.uber);
     }
 
     @Override
@@ -145,23 +164,36 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             this.bossBar.setName(this.getDisplayName());
         }
         this.spawned = nbt.getBoolean("spawnedPartner");
+        // Only overwrite uber from NBT when the key is actually present (i.e. loaded from disk).
+        // If absent (e.g. fresh /summon with no NBT), preserve the value set by the entity factory
+        // constructor so that gemini_alpha_uber / gemini_beta_uber always behave as uber.
+        if (nbt.contains("Uber")) {
+            this.uber = nbt.getBoolean("Uber");
+        }
+        this.dataTracker.set(IS_UBER_DATA, this.uber);
+        // Keep boss-bar colour in sync with the live uber flag
+        if (this.uber) {
+            this.bossBar.setColor(net.minecraft.entity.boss.BossBar.Color.PURPLE);
+        }
     }
     public void setCustomName(@Nullable Text name) {
         super.setCustomName(name);
         this.bossBar.setName(this.getDisplayName());
     }
     public static final TrackedData<Boolean> IS_CLONES ;
+    public static final TrackedData<Boolean> IS_UBER_DATA ;
 
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
 
         builder.add(IS_CLONES, false);
+        builder.add(IS_UBER_DATA, false);
     }
 
     static{
         IS_CLONES = DataTracker.registerData(GeminiEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-
+        IS_UBER_DATA = DataTracker.registerData(GeminiEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     }
     public int phaseTime = 16*20;
 
@@ -189,6 +221,9 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
     public int basicAttackTimer = 4*20;
     public int meteorTimer = 16*20;
     public int meteorCooldown = 16*20;
+
+    public int getClonesCooldown() { return uber ? 15 * 20 : clonesCooldown; }
+    public int getTeleportCooldown() { return uber ? 80 : teleportCooldown; }
 
     public boolean acting = false;
     public int failSafe;
@@ -256,20 +291,46 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
     public void tick() {
         if (!this.getWorld().isClient()) {
             AzCommand.create("idle", "animation.awakener.idle", AzPlayBehaviors.LOOP).sendForEntity(this);
+            // Sync uber tracked data
+            if (this.uber && !this.dataTracker.get(IS_UBER_DATA)) {
+                this.dataTracker.set(IS_UBER_DATA, true);
+            }
         }
-        if(this.getPartner() == null &&  this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA.entityType) &&  !this.getWorld().isClient() && !this.spawned){
-            if(this.getWorld() instanceof ServerWorld serverWorld){
-                serverWorld.iterateEntities().forEach(entity -> {
-                    if(entity.distanceTo(this) < 32 && entity.getType().equals(RPGMinibossesEntities.GEMINI_BETA.entityType)){
-                        if(((GeminiEntity)entity).getPartner() == null) {
-                            ((GeminiEntity) entity).setPartner(this);
-                            this.setPartner((GeminiEntity) entity);
-                            this.phaseTimer = 0;
-                            ((GeminiEntity) entity).phaseTimer = 0;
-                            ((GeminiEntity) entity).setPhase(this.phase == Phase.PRIMARY ? Phase.SECONDARY : Phase.PRIMARY);
-                        }
+        // Auto-pair: any unpaired Gemini (alpha or beta, normal or uber) searches for a compatible partner.
+        // Rules: uber pairs with uber, normal with normal; alpha pairs with beta.
+        if (this.getPartner() == null && !this.getWorld().isClient() && !this.spawned) {
+            if (this.getWorld() instanceof ServerWorld serverWorld) {
+                boolean thisIsAlpha = this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA.entityType)
+                        || this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType);
+                for (GeminiEntity other : serverWorld.getEntitiesByClass(GeminiEntity.class,
+                        this.getBoundingBox().expand(64),
+                        e -> e != this && e.getPartner() == null && !e.spawned)) {
+                    // Must be opposite role (alpha↔beta) and same tier (uber↔uber or normal↔normal)
+                    boolean otherIsAlpha = other.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA.entityType)
+                            || other.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType);
+                    if (thisIsAlpha == otherIsAlpha) continue; // both same role
+                    if (this.uber != other.uber) continue;     // mismatched tier
+
+                    // Establish the pair
+                    other.setPartner(this);
+                    this.setPartner(other);
+                    this.spawned = true;
+                    other.spawned = true;
+
+                    // Alpha drives the phase timer; beta mirrors it
+                    GeminiEntity alpha = thisIsAlpha ? this : other;
+                    GeminiEntity beta  = thisIsAlpha ? other : this;
+                    alpha.phaseTimer = 0;
+                    beta.phaseTimer  = 0;
+                    beta.setPhase(alpha.phase == Phase.PRIMARY ? Phase.SECONDARY : Phase.PRIMARY);
+
+                    // Spawn initial storm for uber variant
+                    if (this.uber) {
+                        GeminiEntity secondary = alpha.phase == Phase.SECONDARY ? alpha : beta;
+                        ((WorldScheduler) this.getWorld()).schedule(10, secondary::spawnStorm);
                     }
-                });
+                    break; // only pair with the first valid match
+                }
             }
         }
         if(this.getTarget() != null && !this.acting){
@@ -298,7 +359,13 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
         super.mobTick();
 
 
-        if(this.getWorld() instanceof ServerWorld serverWorld && this.getPartner() != null&& this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA.entityType) && phaseTimer > phaseTime){
+        if(this.getWorld() instanceof ServerWorld serverWorld && this.getPartner() != null && isAlphaType() && phaseTimer > phaseTime){
+            // Storm transition for uber variant — old storm fades via its own lifespan timer;
+            // immediately spawn a new storm under the djinn that is about to become SECONDARY.
+            if (this.uber) {
+                GeminiEntity newSecondary = this.phase == Phase.PRIMARY ? this : this.getPartner();
+                ((WorldScheduler) this.getWorld()).schedule(10, newSecondary::spawnStorm);
+            }
             this.setPhase(this.phase == Phase.PRIMARY ? Phase.SECONDARY : Phase.PRIMARY);
             this.getPartner().setPhase(this.phase == Phase.PRIMARY ? Phase.SECONDARY : Phase.PRIMARY);
             this.phaseTimer = 0;
@@ -317,7 +384,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 RegistryEntry<Spell> spell = this.getBeamSpell();
                 for (int i = 0; i < 8; i++) {
                     boolean bool = teleportRandomly();
-                    teleportTimer = (int) (this.teleportCooldown * (bool ? 1 : 0.5));
+                    teleportTimer = (int) (this.getTeleportCooldown() * (bool ? 1 : 0.5));
                     if (bool) break;
                 }
                 ((WorldScheduler) this.getWorld()).schedule(20, () -> {
@@ -353,7 +420,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                     this.getDataTracker().set(IS_CLONES, false);
 
                 });
-                clonesTimer = (int) (clonesCooldown + this.getRandom().nextGaussian() * 20);
+                clonesTimer = (int) (getClonesCooldown() + this.getRandom().nextGaussian() * 20);
                 failSafe = 0;
             }
             if (this.getTarget() != null && !acting && strongAttackTimer <= 0) {
@@ -417,19 +484,31 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             if (this.getTarget() != null && this.getTarget() != null && this.teleportTimer <= 0) {
                 for (int i = 0; i < 8; i++) {
                     boolean bool = teleportRandomly();
-                    teleportTimer = (int) (this.teleportCooldown * (bool ? 1 : 0.5));
+                    teleportTimer = (int) (this.getTeleportCooldown() * (bool ? 1 : 0.5));
                     if (bool) break;
                 }
             }
         }
         else{
             if(this.getTarget() != null && (this.distanceTo(this.getTarget()) > 32 || this.getY() - this.getTarget().getY() < 4)){
-                Vec3d pos = this.getTarget().getPos().add(0,8,0);
-                this.requestTeleport(pos.getX(),pos.getY(),pos.getZ() );
+                // Uber lateral drift: offset hover position periodically
+                if (this.uber) {
+                    driftTimer++;
+                    if (driftTimer >= 100) {
+                        driftOffsetX = (this.random.nextDouble() - 0.5) * 16;
+                        driftOffsetZ = (this.random.nextDouble() - 0.5) * 16;
+                        driftTimer = 0;
+                    }
+                    Vec3d pos = this.getTarget().getPos().add(driftOffsetX, 8, driftOffsetZ);
+                    this.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
+                } else {
+                    Vec3d pos = this.getTarget().getPos().add(0, 8, 0);
+                    this.requestTeleport(pos.getX(), pos.getY(), pos.getZ());
+                }
                 if(this.getWorld().getBlockState(BlockPos.ofFloored(this.getPos())).blocksMovement()){
                     if(this.teleportRandomly(this,12)){
-                        pos = this.getPos().add(0,8,0);
-                        this.requestTeleport(pos.getX(),pos.getY(),pos.getZ());
+                        Vec3d pos2 = this.getPos().add(0,8,0);
+                        this.requestTeleport(pos2.getX(),pos2.getY(),pos2.getZ());
                     }
 
                 }
@@ -507,7 +586,8 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 });
                 meteorTimer = (int) (meteorCooldown + this.getRandom().nextGaussian() * 20 );
             }
-            if (this.getTarget() != null && !acting && strongAttackTimer <= 0) {
+            // Aerial beam attacks — uber only (normal SECONDARY djinn uses meteors/clouds only)
+            if (this.uber && this.getTarget() != null && !acting && strongAttackTimer <= 0) {
                 acting = true;
                 RegistryEntry<Spell> spell = this.getBeamSpell();;
 
@@ -546,7 +626,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 strongAttackTimer = (int) (strongAttackCooldown + this.getRandom().nextGaussian() * 20);
             }
 
-            if (this.getTarget() != null && !acting && basicAttackTimer <= 0) {
+            if (this.uber && this.getTarget() != null && !acting && basicAttackTimer <= 0) {
                 acting = true;
                 AzCommand.create("beam", "animation.awakener.beam_1", AzPlayBehaviors.PLAY_ONCE).sendForEntity(this);
                 failSafe = 0;
@@ -604,6 +684,74 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
     public  GeminiEntity getPartner() {
         return  this.getWorld().isClient() ? null : partnerId == null ? null : (GeminiEntity)((ServerWorld)this.getWorld()).getEntity(partnerId);
     }
+    public boolean isAlphaType() {
+        return this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA.entityType)
+                || this.getType().equals(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType);
+    }
+
+    public void spawnStorm() {
+        if (!this.uber || this.getWorld().isClient()) return;
+
+        StormAnchorEntity storm = new StormAnchorEntity(RPGMinibossesEntities.STORM_ANCHOR, this.getWorld());
+        storm.setPosition(this.getX(), this.getY() - 8, this.getZ());
+        storm.setOwner(this);
+        storm.setLifespan(phaseTime * 2);
+        this.getWorld().spawnEntity(storm);
+        this.stormEntityId = storm.getId();
+    }
+
+    public void removeStorm() {
+        if (this.getWorld().isClient()) return;
+        // Discard all StormAnchorEntity owned by this djinn (multiple may be live)
+        this.getWorld().getEntitiesByClass(StormAnchorEntity.class,
+                this.getBoundingBox().expand(128),
+                s -> {
+                    Entity owner = s.getOwner();
+                    return owner != null && owner.getId() == this.getId();
+                }
+        ).forEach(Entity::discard);
+        this.stormEntityId = -1;
+    }
+
+    @Override
+    public void onDeath(net.minecraft.entity.damage.DamageSource damageSource) {
+        super.onDeath(damageSource);
+        if (!this.uber || !(this.getWorld() instanceof ServerWorld serverWorld)) return;
+
+        Item scrollItemType = Registries.ITEM.get(ScrollItem.ID);
+        if (scrollItemType == Items.AIR) return; // spell_engine not loaded
+
+        // ── 3 random spell scrolls ───────────────────────────────────────────
+        var allSpells = SpellRegistry.stream(serverWorld).toList();
+        var streamSpells = allSpells.stream().filter(spellReference -> spellReference.isIn(TagKey.of(SpellRegistry.KEY,Identifier.tryParse("spell_engine:treasure"))));
+        allSpells = streamSpells.toList();
+        if (!allSpells.isEmpty()) {
+            for (int i = 0; i < 3; i++) {
+                var entry = allSpells.get(this.random.nextInt(allSpells.size()));
+                ItemStack scroll = new ItemStack(scrollItemType);
+                ScrollItem.applySpell(scroll, entry, ScrollItem.resolveSpellPool(serverWorld, entry));
+                this.dropStack(scroll);
+            }
+        }
+
+        // ── 25 % chance for a summon_deatomization_storm scroll ──────────────
+        if (this.random.nextFloat() < 0.25F) {
+            SpellRegistry.from(serverWorld)
+                .getEntry(Identifier.of(RPGMinibosses.MOD_ID, "summon_deatomization_storm"))
+                .ifPresent(entry -> {
+                    ItemStack stormScroll = new ItemStack(scrollItemType);
+                    ScrollItem.applySpell(stormScroll, entry, ScrollItem.resolveSpellPool(serverWorld, entry));
+                    this.dropStack(stormScroll);
+                });
+        }
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        removeStorm();
+        super.remove(reason);
+    }
+
     public class MinibossLookControl extends LookControl {
         protected final MobEntity entity;
         protected float maxYawChange;

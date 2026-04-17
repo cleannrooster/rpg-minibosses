@@ -1,0 +1,69 @@
+{
+  "school": "spell_power:arcane",
+  "range": 6.0,
+  "tier": 3,
+  "learn": {},
+  "active": {
+    "scroll": {},
+    "cast": {
+      "duration": 0.0,
+      "animation": {"id":""}
+    }
+  },
+  "target": {
+    "type": "CASTER"
+  },
+  "deliver": {
+    "type": "CUSTOM",
+    "custom": {
+      "handler": "rpg-minibosses:summon_storm"
+    }
+  },
+  "impacts": [
+    {
+      "school": "spell_power:arcane",
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 0.8,
+          "knockback": 0
+        }
+      },
+      "particles": [
+        {
+          "particle_id": "spell_engine:magic_arcane_float",
+          "origin": "CENTER",
+          "shape": "SPHERE",
+          "count": 3.0,
+          "min_speed": 0.02,
+          "max_speed": 0.05,
+          "angle": 360.0,
+          "color_rgba": 4284940287,
+          "scale": 1.0
+        }
+      ],
+      "sound": {
+        "id": "spell_engine:generic_arcane_release"
+      }
+    },
+    {
+      "school": "spell_power:lightning",
+      "action": {
+        "type": "DAMAGE",
+        "damage": {
+          "spell_power_coefficient": 0.8,
+          "knockback": 0
+        }
+      },
+      "particles": [],
+      "sound": {
+        "id": ""
+      }
+    }
+  ],
+  "cost": {
+    "cooldown": {
+      "duration": 30.0
+    }
+  }
+}

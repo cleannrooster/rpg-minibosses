@@ -75,6 +75,7 @@ import net.minecraft.world.gen.structure.Structures;
 import net.spell_engine.api.config.ConfigFile;
 import net.spell_engine.api.render.CustomModels;
 import net.spell_engine.api.spell.Spell;
+import net.spell_engine.api.spell.event.SpellHandlers;
 import net.spell_engine.mixin.entity.PlayerEntityEvents;
 import net.tiny_config.ConfigManager;
 import org.jetbrains.annotations.Nullable;
@@ -94,6 +95,7 @@ public class RPGMinibosses implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 	public static Item LAVOSHORN;
 	public static Item GEMINI;
+	public static Item DEATOMIZED_FRAGMENT;
 
 	public static final Identifier EXPLOSION = Identifier.of("rpg-minibosses:explosion");
 	public static final Identifier ANTICIPATION = Identifier.of("rpg-minibosses:boom");
@@ -131,14 +133,34 @@ public class RPGMinibosses implements ModInitializer {
 		RPGMinibossesEntities.register();
 		villageConfig.refresh();
 		LAVOSHORN = new SummonHorn<MagusPrimeEntity>(new Item.Settings().maxCount(1).maxDamage(1),RPGMinibossesEntities.MAGuS_PRIME.entityType, InstrumentTags.GOAT_HORNS);
-		GEMINI = new SummonItem<>(new Item.Settings().maxCount(1).maxDamage(1),List.of(RPGMinibossesEntities.GEMINI_ALPHA.entityType,RPGMinibossesEntities.GEMINI_BETA.entityType), InstrumentTags.GOAT_HORNS);
+		GEMINI = new SummonItem<>(new Item.Settings().maxCount(1).maxDamage(1),List.of(RPGMinibossesEntities.GEMINI_ALPHA.entityType,RPGMinibossesEntities.GEMINI_BETA.entityType), InstrumentTags.GOAT_HORNS, "Gemini");
+		DEATOMIZED_FRAGMENT = new SummonItem<>(new Item.Settings().maxCount(1).maxDamage(1),List.of(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType,RPGMinibossesEntities.GEMINI_BETA_UBER.entityType), InstrumentTags.GOAT_HORNS, "Eye of the Storm");
+
+		// ── Custom spell delivery: summon_deatomization_storm ────────────────
+		// Spawns a StormAnchorEntity at the caster's feet that follows them for 30 s.
+		SpellHandlers.registerCustomDelivery(
+			Identifier.of(MOD_ID, "summon_storm"),
+			(world, spellRegistry, caster, targets, context, position) -> {
+				com.cleannrooster.rpg_minibosses.entity.StormAnchorEntity storm =
+					new com.cleannrooster.rpg_minibosses.entity.StormAnchorEntity(
+						RPGMinibossesEntities.STORM_ANCHOR, world);
+				storm.setPosition(caster.getX(), caster.getY(), caster.getZ());
+				storm.setOwnerEntity(caster);
+				storm.setPlayerCentered(true);
+				storm.setLifespan(30 * 20);
+				world.spawnEntity(storm);
+				return true;
+			}
+		);
 
 		Registry.register(Registries.ITEM,Identifier.of(MOD_ID,"lavos_horn"),LAVOSHORN);
 		Registry.register(Registries.ITEM,Identifier.of(MOD_ID,"gemini_fragment"),GEMINI);
+		Registry.register(Registries.ITEM,Identifier.of(MOD_ID,"deatomized_fragment"),DEATOMIZED_FRAGMENT);
 
 		ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> {
 			content.add(LAVOSHORN);
 			content.add(GEMINI);
+			content.add(DEATOMIZED_FRAGMENT);
 		});
         if (!FabricLoader.getInstance().isModLoaded("lithostitched")) {
             // Only inject the village if the Lithostitched is not present

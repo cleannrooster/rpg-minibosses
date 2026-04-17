@@ -51,6 +51,21 @@
         }
       ]
     }
+    ,{
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:deatomized_fragment",
+          "conditions": [
+            {
+              "condition": "minecraft:random_chance",
+              "chance": 0.25
+            }
+          ]
+        }
+      ]
+    }
   ],
   "random_sequence": "minecraft:entities/gemini_alpha"
 }

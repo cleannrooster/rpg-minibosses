@@ -108,6 +108,12 @@
 
   "item.rpg-minibosses.lavos_horn": "Lavos' Horn",
   "item.rpg-minibosses.gemini_fragment": "Gemini Fragment",
+  "item.rpg-minibosses.deatomized_fragment": "Deatomized Fragment",
+  "item.rpg-minibosses.gemini_alpha_uber_spawn_egg": "Eye of the Storm Alpha Spawn Egg",
+  "item.rpg-minibosses.gemini_beta_uber_spawn_egg": "Eye of the Storm Beta Spawn Egg",
+  "entity.rpg-minibosses.gemini_alpha_uber": "Eye of the Storm (Alpha)",
+  "entity.rpg-minibosses.gemini_beta_uber": "Eye of the Storm (Beta)",
+  "entity.rpg-minibosses.storm_anchor": "Deatomization Storm",
 
   "item.rpg-minibosses.poster_merc": "Wanted Poster (Mercenary)",
   "item.rpg-minibosses.poster_jugg": "Wanted Poster (Juggernaut)",
@@ -135,6 +141,9 @@
   "spell.rpg-minibosses.foxshade.description": "This set gives a large amount of evasion, but - if you  fail to evade - you cannot evade for 4 seconds.",
   "spell.rpg-minibosses.despot.name": "Heavy-Handed",
   "spell.rpg-minibosses.despot.description": "This set grants a large amount of attack damage - lose half your damage for 4 seconds after a successful melee hit.",
+  "spell.rpg-minibosses.summon_deatomization_storm.name": "Deatomization Storm",
+  "spell.rpg-minibosses.summon_deatomization_storm.description": "Summon a Deatomization Storm at your location, dealing {damage_1} arcane damage and {damage_2} lightning damage per half second.",
+  "item.rpg-minibosses.spell_scroll/deatomization": "Scroll of Annihilation",
 
   "spell.rpg-minibosses.abberrath_nova.name": "Abberath's Fury",
   "spell.rpg-minibosses.abberrath_nova.description": "Release a Fire Nova every time you sprint 4 meters, dealing {damage} fire damage.",

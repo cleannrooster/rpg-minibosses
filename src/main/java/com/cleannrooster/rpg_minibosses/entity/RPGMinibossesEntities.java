@@ -341,9 +341,39 @@ public class RPGMinibossesEntities {
             0x09356B,
             0xebcb6a,false);
 
+    public static final Entry<GeminiEntity> GEMINI_ALPHA_UBER = new Entry<GeminiEntity>("gemini_alpha_uber",
+            ((type, world) -> new GeminiEntity(type,world,SpellSchools.FIRE, true)),HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
+            .add(EntityAttributes.GENERIC_ARMOR,config.alphaUberArmor)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.alphaUberHealth)
+            .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
+            .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.alphaUberAttackDamage)
+            .add(SpellSchools.ARCANE.attributeEntry,config.alphaUberArcanePower)
+            .add(SpellSchools.FIRE.attributeEntry,config.alphaUberFirePower)
+            .add(SpellSchools.LIGHTNING.attributeEntry,config.alphaUberLightningPower),
+            0x09356B,
+            0xebcb6a,false);
+
+    public static final Entry<GeminiEntity> GEMINI_BETA_UBER = new Entry<GeminiEntity>("gemini_beta_uber",
+            ((type, world) -> new GeminiEntity(type,world,SpellSchools.FROST, true)),HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
+            .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
+            .add(EntityAttributes.GENERIC_ARMOR,config.betaUberArmor)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.betaUberHealth)
+            .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
+            .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaUberAttackDamage)
+            .add(SpellSchools.FROST.attributeEntry,config.betaUberFrostPower)
+            .add(SpellSchools.LIGHTNING.attributeEntry,config.betaUberLightningPower),
+            0x09356B,
+            0xebcb6a,false);
+
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.MOD_ID,"generic"));
 
     public static EntityType<TrapCleann> TRAP;
+    public static EntityType<StormAnchorEntity> STORM_ANCHOR;
 
 
 
@@ -406,6 +436,15 @@ public class RPGMinibossesEntities {
                         .dimensions(EntityDimensions.fixed(1F, 1F)) // dimensions in Minecraft units of the render
                         .trackRangeBlocks(128)
                         .trackedUpdateRate(1)
+                        .build()
+        );
+        STORM_ANCHOR = Registry.register(
+                ENTITY_TYPE,
+                Identifier.of(RPGMinibosses.MOD_ID, "storm_anchor"),
+                FabricEntityTypeBuilder.<StormAnchorEntity>create(SpawnGroup.MISC, StormAnchorEntity::new)
+                        .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
+                        .trackRangeBlocks(128)
+                        .trackedUpdateRate(5)
                         .build()
         );
     }

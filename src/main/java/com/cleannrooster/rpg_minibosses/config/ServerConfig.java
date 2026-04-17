@@ -229,6 +229,35 @@ public class ServerConfig  implements ConfigData {
 
 
     public float betaArmor = 12;
+
+    @Comment("Uber Alpha Health")
+    public float alphaUberHealth = 1200;
+    @Comment("Uber Alpha Armor")
+    public float alphaUberArmor = 16;
+    @Comment("Uber Alpha Fire Power")
+    public float alphaUberFirePower = 12F;
+    @Comment("Uber Alpha Arcane Power")
+    public float alphaUberArcanePower = 12F;
+    @Comment("Uber Alpha Lightning Power")
+    public float alphaUberLightningPower = 12F;
+    @Comment("Uber Alpha Attack Damage")
+    public float alphaUberAttackDamage = 12F;
+
+    @Comment("Uber Beta Health")
+    public float betaUberHealth = 1200;
+    @Comment("Uber Beta Armor")
+    public float betaUberArmor = 16;
+    @Comment("Uber Beta Frost Power")
+    public float betaUberFrostPower = 12F;
+    @Comment("Uber Beta Lightning Power")
+    public float betaUberLightningPower = 12F;
+    @Comment("Uber Beta Attack Damage")
+    public float betaUberAttackDamage = 12F;
+
+    @Comment("Deatomization Storm Base Radius")
+    public float stormBaseRadius = 5.0F;
+    @Comment("Deatomization Storm Pulse Amplitude")
+    public float stormPulseAmplitude = 0.8F;
     @Comment("Distance from existing Minibosses within which new ones cannot spawn (Deprecated)")
     public  float areaCannotSpawn = 30;
     @Comment("Chance for Lesser Minibosses to be Petrified upon Spawn")

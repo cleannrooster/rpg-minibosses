@@ -7,12 +7,10 @@
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:tabula_rasa"
-
         },
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:abberraths_hooves"
-
         },
         {
           "type": "minecraft:item",
@@ -26,12 +24,10 @@
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:despot_legs"
-
         },
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:kintsugi_legs"
-
         },
         {
           "type": "minecraft:item",
@@ -51,21 +47,6 @@
         }
       ]
     }
-    ,{
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:deatomized_fragment",
-          "conditions": [
-            {
-              "condition": "minecraft:random_chance",
-              "chance": 0.25
-            }
-          ]
-        }
-      ]
-    }
   ],
-  "random_sequence": "minecraft:entities/gemini_beta"
+  "random_sequence": "minecraft:entities/gemini_beta_uber"
 }

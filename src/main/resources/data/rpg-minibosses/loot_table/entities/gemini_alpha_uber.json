@@ -7,12 +7,10 @@
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:tabula_rasa"
-
         },
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:abberraths_hooves"
-
         },
         {
           "type": "minecraft:item",
@@ -25,47 +23,30 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "rpg-minibosses:despot_legs"
-
+          "name": "rpg-minibosses:despot_chest"
         },
         {
           "type": "minecraft:item",
-          "name": "rpg-minibosses:kintsugi_legs"
-
+          "name": "rpg-minibosses:kintsugi_chest"
         },
         {
           "type": "minecraft:item",
-          "name": "rpg-minibosses:foxshade_legs"
+          "name": "rpg-minibosses:foxshade_chest"
         },
         {
           "type": "minecraft:item",
-          "name": "rpg-minibosses:sanguine_arcane_legs"
+          "name": "rpg-minibosses:sanguine_arcane_chest"
         },
         {
           "type": "minecraft:item",
-          "name": "rpg-minibosses:sanguine_frost_legs"
+          "name": "rpg-minibosses:sanguine_frost_chest"
         },
         {
           "type": "minecraft:item",
-          "name": "rpg-minibosses:sanguine_fire_legs"
-        }
-      ]
-    }
-    ,{
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:deatomized_fragment",
-          "conditions": [
-            {
-              "condition": "minecraft:random_chance",
-              "chance": 0.25
-            }
-          ]
+          "name": "rpg-minibosses:sanguine_fire_chest"
         }
       ]
     }
   ],
-  "random_sequence": "minecraft:entities/gemini_beta"
+  "random_sequence": "minecraft:entities/gemini_alpha_uber"
 }

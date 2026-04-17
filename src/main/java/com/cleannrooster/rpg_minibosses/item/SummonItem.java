@@ -30,15 +30,17 @@ import java.util.List;
 import java.util.Optional;
 
 public class SummonItem<T extends LivingEntity> extends Item {
+    private  String encounterName;
     private  List<EntityType<T>> entityTypelist;
     public SummonItem(Settings settings, TagKey<Instrument> instrumentTag) {
         super(settings);
     }
 
 
-    public SummonItem(Settings settings, List<EntityType<T>> typelist, TagKey<Instrument> instrumentTag) {
+    public SummonItem(Settings settings, List<EntityType<T>> typelist, TagKey<Instrument> instrumentTag, String encounterName) {
         super(settings);
         this.entityTypelist = typelist;
+        this.encounterName = encounterName;
     }
 
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
@@ -146,7 +148,7 @@ public class SummonItem<T extends LivingEntity> extends Item {
         return null;
     }
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
-        tooltip.add(Text.translatable("Use to summon Gemini, if available."));
+        tooltip.add(Text.translatable("Use to summon " +this.encounterName+ " if available."));
 
         super.appendTooltip(stack, context, tooltip, type);
     }
