@@ -134,7 +134,7 @@ public class RPGMinibossesEntities {
         }
     }
 
-    public static double normalMovementSpeed = 0.23000000417232513;
+    public static double normalMovementSpeed = 0.22;
     public static final Entry<JuggernautEntity> JUGGERNAUT_ENTITY_ENTRY = new Entry<JuggernautEntity>("juggernaut",
             (entityType,world) -> new JuggernautEntity(entityType,world,false,config.juggernautGreater), HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
@@ -374,6 +374,7 @@ public class RPGMinibossesEntities {
 
     public static EntityType<TrapCleann> TRAP;
     public static EntityType<StormAnchorEntity> STORM_ANCHOR;
+    public static EntityType<MagusDominionOrbEntity> MAGUS_DOMINION_ORB;
 
 
 
@@ -444,6 +445,15 @@ public class RPGMinibossesEntities {
                 FabricEntityTypeBuilder.<StormAnchorEntity>create(SpawnGroup.MISC, StormAnchorEntity::new)
                         .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
                         .trackRangeBlocks(128)
+                        .trackedUpdateRate(5)
+                        .build()
+        );
+        MAGUS_DOMINION_ORB = Registry.register(
+                ENTITY_TYPE,
+                Identifier.of(RPGMinibosses.MOD_ID, "magus_dominion_orb"),
+                FabricEntityTypeBuilder.<MagusDominionOrbEntity>create(SpawnGroup.MISC, MagusDominionOrbEntity::new)
+                        .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
+                        .trackRangeBlocks(64)
                         .trackedUpdateRate(5)
                         .build()
         );

@@ -2,6 +2,8 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.TemplarBrain;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
@@ -66,15 +68,11 @@ import static net.spell_engine.internals.SpellHelper.fallProjectile;
 import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
 
 public class TemplarEntity extends MinibossEntity{
-    private boolean is_staff = false;
-    private boolean is_twirl = false;
     List<Item> bonusList = List.of();
-    private int parryTimer = 0;
-    private boolean dashing = false;
-
 
     protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
+
         super.bonusList = Registries.ITEM.stream().filter(item -> {
             return
                     (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("rpg_series", "loot_tier/tier_3_weapons")))
@@ -87,6 +85,7 @@ public class TemplarEntity extends MinibossEntity{
     }
     protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
+
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
                 return
@@ -117,6 +116,7 @@ public class TemplarEntity extends MinibossEntity{
     }
     protected TemplarEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser,float spawnCoeff) {
         super(entityType, world,spawnCoeff);
+
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
                 return
@@ -160,8 +160,9 @@ public class TemplarEntity extends MinibossEntity{
 
     @Override
     protected void initCustomGoals() {
+        this.brain = new TemplarBrain(this);
 
-        this.goalSelector.add(2, new MeleeAttackGoal(this,1.0F,true));
+        this.goalSelector.add(2, new com.cleannrooster.rpg_minibosses.entity.brain.MobBrainGoal(this, brain));
         super.initCustomGoals();
     }
     @Override
@@ -306,106 +307,13 @@ public class TemplarEntity extends MinibossEntity{
     }
     @Override
     protected void mobTick() {
-
-
-
-
-        if (this.getTarget() != null && this.canSee(this.getTarget()) ) {
-            this.getLookControl().lookAt(this.getTarget(),360,360);
-            if(!dashing && this.dashtimer >= 80 && this.getTarget().distanceTo(this) >5){
-                this.dashtimer = 0;
-                this.resetIndicator();
-                this.performing = true;
-                this.dashing = true;
-            }
-        }
-        if(!this.dashing && !this.performing) {
-            if ((this.getTarget() != null && (this.getTarget().distanceTo(this) > 5)) && this.canSee(this.getTarget())) {
-
-                dashtimer = Math.min(dashtimer + 1, 80);
-            } else {
-                dashtimer = Math.max(dashtimer - 1, 1);
-            }
-        }
-        if( !this.is_staff && this.getTarget() != null && this.canSee(this.getTarget())){
-            if(this.getTarget().distanceTo(this) <5){
-                this.dashing = false;
-                this.performing = false;
-
-                this.dashtimer = 0;
-            }
-        }
-        if(!this.getWorld().isClient()) {
-            stafftimer++;
-            twirltimer++;
-            defensetimer++;
-            dash_attack_timer++;
-            cooldown++;
-            this.parryTimer--;
-        }
-
-
-        if(!this.getWorld().isClient() && stafftimer > 300 && !this.performing && this.getTarget() != null  && this.canSee(this.getTarget())) {
-            this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
-
-            dispatcher.setStaff();
-            ((WorldScheduler) this.getWorld()).schedule(160, () -> {
-                this.performing = false;
-                this.is_staff = false;
-
-                    }
-            );
-            var spell = SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "divine_fall"));
-            this.getNavigation().stop();
-            for(int i = 0 ; i < 5; i++) {
-                ((WorldScheduler) this.getWorld()).schedule(20*(i+1), () -> {
-                            if (this.getTarget() != null && this.canSee(this.getTarget()) ) {
-
-                                SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0);
-                                SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
-                                Vec3d pos = this.getTarget().getBoundingBox().getCenter();
-                                ((WorldScheduler) this.getWorld()).schedule(25, () -> {
-                                            if (this.getTarget() != null && this.canSee(this.getTarget())) {
-                                                fallProjectile(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell.get(), context);
-
-
-                                            }
-                                        }
-
-                                );
-                            }
-                }
-                );
-
-            }
-            this.stafftimer = -(int)(300*this.getCooldownCoeff());
-            this.is_staff = true;
-            this.performing = true;
-        }
-
-
-        if(this.is_twirl && this.getTarget() != null && !this.getWorld().isClient() && this.canSee(this.getTarget())){
-            if(this.age % 4 == 0) {
-                ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-            }
-        }
-        if(this.is_staff){
-            this.getNavigation().stop();
-
-        }
-
         super.mobTick();
-
     }
 
     @Override
     public float getMovementSpeed() {
-        return (this.dashing && this.getDataTracker().get(INDICATOR) >= 40 ? 2.0F : 1.0F ) * super.getMovementSpeed();
+        return super.getMovementSpeed();
     }
-
-    public int defensetime = 80;
-
-    public int defensetimer;
 
     public static void sendBatches(Vec3d target, Entity trackedEntity, ParticleBatch[] batches, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
         if (batches != null && batches.length != 0) {
@@ -447,7 +355,6 @@ public class TemplarEntity extends MinibossEntity{
         BlockHitResult hit = raycastObstacle(entity, start, end);
         return hit.getType() != HitResult.Type.BLOCK;
     }
-    public int cooldown;
  /*   private PlayState predicateTemplar(AnimationState<MinibossEntity> state) {
 
         if(this.isAttacking() && !this.getDataTracker().get(DOWN)){
@@ -474,11 +381,6 @@ public class TemplarEntity extends MinibossEntity{
     public static final RawAnimation AGGRO_TEMPLAR = RawAnimation.begin().thenPlay("animation.mob.walk_templar");
 */
 
-    public int dashtimer;
-    public int dash_attack_timer;
-
-    public int twirltimer = 100;
-    public int stafftimer = 160;
     public boolean   swingBool;
     protected Box getAttackBox() {
         Entity entity = this.getVehicle();
@@ -495,20 +397,18 @@ public class TemplarEntity extends MinibossEntity{
     }
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if(!performing) {
-
-            if(this.parryTimer <= 0 && source.getAttacker() != null && source.getAttacker() instanceof LivingEntity && source.isDirect() && source.getAttacker().distanceTo(this) < 2F+ 3.5F){
-                this.parryTimer =  (int)(160*this.getCooldownCoeff());
-
-                this.tryAttack(source.getAttacker());
-                amount *= 0.5F;
-                SoundHelper.playSoundEvent(this.getWorld(),this, SoundEvents.BLOCK_ANVIL_PLACE);
-            }
-            return super.damage(source, amount);
-
+        if (!performing
+                && source.getAttacker() != null
+                && source.getAttacker() instanceof LivingEntity
+                && source.isDirect()
+                && source.getAttacker().distanceTo(this) < 5.5F
+                && brain instanceof com.cleannrooster.rpg_minibosses.entity.brain.impl.TemplarBrain templarbrain
+                && templarbrain.tryParry()) {
+            this.tryAttack(source.getAttacker());
+            amount *= 0.5F;
+            SoundHelper.playSoundEvent(this.getWorld(), this, SoundEvents.BLOCK_ANVIL_PLACE);
         }
         return super.damage(source, amount);
-
     }
 
     public boolean tryAttack(Entity target) {

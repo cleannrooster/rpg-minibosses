@@ -3,6 +3,8 @@ package com.cleannrooster.rpg_minibosses.entity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.MercenaryBrain;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.NoPenaltyTargeting;
@@ -92,6 +94,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
                             || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/rapid_crossbow"))));}).toList();
 
         }
+
     }
     protected ArtilleristEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser,float spawnCoeff) {
         super(entityType, world,spawnCoeff);
@@ -120,6 +123,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
                             || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/rapid_crossbow"))));}).toList();
 
         }
+
     }
    /* public static final RawAnimation IDLESHOOT = RawAnimation.begin().thenLoop("animation.mob.idleshoot");
     public static final RawAnimation SHOOTWALK_BACKWARDS = RawAnimation.begin().thenLoop("animation.unknown.walk_backwards_shoot");
@@ -144,8 +148,10 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     @Override
     protected void initCustomGoals() {
-        this.goalSelector.add(0, new ArtilleristCrossbowAttackGoal<>(this,0.5,16));
+        this.brain = new MercenaryBrain(this);
 
+        this.goalSelector.add(0, new ArtilleristCrossbowAttackGoal<>(this,0.5,16));
+        this.goalSelector.add(1, new com.cleannrooster.rpg_minibosses.entity.brain.MobBrainGoal(this, brain));
         super.initCustomGoals();
     }
 
@@ -201,18 +207,6 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     protected void mobTick() {
 
         super.mobTick();
-        if((this.getTarget() != null && this.canSee(this.getTarget()) && !this.performing) && ((this.getTarget().distanceTo(this) < 4 && this.sinceRunning > 180) || this.sinceRunning > 260 )){
-            this.resetIndicator();
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-
-                this.startRunning = true;
-                this.getDataTracker().set(RUNNING, true);
-                this.runningTick = 80;
-            });
-            this.sinceRunning = 0;
-
-
-        }
         if(this.startRunning){
             if(!this.getNavigation().isFollowingPath()) {
                 Vec3d vec3d = NoPenaltyTargeting.find(this, 16, 12);
@@ -224,7 +218,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
                     }
                 }
                 if(vec3d != null) {
-                    this.getNavigation().startMovingTo(vec3d.getX(), vec3d.getY(), vec3d.getZ(), 2);
+                    this.getNavigation().startMovingTo(vec3d.getX(), vec3d.getY(), vec3d.getZ(), 1.4);
 
                     if(this.trapCooldown <= 0){
                         for(int i = 0; i < 4; i++){
@@ -255,7 +249,6 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
             this.getNavigation().stop();
         }
         if(!this.getWorld().isClient()){
-            this.sinceRunning++;
             this.trapCooldown--;
         }
 
@@ -263,8 +256,6 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     public boolean startRunning = false;
     public int runningTick = 0;
-    public int runningCooldown = 160;
-    public int sinceRunning = 0;
 
 
 

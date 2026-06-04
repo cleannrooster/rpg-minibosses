@@ -100,11 +100,14 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
     private UUID ownerUuid;
     public boolean performing;
 
+    /** Brain that governs state-machine AI. Null for mobs that haven't migrated yet. */
+    @Nullable
+    public com.cleannrooster.rpg_minibosses.entity.brain.MobBrain brain;
+
     protected MinibossEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
         this.experiencePoints = 100;
         this.lookControl = new MinibossLookControl(this);
-        this.moveControl = new MinibossMoveConrol(this);
 
         this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
         this.dispatcher = new MinibossAnimationProvider.MinibossAnimationDispatcher(this);
@@ -123,7 +126,6 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         super(entityType, world);
         this.experiencePoints = 100;
         this.spawnCoeff = spawnCoeff;
-        this.moveControl = new MinibossMoveConrol(this);
 
         this.lookControl = new MinibossLookControl(this);
         this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
@@ -662,7 +664,9 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
             }
             return false;
         }
-        return  (  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.damage(source, amount));
+        boolean result = Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.damage(source, amount);
+        if (result && brain != null) brain.onDamageTaken(amount);
+        return result;
     }
 
 
@@ -834,11 +838,14 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
 
         this.initCustomGoals();
     }
-
+    float movementspeedCoeff = 1;
     @Override
-    public float getMovementSpeed() {
-        return (this.getDataTracker().get(INDICATOR) < 40F ? 0.25F : 1F) * (this.sitting ? 0 : (float) (this.getOwner() != null && !this.isAttacking() ? (float) this.getOwner().getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) * (2.4F) : this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED)));
+    public void setMovementSpeed(float movementSpeed) {
+        this.movementspeedCoeff = movementSpeed;;
+        super.setMovementSpeed(movementSpeed);
     }
+
+
 
     protected void initCustomGoals() {
     }
@@ -1258,107 +1265,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         return this.getWorld().isClient;
     }
 
-    public class MinibossMoveConrol extends MoveControl{
 
-        public MinibossMoveConrol(MobEntity entity) {
-            super(entity);
-        }
-
-        public void tick() {
-            float n;
-            if (this.state == MoveControl.State.STRAFE) {
-                float f = (float)this.entity.getMovementSpeed();
-                float g = (float)this.speed * f;
-                float h = this.forwardMovement;
-                float i = this.sidewaysMovement;
-                float j = MathHelper.sqrt(h * h + i * i);
-                if (j < 1.0F) {
-                    j = 1.0F;
-                }
-
-                j = g / j;
-                h *= j;
-                i *= j;
-                float k = MathHelper.sin(this.entity.getYaw() * 0.017453292F);
-                float l = MathHelper.cos(this.entity.getYaw() * 0.017453292F);
-                float m = h * l - i * k;
-                n = i * l + h * k;
-                if (!this.isPosWalkable(m, n) && this.state == MoveControl.State.JUMPING) {
-                    this.forwardMovement = 1.0F;
-                    this.sidewaysMovement = 0.0F;
-                }
-                BlockPos blockPos = this.entity.getBlockPos();
-                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
-                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
-                if (isOnGround() && (horizontalCollision || this.entity.getWorld().getBlockState(BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getMovement().subtract(0,this.entity.getMovement().getY(),0).multiply(20)))).isSolidBlock(this.entity.getWorld(),BlockPos.ofFloored(this.entity.getPos().add(0,0,0).add(this.entity.getMovement().subtract(0,this.entity.getMovement().getY(),0).multiply(20))))) ) {
-                    this.entity.getJumpControl().setActive();
-                    this.state = MoveControl.State.JUMPING;
-                }
-
-                this.entity.setMovementSpeed(g);
-                this.entity.setForwardSpeed((float) (this.forwardMovement*speed));
-                this.entity.setSidewaysSpeed((float) (this.sidewaysMovement*speed));
-                this.state = MoveControl.State.WAIT;
-            } else if (this.state == MoveControl.State.MOVE_TO) {
-                this.state = MoveControl.State.WAIT;
-                double d = this.targetX - this.entity.getX();
-                double e = this.targetZ - this.entity.getZ();
-                double o = this.targetY - this.entity.getY();
-                double p = d * d + o * o + e * e;
-                if (p < 2.500000277905201E-7) {
-                    this.entity.setForwardSpeed(0.0F);
-                    return;
-                }
-
-                n = (float)(MathHelper.atan2(e, d) * 57.2957763671875) - 90.0F;
-                this.entity.setYaw(this.wrapDegrees(this.entity.getYaw(), n, 90.0F));
-                this.entity.setMovementSpeed((float)(this.speed * this.entity.getMovementSpeed()));
-                BlockPos blockPos = this.entity.getBlockPos();
-                BlockState blockState = this.entity.getWorld().getBlockState(blockPos);
-                VoxelShape voxelShape = blockState.getCollisionShape(this.entity.getWorld(), blockPos);
-                if (o > 0 && d * d + e * e < (double)Math.max(1.0F, this.entity.getWidth()) || !voxelShape.isEmpty() && this.entity.getY() < voxelShape.getMax(Direction.Axis.Y) + (double)blockPos.getY() && !blockState.isIn(BlockTags.DOORS) && !blockState.isIn(BlockTags.FENCES)) {
-                    this.entity.getJumpControl().setActive();
-                    this.state = MoveControl.State.JUMPING;
-                }
-            } else if (this.state == MoveControl.State.JUMPING) {
-                this.entity.setMovementSpeed((float)(this.speed * this.entity.getMovementSpeed()));
-
-                if (this.entity.isOnGround()) {
-                    this.state = MoveControl.State.WAIT;
-                }
-            } else {
-                this.entity.setForwardSpeed(0.0F);
-            }
-
-        }
-        private boolean isPosWalkable(float x, float z) {
-            EntityNavigation entityNavigation = this.entity.getNavigation();
-            if (entityNavigation != null) {
-                PathNodeMaker pathNodeMaker = entityNavigation.getNodeMaker();
-                if (pathNodeMaker != null && pathNodeMaker.getDefaultNodeType(this.entity, BlockPos.ofFloored(this.entity.getX() + (double)x, (double)this.entity.getBlockY(), this.entity.getZ() + (double)z)) != PathNodeType.WALKABLE) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public void strafeTo(float forward, float sideways,float speed) {
-           super.strafeTo(forward, sideways);
-            this.speed = speed;
-
-        }
-
-        @Override
-        public double getSpeed() {
-            return super.getSpeed();
-        }
-
-        public boolean isStrafing(){
-            return this.state.equals(State.STRAFE);
-        }
-
-    }
 
 
     public class MinibossLookControl extends LookControl {
@@ -1483,45 +1390,70 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
     }
 
     public boolean shouldRun(){
-        return this.getVelocity().subtract(0,this.getVelocity().getY(),0).length()>0.2F;
+
+        return isRunning;
+    }
+    public boolean wasRunningLastTick;
+    public float smoothedSpeed = 0.2F;
+    Runnable animationRunner;
+    Runnable prevAnimationRunner;
+    boolean wasRunning;
+    boolean isRunning;
+    AnimState prevState;
+    enum AnimState {
+        IDLE, IDLE_AGGRO,
+        WALK, WALK_AGGRO,
+        RUN,
+        DOWN
     }
     public void animTick(){
+
         if (this.getWorld().isClient) {
+            float horizontalSpeed = (float)this.getVelocity().horizontalLength();
 
-            float speed  = (float) (this.getVelocity().subtract(0,this.getVelocity().getY(),0).length()/0.2F);
-            var isMovingOnGround = speed != 0 && this.isOnGround();
-            Runnable animationRunner;
-            if(this.getDataTracker().get(DOWN)){
-                animationRunner = dispatcher::setDown;
-            }
-            else
-            if (isMovingOnGround) {
-                if (this.isAttacking()) { // if moving and aggressive, play running
+            // Asymmetric filter: snap up quickly when accelerating, decay slowly when stopping.
+            // Fast ramp-up (0.6) makes new movement feel responsive; slow decay (0.2) prevents
+            // a pop-to-idle on momentary zero-velocity frames and smooths the stop tail-off.
+            float alpha = horizontalSpeed > this.smoothedSpeed ? 0.6F : 0.2F;
+            this.smoothedSpeed = MathHelper.lerp(alpha, this.smoothedSpeed, horizontalSpeed);
+            float animSpeed = this.smoothedSpeed / 0.2F;
 
-                    if(this.shouldRun()){
-                        animationRunner = () -> dispatcher.run(speed);
+            // Both checks use smoothedSpeed so a single dropped-velocity frame can't trigger
+            // a state change; the hysteresis band on isRunning stays clear of thrash.
+            boolean isMoving = this.smoothedSpeed > 0.03F;
 
-                    }
-                    else {
-                        animationRunner = () -> dispatcher.walkAggro(speed);
-                    }
-                } else { // if moving but not aggressive play walk
-                    if (this instanceof ArtilleristEntity) {
-                        animationRunner = () -> dispatcher.walkAggro(speed);
+            this.isRunning = this.wasRunning
+                    ? this.smoothedSpeed > 0.15F
+                    : this.smoothedSpeed >= 0.20F;
 
-                    } else {
-                        animationRunner = () -> dispatcher.walk(speed);
-                    }
-                }
-            } else { // Play the default idle animation
+            this.wasRunning = this.isRunning;
+            AnimState newState;
+
+            if (this.getDataTracker().get(DOWN)) {
+                newState = AnimState.DOWN;
+            } else if (isMoving) {
                 if (this.isAttacking()) {
-                    animationRunner = dispatcher::idleAggro;
+                    newState = this.isRunning ? AnimState.RUN : AnimState.WALK_AGGRO;
+                } else {
+                    newState = (this instanceof ArtilleristEntity)
+                            ? AnimState.WALK_AGGRO
+                            : AnimState.WALK;
                 }
-                else {
-                    animationRunner = dispatcher::idle;
-                }
+            } else {
+                newState = this.isAttacking() ? AnimState.IDLE_AGGRO : AnimState.IDLE;
             }
-            animationRunner.run();
+            if (newState != this.prevState) {
+                switch (newState) {
+                    case RUN -> dispatcher.run(animSpeed);
+                    case WALK_AGGRO -> dispatcher.walkAggro(animSpeed);
+                    case WALK -> dispatcher.walk(animSpeed);
+                    case IDLE_AGGRO -> dispatcher.idleAggro();
+                    case IDLE -> dispatcher.idle();
+                    case DOWN -> dispatcher.setDown();
+                }
+                this.prevState = newState;
+            }
+
         }
     }
 /*

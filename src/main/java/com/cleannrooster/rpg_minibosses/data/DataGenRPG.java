@@ -14,6 +14,7 @@ import net.minecraft.registry.entry.RegistryEntryList;
 import net.spell_engine.api.item.set.EquipmentSet;
 import net.spell_engine.api.item.set.EquipmentSetRegistry;
 import net.spell_engine.rpg_series.datagen.RPGSeriesDataGen;
+import net.spell_engine.rpg_series.item.Equipment;
 import net.spell_engine.rpg_series.tags.RPGSeriesItemTags;
 
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class DataGenRPG implements DataGeneratorEntrypoint {
                     Armors.armorentries.stream().filter(entry -> entry.material().getIdAsString().contains("robe")).toList(),
                     RPGSeriesItemTags.ArmorMetaType.MAGIC
             );
+            generateWeaponTags(List.of(Armors.whispering_ice));
 
 
         }

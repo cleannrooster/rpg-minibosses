@@ -74,8 +74,7 @@ public class Effects {
                     .addAttributeModifier(EntityAttributes.GENERIC_ATTACK_DAMAGE,Identifier.of(RPGMinibosses.MOD_ID,"kintsugi"),-0.5, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
 
     public static final Entry MAGUS_BARRIER = new Entry("magus_barrier",
-            new CustomEffect(StatusEffectCategory.BENEFICIAL, 0xff0000)
-                    .addAttributeModifier(SpellEngineAttributes.DAMAGE_TAKEN.entry,Identifier.of(RPGMinibosses.MOD_ID,"magus_barrier"),-0.80, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            new CustomEffect(StatusEffectCategory.BENEFICIAL, 0xff0000));
     public static void register() {
 
         for (var entry: entries) {

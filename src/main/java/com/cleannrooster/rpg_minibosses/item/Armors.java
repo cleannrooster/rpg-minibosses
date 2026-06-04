@@ -54,7 +54,6 @@ import java.util.function.Supplier;
 public class Armors {
 
     public static Item ABBERRATH ;
-    public static Item TABULA ;
 
     public static RegistryEntry<ArmorMaterial> material(String name,
 
@@ -323,12 +322,10 @@ public class Armors {
                 new EntityAttributeModifier(Identifier.of(RPGMinibosses.MOD_ID,"abberraths_hooves"),2, EntityAttributeModifier.Operation.ADD_VALUE), AttributeModifierSlot.FEET),
                 new AttributeModifiersComponent.Entry(EntityAttributes.GENERIC_ARMOR,
                         new EntityAttributeModifier(Identifier.of(RPGMinibosses.MOD_ID,"armor_boots"),2, EntityAttributeModifier.Operation.ADD_VALUE), AttributeModifierSlot.FEET)),true)),SpellSchools.FIRE);
-         TABULA = Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.MOD_ID,"tabula_rasa"),new Item(new Item.Settings().maxCount(1)));
         Weapon.register(configs, entries, RPGMinibossesEntities.KEY);
         Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.MOD_ID,"abberraths_hooves"),ABBERRATH);
         ItemGroupEvents.modifyEntriesEvent(KEY).register((content) -> {
             content.add(ABBERRATH);
-            content.add(TABULA);
 
         });
     }

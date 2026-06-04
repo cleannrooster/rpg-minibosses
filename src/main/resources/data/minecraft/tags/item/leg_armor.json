@@ -1,6 +1,12 @@
 {
   "values": [
-    "rpg-minibosses:trickster_legs",
-    "rpg-minibosses:juggernaut_legs"
+    {
+      "id": "rpg-minibosses:trickster_legs",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_legs",
+      "required": false
+    }
   ]
 }

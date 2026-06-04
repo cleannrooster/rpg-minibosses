@@ -1,7 +1,13 @@
 {
   "values": [
     "rpg-minibosses:abberraths_hooves",
-    "rpg-minibosses:trickster_feet",
-    "rpg-minibosses:juggernaut_feet"
+    {
+      "id": "rpg-minibosses:trickster_feet",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_feet",
+      "required": false
+    }
   ]
 }

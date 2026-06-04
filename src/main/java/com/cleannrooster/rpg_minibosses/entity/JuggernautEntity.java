@@ -4,6 +4,9 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.AI.JuggernautLeapSlamGoal;
 
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.JuggernautBrain;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.TemplarBrain;
 import net.minecraft.client.render.entity.CreeperEntityRenderer;
 import net.minecraft.client.render.entity.feature.CreeperChargeFeatureRenderer;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
@@ -56,6 +59,7 @@ public class JuggernautEntity extends MinibossEntity{
 
     protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
+
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
                         ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
@@ -67,6 +71,7 @@ public class JuggernautEntity extends MinibossEntity{
     }
     protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world,boolean lesser) {
         super(entityType, world);
+
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
                 return
@@ -92,6 +97,7 @@ public class JuggernautEntity extends MinibossEntity{
     }
     protected JuggernautEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser, float SpawnCoeff) {
         super(entityType, world,SpawnCoeff);
+
         if(lesser) {
             super.bonusList = Registries.ITEM.stream().filter(item -> {
                 return
@@ -131,9 +137,9 @@ public class JuggernautEntity extends MinibossEntity{
     }
     @Override
     protected void initCustomGoals() {
+        this.brain = new JuggernautBrain(this);
 
-        this.goalSelector.add(2, new MeleeAttackGoal(this,1.0F,true));
-
+        this.goalSelector.add(2, new com.cleannrooster.rpg_minibosses.entity.brain.MobBrainGoal(this, brain));
         super.initCustomGoals();
     }
     @Override
@@ -161,140 +167,30 @@ public class JuggernautEntity extends MinibossEntity{
     }
     @Override
     protected void mobTick() {
-
-        if (this.getTarget() != null && this.canSee(this.getTarget())) {
-            this.getLookControl().lookAt(this.getTarget(),360,360);
-        }
-        if(defensetimer >= 0 && !this.getWorld().isClient()) {
-            if(this.getTarget()  != null  && this.canSee(this.getTarget())) {
-                if (this.getTarget().distanceTo(this) > 4) {
-                    this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
-                } else {
-                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-1, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.5F);
-
-                }
-                if (!this.getWorld().isClient() && slamtimer > 140 && !this.performing && this.getTarget() != null && this.isAttacking() && this.distanceTo(this.getTarget()) <= 3) {
-                    this.resetIndicator();
-                    ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-
-                        //(this).triggerAnim("slam", "slam");
-                        dispatcher.setSlam();
-                        ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
-                                        SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
-
-                            }
-                            this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
-                            this.performing = false;
-
-                        });
-
-                    });
-                    this.slamtimer = 140 - (int) (140 * this.getCooldownCoeff());
-                    this.performing = true;
-                }
-            }
-            if(this.defensetimer > defensetime){
-                this.defensetimer = -80 - this.getRandom().nextInt(80);
-                this.defensetime = 80 + this.getRandom().nextInt(80);
-            }
-        }
-        if(!this.getWorld().isClient() && spintimer > 460 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget()) && this.isAttacking() && this.distanceTo(this.getTarget()) <= 10) {
-            this.resetIndicator();
-
-                //(this).triggerAnim("twohandwave", "twohandwave");
-                dispatcher.setWave();
-                ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    dispatcher.setSpin();
-                    //(this).triggerAnim("twohandspin", "twohandspin");
-                    this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
-                    ((WorldScheduler) this.getWorld()).schedule(4*(2*20), () -> {
-
-                        //(this).triggerAnim("winddown", "winddown");
-                        ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-
-                            this.performing = false;
-                        });
-                    });
-                });
-
-                ((WorldScheduler) this.getWorld()).schedule(40 * 2, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    dispatcher.setSpin();
-
-                    this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
-
-                });
-                ((WorldScheduler) this.getWorld()).schedule(40 * 3, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    dispatcher.setSpin();
-
-                    this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
-
-                });
-                ((WorldScheduler) this.getWorld()).schedule(40 * 4, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    dispatcher.setSpin();
-
-                    this.addVelocity(this.getRotationVector().subtract(0, this.getRotationVector().getY(), 0).multiply(2));
-
-                });
-
-            this.spintimer = 460 - (int)(460*this.getCooldownCoeff());
-            this.performing = true;
-
-        }
-        if(!this.getWorld().isClient() && leapTimer > 160 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget()) && this.isAttacking()&& this.distanceTo(this.getTarget()) >= 6) {
-            this.resetIndicator();
-
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                dispatcher.setLeap();
-                //(this).triggerAnim("leapslam", "leapslam");
-                ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                    this.addVelocity(this.getRotationVector().subtract(0,this.getRotationVector().getY(),0).multiply(2).add(0, 0.5, 0));
-                });
-
-                ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).release.particles);
-                    for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                        boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "pound")).get(),
-                                SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "pound")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
-
-                    }
-                    this.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
-                    this.performing = false;
-
-                });
-            });
-            this.leapTimer = 160 - (int)(160*this.getCooldownCoeff());
-            this.performing = true;
-
-        }
-
-        if(!this.getWorld().isClient()) {
-            slamtimer++;
-            spintimer++;
-            leapTimer++;
-            defensetimer++;
-
-        }
         super.mobTick();
-
     }
 
-    public int defensetimer;
 
-
-    public int leapTimer;
-    public int spintimer = 300;
-
-    public int slamtimer = 60;
-
-
+    /** Kept for backward-compatibility with JuggernautLeapSlamGoal (unused by brain). */
+    public int leapTimer = 0;
     public boolean   swingBool;
+
+    @Override
+    public boolean damage(DamageSource source, float amount) {
+        if (brain instanceof JuggernautBrain jb && jb.getCurrentCombatState() == JuggernautBrain.CombatState.BRACING) {
+            amount *= 0.5f;
+        }
+        return super.damage(source, amount);
+    }
+
+    @Override
+    public void takeKnockback(double strength, double x, double z) {
+        if (brain instanceof JuggernautBrain jb && jb.getCurrentCombatState() == JuggernautBrain.CombatState.BRACING) {
+            super.takeKnockback(strength * 0.1, x, z);
+        } else {
+            super.takeKnockback(strength, x, z);
+        }
+    }
 
     public boolean tryAttack(Entity target) {
         if(!performing) {

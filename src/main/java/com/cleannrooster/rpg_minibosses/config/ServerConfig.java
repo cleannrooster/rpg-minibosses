@@ -6,7 +6,7 @@ import me.shedaniel.cloth.clothconfig.shadowed.blue.endless.jankson.Comment;
 
 import java.util.LinkedHashMap;
 
-@Config(name = "server_v7")
+@Config(name = "server_v8")
 public class ServerConfig  implements ConfigData {
 
 
@@ -32,14 +32,14 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Forsaken Templars to spawn naturally")
     public  float templarGreater = 1.0F;
     @Comment("Forsaken Templar maxHealth ")
-    public  float templarMaxHealth = 100F;
+    public  float templarMaxHealth = 60F;
 
     @Comment("Forsaken Templar Armor ")
     public  float templarGreaterArmor = 16F;
     @Comment("Forsaken Templar Attack Damage ")
     public  float templarGreaterAttackDamage = 0F;
     @Comment("Forsaken Templar Movement Speed ")
-    public  float templarGreaterMovementSpeed = 1.3F;
+    public  float templarGreaterMovementSpeed = 1.4F;
     @Comment("Forsaken Templar Healing Power ")
     public  float templarGreaterHealingPower = 6F;
 
@@ -47,18 +47,18 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Forsaken Fire Mages to spawn naturally")
     public  float fireMageGreater = 1.0F;
     @Comment("Forsaken Fire Mages maxHealth ")
-    public  float fireMageGreaterMaxHealth = 100F;
+    public  float fireMageGreaterMaxHealth = 60F;
     @Comment("Forsaken Fire Mages Armor ")
     public  float fireMageGreaterArmor = 4F;
     @Comment("Forsaken Fire Mages Movement Speed ")
-    public  float fireMageMovementSpeed = 0.5F;
+    public  float fireMageMovementSpeed = 1.2F;
     @Comment("Forsaken Fire Mages Fire Power ")
     public  float fireMageFirePower = 6.0F;
 
     @Comment("Chance for Forsaken Juggernauts to spawn naturally")
     public  float juggernautGreater = 1.0F;
     @Comment("Forsaken Juggernauts maxHealth ")
-    public  float juggernautGreaterMaxHealth = 100F;
+    public  float juggernautGreaterMaxHealth = 60F;
     @Comment("Forsaken Juggernauts Armor ")
     public  float juggernautGreaterArmor = 20F;
     @Comment("Forsaken Juggernauts Defiance ")
@@ -73,7 +73,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Forsaken Rogues to spawn naturally")
     public  float rogueGreater = 1.0F;
     @Comment("Forsaken Rogues Max Health ")
-    public  float rogueGreaterMaxHealth = 100F;
+    public  float rogueGreaterMaxHealth = 60F;
     @Comment("Forsaken Rogues Armor ")
     public  float rogueGreaterArmor = 8F;
     @Comment("Forsaken Rogues Attack Damage ")
@@ -87,26 +87,26 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Forsaken Mercenaries to spawn naturally")
     public  float mercenaryGreater = 1.0F;
     @Comment("Forsaken Mercenaries Max Health ")
-    public  float mercenaryGreaterMaxHealth = 100F;
+    public  float mercenaryGreaterMaxHealth = 60F;
     @Comment("Forsaken Mercenaries Armor ")
     public  float mercenaryGreaterArmor = 14F;
     @Comment("Forsaken Mercenaries Ranged Damage ")
     public  float mercenaryGreaterRangedDamage = 0F;
     @Comment("Forsaken Mercenaries Movement Speed Modifier")
-    public  float mercenaryGreaterMovementSpeed = 1F;
+    public  float mercenaryGreaterMovementSpeed = 1.4F;
     @Comment("Forsaken Mercenary Defiance ")
     public  float mercenaryGreaterDefiance = 2.0F;
 
     @Comment("Chance for Lesser Templars to spawn naturally")
     public  float templarLesser = 1.0F;
     @Comment("Lesser Templar maxHealth ")
-    public  float templarLesserMaxHealth = 50F;
+    public  float templarLesserMaxHealth = 25F;
     @Comment("Lesser Templar Armor ")
     public  float templarLesserArmor = 12F;
     @Comment("Lesser Templar Attack Damage ")
     public  float templarLesserAttackDamage = 0F;
     @Comment("Lesser Templar Movement Speed ")
-    public  float templarLesserMovementSpeed = 1.3F;
+    public  float templarLesserMovementSpeed = 1.4F;
     @Comment("Lesser Templar Healing Power ")
     public  float templarLesserHealingPower = 4F;
 
@@ -116,18 +116,18 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Lesser Fire Mages to spawn naturally")
     public  float fireMageLesser = 1.0F;
     @Comment("Lesser Fire Mages maxHealth ")
-    public  float fireMageLesserMaxHealth = 50F;
+    public  float fireMageLesserMaxHealth = 25F;
     @Comment("Lesser Fire Mages Armor ")
     public  float fireMageLesserArmor = 4F;
     @Comment("Lesser Fire Mages Movement Speed ")
-    public  float fireMageLesserMovementSpeed = 0.5F;
+    public  float fireMageLesserMovementSpeed = 1.2F;
     @Comment("Lesser Fire Mages Fire Power ")
     public  float fireMageLesserFirePower = 4F;
 
     @Comment("Chance for Lesser Juggernauts to spawn naturally")
     public  float juggernautLesser = 1.0F;
     @Comment("Lesser Juggernauts maxHealth ")
-    public  float juggernautLesserMaxHealth = 50F;
+    public  float juggernautLesserMaxHealth = 25F;
     @Comment("Lesser Juggernauts Armor ")
     public  float juggernautLesserArmor = 16F;
     @Comment("Lesser Juggernauts Defiance ")
@@ -142,7 +142,7 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Forsaken Rogues to spawn naturally")
     public  float rogueLesser = 1.0F;
     @Comment("Lesser Rogues Max Health ")
-    public  float rogueLesserMaxHealth = 50;
+    public  float rogueLesserMaxHealth = 25;
     @Comment("Lesser Rogues Armor ")
     public  float rogueLesserArmor = 8F;
     @Comment("Lesser Rogues Attack Damage ")
@@ -157,13 +157,13 @@ public class ServerConfig  implements ConfigData {
     @Comment("Chance for Lesser Mercenaries to spawn naturally")
     public  float mercenaryLesser = 1.0F;
     @Comment("Lesser Mercenary Max Health ")
-    public  float mercenaryLesserMaxHealth = 50F;
+    public  float mercenaryLesserMaxHealth = 25F;
     @Comment("Lesser Mercenaries Armor ")
     public  float mercenaryLesserArmor = 10;
     @Comment("Lesser Mercenaries Ranged Damage ")
     public  float mercenaryLesserRangedDamage = 0F;
     @Comment("Lesser Mercenaries Movement Speed Modifier")
-    public  float mercenaryLesserMovementSpeed = 1F;
+    public  float mercenaryLesserMovementSpeed = 1.4F;
     @Comment("Lesser Mercenary Defiance ")
     public  float mercenaryLesserDefiance = 1F;
 

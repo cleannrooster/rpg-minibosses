@@ -27,10 +27,10 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
     public MinibossAnimationProvider() {
         super(AzAnimatorConfig.defaultConfig());
         builders = List.of(
-                AzAnimationController.builder(this, "base_controller").setTransitionLength(2).setEasingType(AzEasingTypes.EASE_IN_OUT_QUAD),
-                AzAnimationController.builder(this, "dash").setTransitionLength(2).setEasingType(AzEasingTypes.EASE_IN_OUT_QUAD),
+                AzAnimationController.builder(this, "base_controller").setTransitionLength(5),
+                AzAnimationController.builder(this, "dash").setTransitionLength(2).setEasingType(AzEasingTypes.BEZIER),
 
-                AzAnimationController.builder(this, "attacks").setTransitionLength(2).setEasingType(AzEasingTypes.EASE_IN_OUT_QUAD));
+                AzAnimationController.builder(this, "attacks").setTransitionLength(2).setEasingType(AzEasingTypes.BEZIER));
 
     }
     public List<AzAnimationControllerBuilder> builders;
@@ -78,7 +78,7 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
             return AzCommand.create(
                     "base_controller",
                     "walking",
-                    AzPlayBehaviors.LOOP
+                    AzPlayBehaviors.LOOP, 0, speed, 0, 0, 0, false
             );
         }
 
@@ -86,7 +86,7 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
             return AzCommand.create(
                     "base_controller",
                     "animation.unknown.walk",
-                    AzPlayBehaviors.LOOP
+                    AzPlayBehaviors.LOOP, 0, speed, 0, 0, 0, false
             );
         }
 
@@ -94,7 +94,7 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
             return AzCommand.create(
                     "base_controller",
                     "animation.mob.walk_templar",
-                    AzPlayBehaviors.LOOP
+                    AzPlayBehaviors.LOOP, 0, speed, 0, 0, 0, false
             );
         }
 
@@ -103,7 +103,7 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
                     AzCommand.create(
                             "base_controller",
                             "animation.unknown.walk_2h",
-                            AzPlayBehaviors.LOOP
+                            AzPlayBehaviors.LOOP, 0, speed, 0, 0, 0, false
                     );
         }
 
@@ -111,7 +111,8 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
             return AzCommand.create(
                     "base_controller",
                     "walking_backwards",
-                    AzPlayBehaviors.LOOP
+                    AzPlayBehaviors.LOOP, 0, speed, 0, 0, 0, false
+
             );
 
         }
@@ -198,7 +199,7 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
         private static final AzCommand SPIN = AzCommand.create(
                 "attacks",
                 "animation.mob.spin_2h",
-                AzPlayBehaviors.PLAY_ONCE
+                AzPlayBehaviors.PLAY_ONCE, 0, 1.05F, 0, 0, 0, false
         );
         private static final AzCommand dashRight = AzCommand.create(
                 "dash",

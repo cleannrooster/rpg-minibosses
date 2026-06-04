@@ -3,6 +3,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MagusPrimeAnimationProvider;
+import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import com.google.common.base.Predicates;
 import me.shedaniel.math.Color;
 import net.fabricmc.api.EnvType;
@@ -12,6 +13,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.SnowBlock;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
+import net.minecraft.component.type.FoodComponent;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.ai.control.JumpControl;
@@ -21,6 +23,8 @@ import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.ai.pathing.PathNodeMaker;
 import net.minecraft.entity.ai.pathing.PathNodeType;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.boss.BossBar;
 import net.minecraft.entity.boss.ServerBossBar;
@@ -32,6 +36,9 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.HungerManager;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.entity.mob.*;
 import net.minecraft.entity.passive.RabbitEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -75,8 +82,11 @@ import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.raycastObstacleFree;
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.sendBatches;
@@ -132,6 +142,13 @@ public class MagusPrimeEntity extends PathAwareEntity {
     public static ArrayList<Identifier> SHORTCASTPROJECTILE = new ArrayList<>();
     public static ArrayList<Identifier> LONGCASTPROJECTILE = new ArrayList<>();
     public static ArrayList<Identifier> CUSTOMSPELLS = new ArrayList<>();
+    public static final Identifier DISDAIN_MODIFIER_ID = Identifier.of(RPGMinibosses.MOD_ID, "disdain_damage");
+    public static final Identifier PHASE3_SPEED_ID = Identifier.of(RPGMinibosses.MOD_ID, "phase3_speed");
+    public static final Identifier PHASE3_ATKSPEED_ID = Identifier.of(RPGMinibosses.MOD_ID, "phase3_atkspeed");
+    public static final Identifier CONTEMPT_ATKSPEED_ID = Identifier.of(RPGMinibosses.MOD_ID, "contempt_atkspeed");
+    public static final SpellSchool[] BARRIER_CYCLE = { ARCANE, FROST, FIRE };
+    public static final int BASE_BARRIER_CYCLE_TICKS = 400;
+    public static final int DOMINION_ACTIVATION_TICKS = 100;
     public static int rgba(int alpha, int red, int green, int blue) {
         return (red << 16) | (green << 8) | (blue) ;
     }
@@ -192,6 +209,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
     @Override
     public boolean damage(DamageSource source, float amount) {
+        if (transitioning) return false;
         if(source.getAttacker() != null){
             if(source.getAttacker()  instanceof ServerPlayerEntity player){
                 this.bossBar.addPlayer(player);
@@ -212,13 +230,63 @@ public class MagusPrimeEntity extends PathAwareEntity {
         if(source.isOf(DamageTypes.FALL)){
             return false;
         }
-        if(source.isOf(this.getSpellSchool().damageType) || source.isOf(SpellSchools.HEALING.damageType)){
-            if(this.hasStatusEffect(Effects.MAGUS_BARRIER.registryEntry)){
-                this.removeStatusEffect(Effects.MAGUS_BARRIER.registryEntry);
-                this.playSound(SoundEvents.ITEM_MACE_SMASH_GROUND_HEAVY);
+        boolean isSpellDamage = source.isOf(FIRE.damageType) || source.isOf(FROST.damageType)
+                || source.isOf(ARCANE.damageType) || source.isOf(LIGHTNING.damageType)
+                || source.isOf(SOUL.damageType) || source.isOf(HEALING.damageType);
+        if (this.hasStatusEffect(Effects.MAGUS_BARRIER.registryEntry)) {
+            if (source.isOf(this.getSpellSchool().damageType) || source.isOf(HEALING.damageType)) {
+                correctHitsThisCycle++;
+                if (correctHitsThisCycle >= correctHitsRequired) {
+                    this.removeStatusEffect(Effects.MAGUS_BARRIER.registryEntry);
+                    this.playSound(SoundEvents.ITEM_MACE_SMASH_GROUND_HEAVY);
+                    this.consecutiveWrongHits = 0;
+                    this.correctHitsThisCycle = 0;
+                    clearDominion();
+                }
+            } else if (isSpellDamage ) {
+
+                this.heal(5.0f + 3.0f * this.consecutiveWrongHits);
+                this.consecutiveWrongHits++;
+                this.empowerMultiplier = Math.min(3.0f, 1.0f + 0.3f * this.consecutiveWrongHits);
+                if (!this.getWorld().isClient()) {
+                    String particleId;
+                    long color;
+                    if (this.spellSchool.equals(FIRE)) {
+                        particleId = SpellEngineParticles.area_effect_480.id().toString();
+                        color = 4284889343L;
+                    } else if (this.spellSchool.equals(FROST)) {
+                        particleId = SpellEngineParticles.area_effect_658.id().toString();
+                        color = FROST.color;
+                    } else {
+                        particleId = SpellEngineParticles.area_effect_293.id().toString();
+                        color = 4284940287L;
+                    }
+                    ParticleBatch absorbBurst = new ParticleBatch(
+                            particleId, ParticleBatch.Shape.SPHERE, ParticleBatch.Origin.CENTER,
+                            null, 0, 0, 20, 0, 0.5f, 0, 0, 0, false, color, 4, true, 2.5f);
+                    ParticleHelper.sendBatches(this, new ParticleBatch[]{absorbBurst});
+                    if (this.getWorld() instanceof ServerWorld sw) {
+                        sw.spawnParticles(ParticleTypes.HEART,
+                                this.getX(), this.getY() + 1.8, this.getZ(),
+                                2 + this.consecutiveWrongHits, 0.5, 0.3, 0.5, 0.1);
+                    }
+                    this.playSound(SoundEvents.ENTITY_EVOKER_CAST_SPELL,
+                            1.5f, 0.7f + this.consecutiveWrongHits * 0.1f);
+                }
+                return false;
+            } else {
+                amount *= 0.4f;
             }
         }
-            return super.damage(source, amount);
+        boolean result = super.damage(source, amount);
+        if (!this.getWorld().isClient() && result) {
+            if (phase == 1 && this.getHealth() / this.getMaxHealth() < 0.60F) {
+                startPhaseTransition(2);
+            } else if (phase == 2 && this.getHealth() / this.getMaxHealth() < 0.25F) {
+                startPhaseTransition(3);
+            }
+        }
+        return result;
     }
     @Override
     public void onSpawnPacket(EntitySpawnS2CPacket packet) {
@@ -413,6 +481,8 @@ public class MagusPrimeEntity extends PathAwareEntity {
     public void performSpell(String string, String string2){
         Spell spell = null;
         if(string.equals("short")) {
+            final float shortEmpower = this.empowerMultiplier;
+            this.empowerMultiplier = 1.0f;
             if(string2.equals("projectile")) {
                 if(this.getTarget() != null) {
 
@@ -423,7 +493,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
                     spell = SpellRegistry.from(this.getWorld()).get(id);
                     SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), spellReference.get(),
-                            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(spellReference.get().value().school, this)).position(this.getPos()));
+                            new SpellHelper.ImpactContext(shortEmpower, shortEmpower, this.getPos(), SpellPower.getSpellPower(spellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
 
                     ParticleHelper.sendBatches(this, spell.release.particles);
                 }
@@ -436,7 +506,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
                 for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
                     boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
-                            spell.impacts,new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(spellReference.get().value().school,this)).position(this.getPos()));
+                            spell.impacts, new SpellHelper.ImpactContext(shortEmpower, shortEmpower, this.getPos(), SpellPower.getSpellPower(spellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
 
                 }
                 ParticleHelper.sendBatches(this,spell.release.particles);
@@ -445,8 +515,9 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
         if(string.equals("long")) {
             Optional<RegistryEntry.Reference<Spell>> spellReference = null;
+            Identifier id = null;
             if (string2.equals("projectile")) {
-                Identifier id = LONGCASTPROJECTILE.get(this.getRandom().nextInt(LONGCASTPROJECTILE.size()));
+                 id = LONGCASTPROJECTILE.get(this.getRandom().nextInt(LONGCASTPROJECTILE.size()));
 
                 spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
 
@@ -455,7 +526,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 spell = SpellRegistry.from(this.getWorld()).get(id);
             }
             if (string2.equals("nova")) {
-                Identifier id = LONG_NOVA.get(this.getRandom().nextInt(LONG_NOVA.size()));
+                 id = LONG_NOVA.get(this.getRandom().nextInt(LONG_NOVA.size()));
 
                 spell = SpellRegistry.from(this.getWorld()).get(id);
                 spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
@@ -467,75 +538,145 @@ public class MagusPrimeEntity extends PathAwareEntity {
             Optional<RegistryEntry.Reference<Spell>> spellReferenceShockwave = SpellRegistry.from(this.getWorld()).getEntry(idShockWave);
 
             final Spell finalSpell = spell;
-            Optional<RegistryEntry.Reference<Spell>> finalSpellReference = spellReference;
-            List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
-            players.forEach(player -> {
+            final Optional<RegistryEntry.Reference<Spell>> finalSpellReference = spellReference;
+            final float capturedEmpower = this.empowerMultiplier;
+            this.empowerMultiplier = 1.0f;
+            ((WorldScheduler) this.getWorld()).schedule(40, () -> {
+                if (this.getTarget() != null) {
 
-                player.sendMessage(Text.translatable("Barrier change / Only " + finalSpell.school.id.getPath().toUpperCase() + " damages."), true);
-            });
+                    if (string2.equals("projectile")) {
 
+                        SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-                ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                    if (this.getTarget() != null) {
-                        if (string2.equals("projectile")) {
+                        SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), finalSpellReference.get(),
+                                new SpellHelper.ImpactContext(capturedEmpower, capturedEmpower, this.getPos(), SpellPower.getSpellPower(finalSpellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
 
-                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                        ParticleHelper.sendBatches(this, finalSpell.release.particles);
+                    }
+                    if (string2.equals("nova")) {
 
+                        SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
 
-                            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), finalSpellReference.get(),
-                                    new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(finalSpellReference.get().value().school, this)).position(this.getPos()));
-
-                            ParticleHelper.sendBatches(this, finalSpell.release.particles);
-                        }
-                        if (string2.equals("nova")) {
-
-                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                boolean bool =  SpellHelper.performImpacts(this.getWorld(), this, entity, this, finalSpellReference.get(),
-                                        finalSpell.impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(finalSpellReference.get().value().school, this)).position(this.getPos()));
-
-                            }
-                            ParticleHelper.sendBatches(this, finalSpell.release.particles);
+                        for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
+                            boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, finalSpellReference.get(),
+                                    finalSpell.impacts, new SpellHelper.ImpactContext(capturedEmpower, capturedEmpower, this.getPos(), SpellPower.getSpellPower(finalSpellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
 
                         }
-                        if (this.getRandom().nextFloat() < 0.3F) {
+                        ParticleHelper.sendBatches(this, finalSpell.release.particles);
 
-                            for (int i = 0; i < 5; i++) {
-                                ((WorldScheduler) this.getWorld()).schedule(4 * (i + 1), () -> {
-                                            if (this.getTarget() != null) {
+                    }
+                    if (this.getRandom().nextFloat() < 0.3F) {
 
-                                                SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0).position(this.getTarget().getPos());
-                                                SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
-                                                Vec3d pos = this.getTarget().getBoundingBox().getCenter();
-                                                ((WorldScheduler) this.getWorld()).schedule(25, () -> {
+                        for (int i = 0; i < 5; i++) {
+                            ((WorldScheduler) this.getWorld()).schedule(4 * (i + 1), () -> {
+                                        if (this.getTarget() != null) {
 
-                                                            if(this.getTarget() != null) {
-                                                                boolean bool = lookupAndPerformAreaImpact(spellReferenceShockwave.get().value().area_impact, spellReferenceShockwave.get(), this, this, this, spellReferenceShockwave.get().value().impacts, context, false);
-                                                                
-                                                            }
+                                            SpellHelper.ImpactContext context = new SpellHelper.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0).position(this.getTarget().getPos());
+                                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
+                                            Vec3d pos = this.getTarget().getBoundingBox().getCenter();
+                                            ((WorldScheduler) this.getWorld()).schedule(25, () -> {
+
+                                                        if(this.getTarget() != null) {
+                                                            boolean bool = lookupAndPerformAreaImpact(spellReferenceShockwave.get().value().area_impact, spellReferenceShockwave.get(), this, this, this, spellReferenceShockwave.get().value().impacts, context, false);
 
                                                         }
 
-                                                );
-                                            }
-                                        }
-                                );
+                                                    }
 
-                            }
+                                            );
+                                        }
+                                    }
+                            );
+
                         }
                     }
-                    if (finalSpell != null && finalSpell.school != null) {
-                        this.spellSchool = finalSpell.school;
-
-
-                    }
-                    this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry, -1, 0));
-
-                });
+                }
+            });
         }
 
     }
+    private void startPhaseTransition(int newPhase) {
+        if (this.getWorld().isClient()) return;
+        this.phase = newPhase;
+        this.transitioning = true;
+        this.performing = true;
+        MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
+        this.playSound(SoundEvents.ENTITY_EVOKER_CELEBRATE);
+        ((WorldScheduler) this.getWorld()).schedule(60, () -> {
+            this.transitioning = false;
+            this.performing = false;
+            clearDominion();
+            this.barrierCycleTimer = 0;
+            this.correctHitsThisCycle = 0;
+            List<PlayerEntity> nearby = this.getWorld().getPlayers(
+                    TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(48));
+            if (newPhase == 2) {
+                this.correctHitsRequired = 2;
+                nearby.forEach(p -> p.sendMessage(Text.literal("— Provoked —"), true));
+            } else if (newPhase == 3) {
+                this.removeStatusEffect(Effects.MAGUS_BARRIER.registryEntry);
+                this.darkMatterCooldown = 600;
+                this.darkMatterTimer = this.darkMatterCooldown;
+                EntityAttributeInstance moveSpeed = this.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                if (moveSpeed != null) {
+                    moveSpeed.removeModifier(PHASE3_SPEED_ID);
+                    moveSpeed.addPersistentModifier(new EntityAttributeModifier(
+                            PHASE3_SPEED_ID, 0.4, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                }
+                EntityAttributeInstance atkSpeed = this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_SPEED);
+                if (atkSpeed != null) {
+                    atkSpeed.removeModifier(PHASE3_ATKSPEED_ID);
+                    atkSpeed.addPersistentModifier(new EntityAttributeModifier(
+                            PHASE3_ATKSPEED_ID, 0.3, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                }
+                nearby.forEach(p -> p.sendMessage(Text.literal("— Unrestrained —"), true));
+            }
+        });
+    }
+
+    public void clearDominion() {
+        dominionActive = false;
+        dominionTimer = 0;
+        frostDominionActive = false;
+        fireDominionActive = false;
+        lightningDominionActive = false;
+        frostDominionTimer = 0;
+        fireDominionTimer = 0;
+        lightningDominionTimer = 0;
+        frostDominionDuration = 0;
+        fireDominionDuration = 0;
+        lightningDominionDuration = 0;
+        arcaneDominionDuration = 0;
+        frostMeter.clear();
+        for (MagusDominionOrbEntity orb : activeOrbEntities) {
+            if (orb != null) orb.discard();
+        }
+        activeOrbEntities.clear();
+    }
+
+    private void activateDominion(SpellSchool school) {
+        dominionActive = true;
+        if (school.equals(ARCANE)) {
+            int orbCount = Math.min(6, 1 + disdainStacks);
+            for (int i = 0; i < orbCount; i++) {
+                MagusDominionOrbEntity orb = new MagusDominionOrbEntity(RPGMinibossesEntities.MAGUS_DOMINION_ORB, this.getWorld());
+                orb.setOwnerEntity(this);
+                orb.disdainStacks = this.disdainStacks;
+                orb.contemptStacks = this.contemptFulfilledStacks;
+                orb.setStartAngle((float)(i * 2 * Math.PI / orbCount));
+                orb.setPosition(this.getPos());
+                this.getWorld().spawnEntity(orb);
+                activeOrbEntities.add(orb);
+            }
+        } else if (school.equals(FROST)) {
+            frostDominionActive = true;
+        } else if (school.equals(FIRE)) {
+            fireDominionActive = true;
+        } else if (school.equals(LIGHTNING)) {
+            lightningDominionActive = true;
+        }
+    }
+
     public static final TrackedData<Integer> INDICATOR ;
 
     public static ParticleBatch ARCTICARMORPARTICLES;
@@ -552,7 +693,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
         public void tick() {
             float n;
             if (this.state == MoveControl.State.STRAFE) {
-                float f = (float)this.entity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+                float f = (float)this.entity.getMovementSpeed();
                 float g = (float)this.speed * f;
                 float h = this.forwardMovement;
                 float i = this.sidewaysMovement;
@@ -764,49 +905,40 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
             }
         }
-        if(!this.getWorld().isClient() && this.getHealth()/this.getMaxHealth() < 0.25F && darkmatter > 400 && !this.performing && this.getTarget() != null ) {
+        if (!this.getWorld().isClient() && phase == 3 && darkMatterTimer >= darkMatterCooldown && !this.performing && this.getTarget() != null) {
             this.resetIndicator();
+            darkMatterTimer = 0;
+            darkMatterCooldown = Math.max(200, darkMatterCooldown - 60);
+            darkMatterCastCount++;
+            this.performing = true;
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                if(this.getTarget() != null) {
-
+                if (this.getTarget() != null) {
                     MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-                    String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
-                    List<PlayerEntity> players = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
-                    players.forEach(player -> {
-                        player.sendMessage(Text.translatable("Barrier change / Only " + SOUL.id.getPath().toUpperCase() + " damages."), true);
-                    });
 
                     ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                                if (this.getTarget() != null) {
-                                    this.performing = false;
-                                    this.getDataTracker().set(CASTINGBOOL, false);
-                                    this.spellSchool = SOUL;
-                                    for (ServerPlayerEntity player : PlayerLookup.tracking(this)) {
-                                        player.addStatusEffect(new StatusEffectInstance(Effects.DARK_MATTER.registryEntry, 200, 0));
-
-
-                                    }
-                                    OrbEntity orb = new OrbEntity(RPGMinibosses.ORBENTITY, this.getWorld());
-                                    orb.setOwner(this);
-                                    orb.setPosition(this.getTarget().getPos());
-                                    this.getWorld().spawnEntity(orb);
-
-                                    this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry, -1, 0));
-                                }
-
+                        if (this.getTarget() != null) {
+                            this.performing = false;
+                            this.getDataTracker().set(CASTINGBOOL, false);
+                            for (ServerPlayerEntity player : PlayerLookup.tracking(this)) {
+                                player.addStatusEffect(new StatusEffectInstance(Effects.DARK_MATTER.registryEntry, 200, 0));
                             }
-                    );
+                            OrbEntity orb = new OrbEntity(RPGMinibosses.ORBENTITY, this.getWorld());
+                            orb.setOwner(this);
+                            orb.setCastCount(darkMatterCastCount - 1);
+                            orb.setDeathStacks(contemptFulfilledStacks);
+                            orb.setPosition(this.getTarget().getPos());
+                            this.getWorld().spawnEntity(orb);
+                            this.activeDarkMatterOrb = orb;
+                        }
+                    });
                 }
-
             });
             this.casting_timer = 0;
             this.quickcast_timer -= 80;
-            this.darkmatter = 0;
-            this.performing = true;
         }
         if(!this.getWorld().isClient() && casting_timer > 120 && !this.performing && this.getTarget() != null ) {
             this.resetIndicator();
@@ -913,12 +1045,216 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
 
         if(!this.getWorld().isClient()) {
-            dash_attack_timer++;
-            quickcast_timer++;
-            casting_timer++;
-            jumptimer++;
-            darkmatter++;
+            if(this.getTarget()!= null) {
+                dash_attack_timer++;
+                quickcast_timer++;
+                casting_timer++;
+                jumptimer++;
+                darkmatter++;
 
+                int cycleInterval = Math.max(100, BASE_BARRIER_CYCLE_TICKS - disdainStacks * 10);
+                barrierCycleTimer++;
+                if (barrierCycleTimer >= cycleInterval && phase < 3) {
+                    barrierCycleTimer = 0;
+                    cycleElementIndex = (cycleElementIndex + 1) % BARRIER_CYCLE.length;
+                    this.spellSchool = BARRIER_CYCLE[cycleElementIndex];
+                    this.consecutiveWrongHits = 0;
+                    this.correctHitsThisCycle = 0;
+                    this.dominionTimer = 0;
+                    if (!this.hasStatusEffect(Effects.MAGUS_BARRIER.registryEntry)) {
+                        this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry, -1, 0));
+                    }
+                    List<PlayerEntity> nearbyPlayers = this.getWorld().getPlayers(TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
+                    nearbyPlayers.forEach(p -> p.sendMessage(Text.literal("Only " + this.spellSchool.id.getPath().toUpperCase() + " damages."), true));
+                }
+            }
+            if(this.getTarget()!= null) {
+                disdainTimer++;
+                if (disdainTimer >= 1200) {
+                    disdainTimer = 0;
+                    disdainStacks++;
+                    EntityAttributeInstance dmg = this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE);
+                    if (dmg != null) {
+                        dmg.removeModifier(DISDAIN_MODIFIER_ID);
+                        dmg.addPersistentModifier(new EntityAttributeModifier(
+                                DISDAIN_MODIFIER_ID, disdainStacks * 0.05, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                    }
+                }
+            }
+
+            if (this.getTarget()!= null && phase == 3) darkMatterTimer++;
+
+            // Dominion activation counter — per-school so overlap is possible
+            if (this.getTarget() != null && phase < 3) {
+                boolean currentSchoolActive =
+                        (spellSchool.equals(ARCANE) && !activeOrbEntities.isEmpty())
+                        || (spellSchool.equals(FROST) && frostDominionActive)
+                        || (spellSchool.equals(FIRE) && fireDominionActive)
+                        || (spellSchool.equals(LIGHTNING) && lightningDominionActive);
+                if (!currentSchoolActive && this.hasStatusEffect(Effects.MAGUS_BARRIER.registryEntry)) {
+                    dominionTimer++;
+                    if (dominionTimer >= DOMINION_ACTIVATION_TICKS) {
+                        activateDominion(spellSchool);
+                        dominionTimer = 0;
+                    }
+                }
+            }
+
+            // Per-dominion duration auto-expire at 2 * BASE_BARRIER_CYCLE_TICKS
+            int dominionMaxDuration = 2 * BASE_BARRIER_CYCLE_TICKS;
+            if (frostDominionActive) {
+                if (++frostDominionDuration >= dominionMaxDuration) {
+                    frostDominionActive = false; frostDominionDuration = 0; frostMeter.clear();
+                }
+            }
+            if (fireDominionActive) {
+                if (++fireDominionDuration >= dominionMaxDuration) {
+                    fireDominionActive = false; fireDominionDuration = 0;
+                }
+            }
+            if (lightningDominionActive) {
+                if (++lightningDominionDuration >= dominionMaxDuration) {
+                    lightningDominionActive = false; lightningDominionDuration = 0;
+                }
+            }
+            if (!activeOrbEntities.isEmpty()) {
+                if (++arcaneDominionDuration >= dominionMaxDuration) {
+                    activeOrbEntities.forEach(MagusDominionOrbEntity::discard);
+                    activeOrbEntities.clear(); arcaneDominionDuration = 0;
+                }
+            }
+
+            // Frost Dominion: circling blizzard ring + per-player meter
+            if (frostDominionActive) {
+                // Circling storm particles at aura radius, density scales with disdain
+                if (this.age % 2 == 0 && this.getWorld() instanceof ServerWorld sw) {
+                    int ringCount = 16 + disdainStacks * 8;
+                    double radius = 16.0;
+                    for (int i = 0; i < ringCount; i++) {
+                        double angle = this.age * 0.04 + i * (2 * Math.PI / ringCount);
+                        double px = this.getX() + Math.cos(angle) * radius;
+                        double pz = this.getZ() + Math.sin(angle) * radius;
+                        double py = this.getY() + 1.5 + Math.sin(this.age * 0.12 + i * 0.8) * 2.0;
+                        sw.spawnParticles(ParticleTypes.SNOWFLAKE, px, py, pz, 4, 0.3, 0.5, 0.3, 0.05);
+                    }
+                }
+                if (this.age % 2 == 0 && this.getWorld() instanceof ServerWorld sw) {
+                    int ringCount = 16 + disdainStacks * 8;
+                    double radius = 8.0;
+                    for (int i = 0; i < ringCount; i++) {
+                        double angle = this.age * 0.04 + i * (2 * Math.PI / ringCount);
+                        double px = this.getX() + Math.cos(angle) * radius;
+                        double pz = this.getZ() + Math.sin(angle) * radius;
+                        double py = this.getY() + 1.5 + Math.sin(this.age * 0.12 + i * 0.8) * 2.0;
+                        sw.spawnParticles(ParticleTypes.SNOWFLAKE, px, py, pz, 4, 0.3, 0.5, 0.3, 0.05);
+                    }
+                }
+                if (this.age % 2 == 0 && this.getWorld() instanceof ServerWorld sw) {
+                    int ringCount = 16 + disdainStacks * 8;
+                    double radius = 24.0;
+                    for (int i = 0; i < ringCount; i++) {
+                        double angle = this.age * 0.04 + i * (2 * Math.PI / ringCount);
+                        double px = this.getX() + Math.cos(angle) * radius;
+                        double pz = this.getZ() + Math.sin(angle) * radius;
+                        double py = this.getY() + 1.5 + Math.sin(this.age * 0.12 + i * 0.8) * 2.0;
+                        sw.spawnParticles(ParticleTypes.SNOWFLAKE, px, py, pz, 4, 0.3, 0.5, 0.3, 0.05);
+                    }
+                }
+                frostDominionTimer++;
+                int frostInterval = Math.max(4, 8 - disdainStacks / 5);
+                if (frostDominionTimer >= frostInterval) {
+                    frostDominionTimer = 0;
+                    List<PlayerEntity> nearFrost = this.getWorld().getPlayers(
+                            TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(24));
+                    for (PlayerEntity fp : nearFrost) {
+                        UUID pid = fp.getUuid();
+                        int meter = frostMeter.getOrDefault(pid, 0) + 1;
+                        if (meter >= 100) {
+                            fp.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 60, 2));
+                            if (contemptFulfilledStacks > 3) {
+                                fp.addStatusEffect(new StatusEffectInstance(StatusEffects.MINING_FATIGUE, 40, 0));
+                            }
+                            meter = 0;
+                        }
+                        frostMeter.put(pid, meter);
+                        // Frost particles proportional to meter fill
+                        if (meter > 0 && this.getWorld() instanceof ServerWorld sw) {
+                            int particleCount = Math.max(1, meter / 20);
+                            sw.spawnParticles(ParticleTypes.SNOWFLAKE,
+                                    fp.getX(), fp.getY() + 1.0, fp.getZ(),
+                                    particleCount, 0.4, 0.6, 0.4, 0.02);
+                        }
+                    }
+                }
+            }
+
+            // Fire Dominion: place up to 12 patches; assign to players first, fill remainder randomly
+            if (fireDominionActive) {
+                fireDominionTimer++;
+                int fireInterval = Math.max(80, 200 - disdainStacks * 5);
+                if (fireDominionTimer >= fireInterval) {
+                    fireDominionTimer = 0;
+                    Optional<RegistryEntry.Reference<Spell>> fireDominionSpell =
+                            SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "magus_fire_dominion"));
+                    if (fireDominionSpell.isPresent()) {
+                        List<PlayerEntity> nearFire = this.getWorld().getPlayers(
+                                TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
+                        int patchCount = Math.min(12, 2 + disdainStacks);
+                        SpellHelper.ImpactContext fireCtx = new SpellHelper.ImpactContext()
+                                .power(SpellPower.getSpellPower(FIRE, this));
+                        // Player-targeted patches
+                        int playerPatches = Math.min(patchCount, nearFire.size());
+                        for (int i = 0; i < playerPatches; i++) {
+                            Vec3d pos = nearFire.get(i).getPos();
+                            SpellHelper.placeCloud(this.getWorld(), this, nearFire.get(i), pos,
+                                    fireDominionSpell.get(), fireCtx.position(pos));
+                        }
+                        // Random fill for remaining patches
+                        for (int i = playerPatches; i < patchCount; i++) {
+                            double ang = this.getRandom().nextDouble() * 2 * Math.PI;
+                            double dist = 4 + this.getRandom().nextDouble() * 12;
+                            Vec3d pos = this.getPos().add(Math.cos(ang) * dist, 0, Math.sin(ang) * dist);
+                            PlayerEntity anchor = nearFire.isEmpty() ? null : nearFire.get(0);
+                            SpellHelper.placeCloud(this.getWorld(), this, anchor != null ? anchor : this, pos,
+                                    fireDominionSpell.get(), fireCtx.position(pos));
+                        }
+                    }
+                }
+            }
+
+            // Lightning Dominion: warn then strike player positions
+            if (lightningDominionActive) {
+                lightningDominionTimer++;
+                int lightningInterval = Math.max(60, 140 - disdainStacks * 4);
+                if (lightningDominionTimer >= lightningInterval) {
+                    lightningDominionTimer = 0;
+                    List<PlayerEntity> nearLightning = this.getWorld().getPlayers(
+                            TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
+                    for (PlayerEntity lp : nearLightning) {
+                        Vec3d strikePos = lp.getPos();
+                        if (this.getWorld() instanceof ServerWorld sw) {
+                            sw.spawnParticles(ParticleTypes.END_ROD,
+                                    strikePos.x, strikePos.y + 0.5, strikePos.z, 20, 0.3, 1.0, 0.3, 0.05);
+                        }
+                        ((WorldScheduler) this.getWorld()).schedule(25, () -> {
+                            if (this.getWorld() instanceof ServerWorld sw) {
+                                sw.spawnParticles(ParticleTypes.FLASH,
+                                        strikePos.x, strikePos.y, strikePos.z, 1, 0, 0, 0, 0);
+                                sw.spawnParticles(ParticleTypes.ELECTRIC_SPARK,
+                                        strikePos.x, strikePos.y + 0.5, strikePos.z, 30, 0.5, 0.5, 0.5, 0.1);
+                            }
+                            List<PlayerEntity> struck = this.getWorld().getEntitiesByType(
+                                    TypeFilter.instanceOf(PlayerEntity.class),
+                                    new Box(strikePos.x - 1.5, strikePos.y - 0.5, strikePos.z - 1.5,
+                                            strikePos.x + 1.5, strikePos.y + 3, strikePos.z + 1.5),
+                                    e -> true);
+                            struck.forEach(e -> e.damage(
+                                    this.getWorld().getDamageSources().magic(),
+                                    6.0f + contemptFulfilledStacks * 0.5f));
+                        });
+                    }
+                }
+            }
         }
         if(this.getTarget() != null) {
             this.getLookControl().lookAt(this.getTarget(),360,360);
@@ -961,6 +1297,35 @@ public class MagusPrimeEntity extends PathAwareEntity {
     public int darkmatter;
 
     public int jumptimer;
+    public int barrierCycleTimer = 0;
+    public int cycleElementIndex = 0;
+    public int consecutiveWrongHits = 0;
+    public float empowerMultiplier = 1.0f;
+    public int disdainStacks = 0;
+    public int disdainTimer = 0;
+    public int contemptFulfilledStacks = 0;
+    public int phase = 1;
+    public boolean transitioning = false;
+    public int correctHitsThisCycle = 0;
+    public int correctHitsRequired = 1;
+    public int darkMatterCooldown = 600;
+    public int darkMatterTimer = 0;
+    public int darkMatterCastCount = 0;
+    public boolean dominionActive = false;
+    public int dominionTimer = 0;
+    public boolean frostDominionActive = false;
+    public boolean fireDominionActive = false;
+    public boolean lightningDominionActive = false;
+    public int frostDominionTimer = 0;
+    public int fireDominionTimer = 0;
+    public int lightningDominionTimer = 0;
+    public int frostDominionDuration = 0;
+    public int fireDominionDuration = 0;
+    public int lightningDominionDuration = 0;
+    public int arcaneDominionDuration = 0;
+    private final Map<UUID, Integer> frostMeter = new HashMap<>();
+    private final List<MagusDominionOrbEntity> activeOrbEntities = new ArrayList<>();
+    public OrbEntity activeDarkMatterOrb = null;
     protected boolean teleportRandomly() {
         if (!this.getWorld().isClient() && this.isAlive()) {
             double d = this.getX() + (this.random.nextDouble() - 0.5) * 64.0;

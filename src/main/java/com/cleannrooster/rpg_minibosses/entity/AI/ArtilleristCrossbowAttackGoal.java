@@ -58,11 +58,10 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
         this.actor = actor;
         this.speed = speed;
         this.squaredRange = range * range;
-        this.setControls(EnumSet.of(Control.MOVE, Control.LOOK));
-    }
+        this.setControls(EnumSet.of(Control.LOOK));    }
 
     public boolean canStart() {
-        return !this.actor.getDataTracker().get(ArtilleristEntity.RUNNING) && this.hasAliveTarget() && this.isEntityHoldingCrossbow();
+        return  this.hasAliveTarget() && this.isEntityHoldingCrossbow() && !this.actor.moveAnalysis.isMoving();
     }
 
     private boolean isEntityHoldingCrossbow() {
@@ -70,7 +69,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     }
 
     public boolean shouldContinue() {
-        return !this.actor.getDataTracker().get(ArtilleristEntity.RUNNING) &&  this.hasAliveTarget() && (this.canStart()) && this.isEntityHoldingCrossbow();
+        return   this.hasAliveTarget() && (this.canStart()) && this.isEntityHoldingCrossbow() && !this.actor.moveAnalysis.isMoving();
     }
 
     private boolean hasAliveTarget() {
@@ -91,10 +90,11 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
     }
 
     public boolean shouldRunEveryTick() {
-        return false;
+        return true;
     }
 
     public void tick() {
+
         LivingEntity livingEntity = this.actor.getTarget();
         if (livingEntity != null && !this.actor.startRunning) {
 
@@ -115,9 +115,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 if(this.stage == Stage.CHARGING){
                     modifier *= 0.5F;
                 }
-                    this.actor.getNavigation().startMovingTo(livingEntity, this.speed*modifier);
             } else {
-                this.actor.getNavigation().stop();
                 if(livingEntity.distanceTo(this.actor) < 8 && this.stage != Stage.CHARGING){
 
                 }

@@ -71,6 +71,7 @@ public class RPGMinibossesClient implements ClientModInitializer {
 		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType, (context) ->{return new GeminiRenderer(context,GeminiRenderer.FIRE_TEXTURE);});
 		EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_BETA_UBER.entityType, (context) ->{return new GeminiRenderer(context,GeminiRenderer.FROST_TEXTURE);});
 		EntityRendererRegistry.register(RPGMinibossesEntities.STORM_ANCHOR, (context) -> new net.minecraft.client.render.entity.EmptyEntityRenderer<>(context));
+		EntityRendererRegistry.register(RPGMinibossesEntities.MAGUS_DOMINION_ORB, (context) -> new net.minecraft.client.render.entity.EmptyEntityRenderer<>(context));
 
 		EntityRendererRegistry.register(RPGMinibossesEntities.TRAP, TrapRenderer::new);
 

@@ -26,13 +26,11 @@ public class OrbRenderer extends AzEntityRenderer<OrbEntity> {
     @Override
     public void render(OrbEntity entity, float entityYaw, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight) {
         float scale = 4.0f;
-        if (entity.age < 40) {
-            scale = (float) (4.0 * (0.025 * (entity.age + partialTick)));
-        } else if (entity.age > 200) {
-            scale = (float) (4.0 - 4.0 * (0.025 * (entity.age + partialTick - 200)));
-        }
+
+            scale = (float) (4.0 * (0.025 * (Math.min(40,entity.age) + partialTick)));
+
         poseStack.push();
-        poseStack.scale(scale, scale, scale);
+        poseStack.scale(scale+2*entity.getSize(), (float) scale+2*entity.getSize(), (float) scale+2*entity.getSize());
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         poseStack.pop();
     }

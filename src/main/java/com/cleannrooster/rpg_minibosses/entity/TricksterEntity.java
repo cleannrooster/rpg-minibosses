@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.AI.RogueNodeMaker;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -46,7 +47,6 @@ import static net.spell_engine.utils.VectorHelper.angleBetween;
 
 public class TricksterEntity extends MinibossEntity{
     List<Item> bonusList = List.of();
-    private boolean ambushing;
 
     protected TricksterEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
@@ -114,7 +114,6 @@ public class TricksterEntity extends MinibossEntity{
                     ;}).toList();
         }
 
-
     }
     public boolean skipOffHand(){
         return true;
@@ -134,9 +133,8 @@ public class TricksterEntity extends MinibossEntity{
 
     @Override
     protected void initCustomGoals() {
-
-        this.goalSelector.add(2, new MeleeAttackGoal(this,1F,true));
-
+        this.brain = new RogueBrain(this);
+        this.goalSelector.add(2, new com.cleannrooster.rpg_minibosses.entity.brain.MobBrainGoal(this, brain));
         super.initCustomGoals();
     }
 
@@ -157,13 +155,7 @@ public class TricksterEntity extends MinibossEntity{
 
     }
 
-   public int pommelTick = 100;
-    public int rolltimer = 40;
-    public int defensetimer;
-    public int defensetime = 80;
-    public int dashtimer = 80;
-
-    public int throwtimer;
+    public int pommelTick = 100;
 /*
     public static final RawAnimation THROW1 = RawAnimation.begin().then("animation.mob.throw1", Animation.LoopType.PLAY_ONCE);
     public static final RawAnimation THROW2 = RawAnimation.begin().then("animation.mob.throw2", Animation.LoopType.PLAY_ONCE);
@@ -175,87 +167,13 @@ public class TricksterEntity extends MinibossEntity{
 
     @Override
     protected void mobTick() {
-
-
-
-        if (this.getTarget() != null) {
-            this.getLookControl().lookAt(this.getTarget(),360,360);
-        }
-        if(!this.getWorld().isClient() && rolltimer > 80 &&  this.getTarget() != null && this.isAttacking()) {
-           dispatcher.roll();
-                this.addVelocity(this.getRotationVector().multiply(2F));
-
-            this.rolltimer = 80 - (int)(180*this.getCooldownCoeff());
-        }
-
-        if(pommelTick == 120){
-            this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
-
-        }
-        if(!this.getWorld().isClient()){
-            pommelTick++;
-            rolltimer++;
-            dashtimer++;
-            defensetimer++;
-            throwtimer++;
-        }
-        if(defensetimer >= 0 && !this.getWorld().isClient()){
-            if(this.getTarget()  != null && this.canSee(this.getTarget()) ){
-
-                if( this.getTarget().distanceTo(this) > 4){
-                }
-                else{
-                    ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2.5F, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.75F);
-
-                }
-                if(!this.getWorld().isClient() && throwtimer > 80 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) > 4) {
-                    this.resetIndicator();
-                    dispatcher.setPrepare();
-
-                    ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-
-                        dispatcher.throw1();
-                        if (this.getTarget() != null) {
-                            this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.getTarget().getEyePos());
-                        }
-                        SoundHelper.playSound(this.getWorld(), this, new Sound(Identifier.of("minecraft:entity.player.attack.sweep")));
-                        SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).get(),
-                                new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
-
-                        ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
-
-                        ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                            dispatcher.throw2();
-                            this.performing = false;
-                            if (this.getTarget() != null) {
-                                this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.getTarget().getEyePos());
-                            }
-                            SoundHelper.playSound(this.getWorld(), this, new Sound(Identifier.of("minecraft:entity.player.attack.sweep")));
-
-                            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).get(),
-                                    new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, this)).position(this.getPos()));
-
-                            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "knifethrow")).release.particles);
-
-                        });
-
-                    });
-                    this.throwtimer = 80 - (int)(180*this.getCooldownCoeff());
-                    this.performing = true;
-                }
-
-            }
-            if(this.defensetimer > defensetime){
-                this.defensetimer = -80 - this.getRandom().nextInt(80);
-                this.defensetime = 80 + this.getRandom().nextInt(80);
-            }
-        }
-        if(!this.ambushing && this.getTarget() != null && this.distanceTo(this.getTarget()) > 12){
-            this.ambushing = true;
-
-        }
         super.mobTick();
-
+        if (!this.getWorld().isClient()) {
+            pommelTick++;
+        }
+        if (pommelTick == 120) {
+            this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
+        }
     }
 
     @Override
@@ -265,7 +183,8 @@ public class TricksterEntity extends MinibossEntity{
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if(!this.getDataTracker().get(DOWN) &&  amount > 4 && !this.getWorld().isClient() && this.defensetimer > 0 && dashtimer > 80 && !this.performing && this.getTarget() != null  ) {
+        if(!this.getDataTracker().get(DOWN) && amount > 4 && !this.getWorld().isClient() && !this.performing && this.getTarget() != null
+                && brain instanceof com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain rb && rb.tryDodge()) {
             if(this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ) {
                 dispatcher.dashleft();
                 this.setVelocity(this.getRotationVector().crossProduct(new Vec3d(0,-1,0)).multiply(2));
@@ -282,8 +201,6 @@ public class TricksterEntity extends MinibossEntity{
 
                     }
             );
-            this.dashtimer = 0;
-            this.defensetimer += 40;
             this.performing = true;
             this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
             return false;
@@ -306,8 +223,6 @@ public class TricksterEntity extends MinibossEntity{
     }
     @Override
     public boolean tryAttack(Entity target) {
-        this.ambushing = false;
-
         if(pommelTick > 120){
 
             dispatcher.setPommelstrike();

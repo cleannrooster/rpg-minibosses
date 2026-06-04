@@ -17,7 +17,7 @@
     {
       "required_piece_count": 2,
       "spells": {
-        "content": "ANY",
+        "access": "ANY",
         "spell_ids": [
           "rpg-minibosses:foxshade"
         ]

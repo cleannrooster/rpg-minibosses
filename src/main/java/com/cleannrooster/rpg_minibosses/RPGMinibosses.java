@@ -19,6 +19,10 @@ import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.minecraft.entity.attribute.EntityAttributeInstance;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.*;
@@ -55,10 +59,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.state.property.Properties;
 import net.minecraft.test.StructureTestUtil;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.*;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -187,6 +188,7 @@ public class RPGMinibosses implements ModInitializer {
 						.trackedUpdateRate(1)
 						.build()
 		);
+        CustomModels.registerModelIds(List.of(Identifier.of("rpg-minibosses:projectile/iron_dagger")));
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal("spawnAnarchyPatrol").requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
 				.executes((ctx) -> {
 					// For versions below 1.19, replace "Text.literal" with "new LiteralText".
@@ -274,6 +276,26 @@ public class RPGMinibosses implements ModInitializer {
 					}
 					return 1;
 				})));
+
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+            if (entity instanceof ServerPlayerEntity player) {
+                entity.getWorld().getEntitiesByType(
+                        TypeFilter.instanceOf(MagusPrimeEntity.class),
+                        entity.getBoundingBox().expand(64),
+                        magus -> true
+                ).forEach(magus -> {
+                    magus.contemptFulfilledStacks++;
+                    EntityAttributeInstance atkSpeed = magus.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_SPEED);
+                    if (atkSpeed != null) {
+                        atkSpeed.removeModifier(MagusPrimeEntity.CONTEMPT_ATKSPEED_ID);
+                        atkSpeed.addPersistentModifier(new EntityAttributeModifier(
+                                MagusPrimeEntity.CONTEMPT_ATKSPEED_ID,
+                                magus.contemptFulfilledStacks * 0.04,
+                                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                    }
+                });
+            }
+        });
 
 		Patrol.patrolList.add(new Patrol());
 		RPGMinibossesBlocks.register();

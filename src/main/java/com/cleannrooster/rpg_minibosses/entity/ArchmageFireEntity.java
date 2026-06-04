@@ -4,6 +4,8 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.FireMageBrain;
+import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.tag.FabricTagKey;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
@@ -54,21 +56,17 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ArchmageFireEntity extends MinibossEntity  {
-    private int throwtimer = 20;
-    private int jumptimer = 100;
-    private int novatimer = 100;
-    private int feathertimer = 160;
     public List<Item> bonusList = new ArrayList<>();
 
     protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
+
         super.bonusList = Registries.ITEM.stream().filter(item -> {return
                 (new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_2_weapons")))
                         ||new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_3_weapons")))
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_4_weapons")))
                         || new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","loot_tier/tier_5_weapons"))))
                         && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
-        this.moveControl = new MinibossMoveConrol(this);
     }
     protected ArchmageFireEntity(EntityType<? extends PathAwareEntity> entityType, World world, boolean lesser) {
         super(entityType, world);
@@ -91,7 +89,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
                             && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
 
         }
-        this.moveControl = new MinibossMoveConrol(this);
 
     }
 
@@ -116,7 +113,6 @@ public class ArchmageFireEntity extends MinibossEntity  {
                             && new ItemStack(item).isIn(TagKey.of(RegistryKeys.ITEM,Identifier.of("rpg_series","weapon_type/damage_staff")));}).toList();
 
         }
-        this.moveControl = new MinibossMoveConrol(this);
 
     }
     public boolean skipOffHand(){
@@ -137,8 +133,9 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     protected void initCustomGoals() {
-        this.goalSelector.add(2, new GoToWalkTargetGoal(this,1));
+        this.brain = new FireMageBrain(this);
 
+        this.goalSelector.add(2, new com.cleannrooster.rpg_minibosses.entity.brain.MobBrainGoal(this, brain));
         super.initCustomGoals();
     }
     @Override
@@ -171,135 +168,7 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     protected void mobTick() {
-
-        if(this.getTarget() != null && this.canSee(this.getTarget()) ) {
-            if( this.getTarget().distanceTo(this) > 8){
-                this.getMoveControl().moveTo(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ(), 1F);
-            }
-            else{
-                ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-0.5F,this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ? -0.5F : 0.5F,0.5F);
-
-            }
-            if (this.getTarget() != null) {
-                this.getLookControl().lookAt(this.getTarget(),360,360);
-            }
-        }
-        if(!this.getWorld().isClient() && jumptimer > 160 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) < 4 ) {
-            if(this.getTarget() != null) {
-                this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
-            }
-            Vec3d vec31 = new Vec3d(-this.getTarget().getX() + this.getX(), 0, -this.getTarget().getZ() + this.getZ());
-            Vec3d vec3 = new Vec3d(vec31.normalize().x * 1, 0.5, vec31.normalize().z * 1);
-            this.setPosition(this.getPos().add(0, 0.2, 0));
-            this.setOnGround(false);
-            this.setVelocity(vec3);
-            this.jumptimer = 320 - (int)(320*this.getCooldownCoeff());
-        }
-        if(!this.getWorld().isClient() && throwtimer > 40 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
-           //(this).triggerAnimtriggerAnim("throw1","throw1");
-            dispatcher.throw1();
-            if(this.getTarget() != null && this.canSee(this.getTarget())) {
-                this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
-            }
-            SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-            SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).get(),
-                    new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
-
-            ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
-
-            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-               //(this).triggerAnimtriggerAnim("throw2","throw2");
-                dispatcher.throw2();
-                this.performing = false;
-                if(this.getTarget() != null) {
-                    this.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES,this.getTarget().getEyePos());
-                }
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).get(),
-                           new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
-
-                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fireball")).release.particles);
-
-            });
-
-
-            this.throwtimer = 40 - (int)(40*this.getCooldownCoeff());
-            this.performing = true;
-        }
-        if(!this.getWorld().isClient() && feathertimer > 320 && !this.performing && this.getTarget() != null && this.canSee(this.getTarget())  && this.distanceTo(this.getTarget()) > 4) {
-            this.resetIndicator();
-            if (this.getMoveControl().isMoving()) {
-                //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
-                dispatcher.setWalkwave();
-            } else {
-                //(this).triggerAnim.triggerAnim("wave", "wave");
-                dispatcher.setWAVE_1h();
-            }
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_volley")).release.particles);
-
-            });
-            ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"fire_volley")).release.particles);
-
-            });
-            ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-
-
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-                SpellHelper.shootProjectile(this.getWorld(), this, this.getTarget(), SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID,"lesser_fire_volley")).get(),
-                        new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,this)).position(this.getPos()));
-
-                ParticleHelper.sendBatches(this,SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID,"lesser_fire_volley")).release.particles);
-
-                this.performing = false;
-
-            });
-            this.feathertimer = 320 - (int)(320*this.getCooldownCoeff());
-            this.performing = true;
-        }
-        if(!this.getWorld().isClient() && novatimer > 220 && !this.performing && this.getTarget() != null  && this.canSee(this.getTarget()) && this.distanceTo(this.getTarget()) < 6) {
-            this.resetIndicator();
-            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-
-                if (this.getMoveControl().isMoving()) {
-                    //(this).triggerAnim.triggerAnim("walk_wave", "walk_wave");
-                    dispatcher.setWalkwave();
-                } else {
-                    //(this).triggerAnim.triggerAnim("wave", "wave");
-                    dispatcher.setWAVE_1h();
-                }
-                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                                boolean bool = SpellHelper.performImpacts(this.getWorld(), this, entity, this, SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).get(),
-                                        SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).impacts, new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
-
-                            }
-
-                            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.MOD_ID, "fire_nova")).release.particles);
-                            this.performing = false;
-
-                        }
-                );
-            });
-            this.novatimer = 220 - (int)(220*this.getCooldownCoeff());
-            this.performing = true;
-        }
-        if(!this.getWorld().isClient()){
-            jumptimer++;
-            throwtimer++;
-            feathertimer++;
-            novatimer++;
-        }
         super.mobTick();
-
     }
 
 

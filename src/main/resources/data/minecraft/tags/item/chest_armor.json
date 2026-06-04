@@ -1,6 +1,12 @@
 {
   "values": [
-    "rpg-minibosses:trickster_chest",
-    "rpg-minibosses:juggernaut_chest"
+    {
+      "id": "rpg-minibosses:trickster_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:juggernaut_chest",
+      "required": false
+    }
   ]
 }
