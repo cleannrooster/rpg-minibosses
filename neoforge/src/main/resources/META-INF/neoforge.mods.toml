@@ -1,0 +1,59 @@
+modLoader = "javafml"
+loaderVersion = "*"
+license = "CC0-1.0"
+issueTrackerURL = "https://github.com/FabricMC/fabric-example-mod"
+
+[[mixins]]
+config = "rpg-minibosses.mixins.json"
+
+[[mods]]
+modId = "${neoforge_mod_id}"
+version = "${version}"
+displayName = "ANARCHY - RPG Minibosses"
+authors = "cleannrooster/Forg!"
+description = '''
+Find petrified adventurers in the wild!
+'''
+logoFile = "assets/rpg-minibosses/icon.png"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,1.22)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "spell_engine"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "spell_power"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "azurelib"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "accessories"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

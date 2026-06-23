@@ -1,0 +1,66 @@
+architectury {
+    common rootProject.enabled_platforms.split(',')
+}
+
+// Fabric datagen writes here (configured in :fabric); include it as a common resource source so
+// generated assets/data are bundled into BOTH loader jars via the Architectury transform.
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/main/generated'
+        }
+    }
+}
+
+// Matches the pre-migration single-module build: hand-authored and generated trees both contribute
+// to a few shared vanilla tag paths (e.g. data/minecraft/tags/item/chest_armor.json). INCLUDE keeps
+// the original behavior (generated source, added last, wins). NOTE: those two tag files are
+// complementary in intent; merging them is tracked as a follow-up datapack cleanup.
+tasks.withType(Copy).configureEach { duplicatesStrategy = DuplicatesStrategy.INCLUDE }
+
+// Common compiles against a single "dummy" platform's mod artifacts. Fabric is chosen because
+// the existing codebase + Spell Engine ecosystem are written against Fabric/Yarn names, which
+// remap correctly into each loader artifact.
+def platform = "fabric"
+
+repositories {
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://maven.kosmx.dev/' }
+    maven { url 'https://maven.shedaniel.me/' }
+    maven { url 'https://maven.azuredoom.com/mods' }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven { name = 'Ladysnake Libs'; url = 'https://maven.ladysnake.org/releases' }
+    maven { url 'https://maven.wispforest.io/releases' }
+    maven { url 'https://maven.su5ed.dev/releases' }
+    maven { url 'https://maven.fabricmc.net' }
+    mavenLocal()
+}
+
+dependencies {
+    // Fabric Loader is used only for @Environment annotations (remapped per-platform) and the
+    // Fabric API interfaces that are mirrored by Forgified Fabric API on NeoForge.
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
+
+    // Spell Engine ecosystem (Modrinth, loader-suffixed)
+    modImplementation "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"
+    modImplementation "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
+    modImplementation "maven.modrinth:tiny-config:${rootProject.tiny_config_version}-${platform}"
+    modImplementation "dev.kosmx.player-anim:player-animation-lib-${platform}:${rootProject.player_anim_version}"
+    modImplementation "me.shedaniel.cloth:cloth-config-${platform}:${rootProject.cloth_config_version}"
+
+    // Content / library deps
+    modImplementation "mod.azure.azurelib:azurelib-${platform}-${rootProject.minecraft_version}:${rootProject.azure_lib_version}"
+    modImplementation "maven.modrinth:structure-pool-api:${rootProject.structure_pool_api_version_fabric}-${platform}"
+    modCompileOnly "maven.modrinth:wizards:${rootProject.wizards_version}-${platform}"
+    modCompileOnly "maven.modrinth:runes:${rootProject.runes_version}-${platform}"
+
+    // NOTE: Trinkets (Fabric-only) and StructurePlacerAPI (Fabric-only) are intentionally NOT
+    // common dependencies. Their usages are isolated behind platform interfaces:
+    //   - Fabric impl uses Trinkets / StructurePlacerAPI (declared in :fabric)
+    //   - NeoForge impl uses Accessories / a vanilla-template stub (declared in :neoforge)
+}
