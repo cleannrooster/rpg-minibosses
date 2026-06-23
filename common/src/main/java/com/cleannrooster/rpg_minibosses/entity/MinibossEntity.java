@@ -558,9 +558,26 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         super.setAiDisabled(aiDisabled);
     }
 
+    /**
+     * Set when this miniboss is placed by a worldgen encounter feature. Mirrors realmwalker's
+     * structure-spawn flag: it forces {@link #isPersistent()} (so the boss never despawns or has
+     * spawn-eligibility trouble after chunk reload) and is serialized in NBT so persistence survives
+     * save/load rather than relying on a one-shot {@code setPersistent()} call at spawn time.
+     */
+    private boolean fromStructure;
+
+    /** Flag this miniboss as structure-spawned, making it persistent for the encounter. */
+    public void markFromStructure() {
+        this.fromStructure = true;
+    }
+
+    public boolean isFromStructure() {
+        return this.fromStructure;
+    }
+
     @Override
     public boolean isPersistent() {
-        return super.isPersistent();
+        return this.fromStructure || super.isPersistent();
     }
 
     @Override
@@ -1039,6 +1056,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         }
         nbt.putBoolean("Sitting", this.sitting);
         nbt.putBoolean("cantHire", this.getDataTracker().get(CANTHIRE));
+        nbt.putBoolean("FromStructure", this.fromStructure);
 
     }
     protected TradeOfferList offers;
@@ -1092,6 +1110,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         }
         this.getDataTracker().set(CANTHIRE,cantHire);
         this.sitting = nbt.getBoolean("Sitting");
+        this.fromStructure = nbt.getBoolean("FromStructure");
 
     }
     static {

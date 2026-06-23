@@ -53,6 +53,7 @@ import net.minecraft.world.World;
 import net.spell_engine.api.config.ConfigFile;
 import net.spell_engine.api.render.CustomModels;
 import net.spell_engine.api.spell.event.SpellHandlers;
+import net.spell_engine.rpg_series.loot.LootConfig;
 import net.tiny_config.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static net.minecraft.registry.Registries.ENTITY_TYPE;
+import static net.spell_engine.rpg_series.config.Defaults.itemLootConfig;
 
 /**
  * Loader-independent core. Does NOT implement {@code ModInitializer} / NeoForge entrypoint types.
@@ -162,6 +164,34 @@ public final class RPGMinibosses {
                         .trackedUpdateRate(1)
                         .build()
         );
+        String W1 = "#rpg_series:loot_tier/tier_1_weapons";
+        String W2 = "#rpg_series:loot_tier/tier_2_weapons";
+        String W3 = "#rpg_series:loot_tier/tier_3_weapons";
+        String   A2 = "#rpg_series:loot_tier/tier_2_armors";
+        String   X2 = "#rpg_series:loot_tier/tier_2_accessories";
+        String   R2 = "#rpg_series:loot_tier/tier_2_relics";
+        for(RPGMinibossesEntities.Entry entry : RPGMinibossesEntities.entries) {
+            if(entry.shouldSpawn){
+                itemLootConfig.injectors.put("rpg-minibosses:entities/"+entry.id.getPath(),
+                        new LootConfig.Pool().bonus_rolls(0.2F).rolls(2)
+                                .add(W1, true,3)
+                                .add(W2, true,3)
+                                .add(A2, true,2)
+                                .add(X2)
+                                .add(R2))
+                ;
+            }
+            else{
+                itemLootConfig.injectors.put("rpg-minibosses:entities/"+entry.id.getPath(),
+                        new LootConfig.Pool().bonus_rolls(0.2F).rolls(2)
+                                .add(W2, true,3)
+                                .add(W3, true,3)
+
+                                .add(A2, true,2)
+                                .add(X2)
+                                .add(R2));
+            }
+        }
     }
 
     /** BLOCK phase. */
@@ -174,7 +204,18 @@ public final class RPGMinibosses {
         Effects.register();
     }
 
-    /** ITEM phase. Requires entity types (spawn eggs / summon items) and blocks (block items). */
+    /** FEATURE phase. Adds the shared miniboss-encounter worldgen feature. */
+    public static void registerFeatures() {
+        com.cleannrooster.rpg_minibosses.worldgen.MinibossEncounters.registerFeature();
+    }
+
+    /**
+     * ITEM phase. Per the artificers baseline (same author/ecosystem), NeoForge accepts armor-material
+     * (static-init), item-group, and item registration all within the ITEM {@code RegisterEvent} — so
+     * spawn eggs, summon items, weapons, armors, armor materials AND the creative tabs are registered
+     * here rather than split across separate phases (which is what caused the frozen-registry crash).
+     * Requires entity types (spawn eggs / summon items) and blocks (block items) to already exist.
+     */
     public static void registerItems() {
         RPGMinibossesBlocks.registerBlockItems();
         RPGMinibossesEntities.registerSpawnEggs();
@@ -194,11 +235,15 @@ public final class RPGMinibosses {
 
         Armors.register(itemConfig.value.weapons);
         Armors.registerArmors(itemConfig.value.armor_sets);
-    }
 
-    /** ITEM_GROUP phase. Requires items to exist. */
-    public static void registerItemGroup() {
+        // Creative tab (ITEM_GROUP) registered in-phase, like artificers — icon needs items above.
         RPGMinibossesEntities.registerItemGroup();
+        ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> {
+            content.add(LAVOSHORN);
+            content.add(GEMINI);
+            content.add(DEATOMIZED_FRAGMENT);
+        });
+        RPGMinibossesBlocks.addToItemGroup();
     }
 
     // ── Event / handler registration (no registry mutation; FFAPI-backed on NeoForge) ─────
@@ -231,16 +276,16 @@ public final class RPGMinibosses {
             // Only inject the village if Lithostitched is not present.
             StructurePoolAPI.injectAll(villageConfig.value);
         }
+        // Add the miniboss encounter placed features to their preferred biomes (loader-agnostic via FFAPI).
+        com.cleannrooster.rpg_minibosses.worldgen.MinibossEncounters.injectBiomes();
     }
 
     private static void registerEvents() {
+        // Deferred miniboss-encounter spawns: feature records the marker, this spawns it on chunk load.
+        com.cleannrooster.rpg_minibosses.worldgen.MinibossEncounterSpawnManager.register();
+
         // Creative-tab additions for the summon items (callback re-reads the static fields at fire time).
-        ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> {
-            content.add(LAVOSHORN);
-            content.add(GEMINI);
-            content.add(DEATOMIZED_FRAGMENT);
-        });
-        RPGMinibossesBlocks.addToItemGroup();
+
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("spawnAnarchyPatrol")

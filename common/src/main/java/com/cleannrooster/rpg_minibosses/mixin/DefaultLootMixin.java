@@ -9,36 +9,5 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Defaults.class)
 public class DefaultLootMixin {
-    private static  String W1 = "#rpg_series:loot_tier/tier_1_weapons";
-    private static  String W2 = "#rpg_series:loot_tier/tier_2_weapons";
-    private static  String W3 = "#rpg_series:loot_tier/tier_3_weapons";
-    private  static String   A2 = "#rpg_series:loot_tier/tier_2_armors";
-    private  static String   X2 = "#rpg_series:loot_tier/tier_2_accessories";
-    private  static String   R2 = "#rpg_series:loot_tier/tier_2_relics";
-    @Shadow
-    public static LootConfig itemLootConfig;
-    static {
-        for(RPGMinibossesEntities.Entry entry : RPGMinibossesEntities.entries) {
-            if(entry.shouldSpawn){
-                itemLootConfig.injectors.put("rpg-minibosses:entities/"+entry.id.getPath(),
-                        new LootConfig.Pool().bonus_rolls(0.2F).rolls(2)
-                                .add(W1, true,3)
-                                .add(W2, true,3)
-                                .add(A2, true,2)
-                                .add(X2)
-                                .add(R2))
-                ;
-            }
-            else{
-                    itemLootConfig.injectors.put("rpg-minibosses:entities/"+entry.id.getPath(),
-                            new LootConfig.Pool().bonus_rolls(0.2F).rolls(2)
-                                    .add(W2, true,3)
-                                    .add(W3, true,3)
 
-                                    .add(A2, true,2)
-                                    .add(X2)
-                                    .add(R2));
-            }
-        }
-    }
 }

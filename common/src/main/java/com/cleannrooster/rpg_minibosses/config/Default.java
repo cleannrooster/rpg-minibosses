@@ -1,6 +1,5 @@
 package com.cleannrooster.rpg_minibosses.config;
 
-import com.cleannrooster.rpg_minibosses.item.Armors;
 import net.fabric_extras.structure_pool.api.StructurePoolConfig;
 import net.spell_engine.api.config.ConfigFile;
 import net.spell_engine.rpg_series.item.Weapon;
@@ -33,12 +32,7 @@ public class Default {
                         new StructurePoolConfig.Entry.Structure("rpg-minibosses:village/generic/wanted", 10, limit))
                 ))
         ));
-        Iterator var0 = Armors.entries.iterator();
 
-        while(var0.hasNext()) {
-            Weapon.Entry weapon = (Weapon.Entry)var0.next();
-            itemConfig.weapons.put(weapon.name(), weapon.defaults());
-        }
 
 
 

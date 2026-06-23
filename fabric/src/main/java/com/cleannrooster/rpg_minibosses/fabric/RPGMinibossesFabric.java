@@ -22,8 +22,8 @@ public final class RPGMinibossesFabric implements ModInitializer {
         RPGMinibosses.registerEntities();
         RPGMinibosses.registerBlocks();
         RPGMinibosses.registerEffects();
-        RPGMinibosses.registerItems();
-        RPGMinibosses.registerItemGroup();
+        RPGMinibosses.registerFeatures();
+        RPGMinibosses.registerItems(); // also registers armor materials + creative tabs
 
         RPGMinibosses.init();
     }

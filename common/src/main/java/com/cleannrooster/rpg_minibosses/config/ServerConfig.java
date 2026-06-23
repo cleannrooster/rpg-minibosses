@@ -29,6 +29,9 @@ public class ServerConfig  implements ConfigData {
     @Comment("Minibosses can spawn in the Nether")
     public boolean hell = true;
 
+    @Comment("Spawn the miniboss inside its worldgen encounter structure. When false, the structures still generate but spawn empty.")
+    public boolean structureEncounterSpawns = true;
+
     @Comment("Chance for Forsaken Templars to spawn naturally")
     public  float templarGreater = 1.0F;
     @Comment("Forsaken Templar maxHealth ")

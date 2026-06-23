@@ -1,0 +1,6 @@
+{
+  "type": "rpg-minibosses:miniboss_encounter",
+  "config": {
+    "encounter": "desecrated_chapel"
+  }
+}
