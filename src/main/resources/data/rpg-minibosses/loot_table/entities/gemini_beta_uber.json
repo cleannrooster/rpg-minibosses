@@ -4,10 +4,7 @@
     {
       "rolls": 1,
       "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:tabula_rasa"
-        },
+
         {
           "type": "minecraft:item",
           "name": "rpg-minibosses:abberraths_hooves"

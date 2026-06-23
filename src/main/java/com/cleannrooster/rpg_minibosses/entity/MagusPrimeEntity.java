@@ -376,11 +376,38 @@ public class MagusPrimeEntity extends PathAwareEntity {
             tickIndicator();
 
         }
-        if(this.getWorld().isClient){
+        if (this.getWorld().isClient) {
             setRotationFromVelocity(this);
-
+            tickHeadRotation();
         }
 
+    }
+
+    @Environment(value = EnvType.CLIENT)
+    private void tickHeadRotation() {
+        MinibossLookControl lc = (MinibossLookControl) this.lookControl;
+        if (lc.lookAtTimer > 0) {
+            double dx = lc.x - this.getX();
+            double dz = lc.z - this.getZ();
+            if (Math.abs(dx) > 1.0E-7 || Math.abs(dz) > 1.0E-7) {
+                float targetYaw = (float)(MathHelper.atan2(dz, dx) * 57.2957763671875) - 90.0F;
+                float sub = MathHelper.subtractAngles(this.headYaw, targetYaw);
+                this.headYaw = this.headYaw + MathHelper.clamp(sub, -lc.maxYawChange, lc.maxYawChange);
+            }
+            double dy = lc.y - this.getEyeY();
+            double horiz = Math.sqrt(dx * dx + dz * dz);
+            if (Math.abs(dy) > 1.0E-7 || horiz > 1.0E-7) {
+                float targetPitch = (float)(-(MathHelper.atan2(dy, horiz) * 57.2957763671875));
+                float sub = MathHelper.subtractAngles(this.getPitch(), targetPitch);
+                this.setPitch(this.getPitch() + MathHelper.clamp(sub, -lc.maxPitchChange, lc.maxPitchChange));
+            }
+        } else {
+            float headTarget = this.getNavigation().isIdle() ? this.bodyYaw : this.getYaw();
+            float sub = MathHelper.subtractAngles(this.headYaw, headTarget);
+            this.headYaw = this.headYaw + MathHelper.clamp(sub, -10.0F, 10.0F);
+        }
+        this.headYaw = MathHelper.clampAngle(this.headYaw, this.bodyYaw, 35.0F);
+        this.prevHeadYaw = this.headYaw;
     }
 
     @Override
@@ -826,28 +853,18 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
 
         public void tick() {
+            if (this.entity.getWorld().isClient()) return; // handled in MagusPrimeEntity.tickHeadRotation()
             if (this.lookAtTimer > 0) {
-
                 this.getTargetYaw().ifPresent((yaw) -> {
                     this.entity.setHeadYaw(this.changeAngle(this.entity.headYaw, yaw, this.maxYawChange));
-                    this.entity.setYaw((this.changeAngle(this.entity.getYaw(),yaw,this.maxYawChange)));
+                    this.entity.setYaw(this.changeAngle(this.entity.getYaw(), yaw, this.maxYawChange));
                     this.entity.prevHeadYaw = this.entity.headYaw;
                 });
                 this.getTargetPitch().ifPresent((pitch) -> {
                     this.entity.setPitch(this.changeAngle(this.entity.getPitch(), pitch, this.maxPitchChange));
                     this.entity.prevPitch = this.entity.getPitch();
-
-                });  } else {
-                this.entity.headYaw = this.changeAngle(this.entity.headYaw, this.entity.bodyYaw, 10.0F);
+                });
             }
-
-            this.clampHeadYaw();
-        }
-        protected void clampHeadYaw() {
-            if (!this.entity.getNavigation().isIdle()) {
-                this.entity.headYaw = MathHelper.clampAngle(this.entity.headYaw, this.entity.bodyYaw, (float)this.entity.getMaxHeadRotation());
-            }
-
         }
 
         protected boolean shouldStayHorizontal() {
@@ -1267,26 +1284,21 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
     @Environment(value = EnvType.CLIENT)
     public static void setRotationFromVelocity(Entity entity) {
-        Vec3d vec3d = entity.getVelocity();
-        if (vec3d.lengthSquared() != 0.0 && entity instanceof PathAwareEntity pathAwareEntity) {
+        Vec3d vel = entity.getVelocity();
+        if (vel.horizontalLengthSquared() > 1.0E-7 && entity instanceof PathAwareEntity pathAwareEntity) {
+            float movDirYaw = (float)(MathHelper.atan2(vel.z, vel.x) * 57.2957763671875) - 90.0F;
+            float diff = MathHelper.subtractAngles(movDirYaw, pathAwareEntity.getYaw());
+            float targetBodyYaw = Math.abs(diff) > 90.0F ? movDirYaw + 180.0F : movDirYaw;
 
-            vec3d = pathAwareEntity.getVelocity().multiply(-1);
-            double d = vec3d.horizontalLength();
-            float yaw = (float)(MathHelper.atan2(vec3d.z, vec3d.x) * 57.2957763671875) + 90.0F;
-            yaw = MathHelper.clamp(yaw,pathAwareEntity.headYaw -70, pathAwareEntity.headYaw+70);
-
-
-
-            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw < -180.0F) {
-                ((PathAwareEntity) entity).prevBodyYaw -= 360.0F;
+            while (targetBodyYaw - pathAwareEntity.prevBodyYaw < -180.0F) {
+                pathAwareEntity.prevBodyYaw -= 360.0F;
+            }
+            while (targetBodyYaw - pathAwareEntity.prevBodyYaw >= 180.0F) {
+                pathAwareEntity.prevBodyYaw += 360.0F;
             }
 
-            while(yaw -  ((PathAwareEntity) entity).prevBodyYaw >= 180.0F) {
-                ((PathAwareEntity) entity).prevBodyYaw += 360.0F;
-            }
-
-            ((PathAwareEntity) entity).bodyYaw = (MathHelper.lerp(0.2F, (((PathAwareEntity) entity).prevBodyYaw), yaw));
-            ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
+            pathAwareEntity.bodyYaw = MathHelper.lerp(0.2F, pathAwareEntity.prevBodyYaw, targetBodyYaw);
+            pathAwareEntity.prevBodyYaw = pathAwareEntity.bodyYaw;
         }
     }
     private boolean performing;

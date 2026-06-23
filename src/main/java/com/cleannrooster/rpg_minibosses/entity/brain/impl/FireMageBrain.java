@@ -57,6 +57,8 @@ public class FireMageBrain extends MobBrain {
     private int   targetStationaryTicks = 0;
     private Vec3d prevTargetPos;
 
+    private boolean strafingAway = false;
+
     private final ArchmageFireEntity archmage;
 
     public FireMageBrain(ArchmageFireEntity entity) {
@@ -119,6 +121,7 @@ public class FireMageBrain extends MobBrain {
         boolean canSee = stimulus.lineOfSightToTarget;
 
         // Movement: approach if far, strafe if in optimal range
+        strafingAway = false;
         if (dist > 8) {
             entity.getNavigation().startMovingTo(
                 entity.getTarget().getX(),
@@ -135,7 +138,7 @@ public class FireMageBrain extends MobBrain {
             fireNova();
         } else if (dist > 4 && targetStationaryTicks >= 12 && cooldowns.isReady("fire_volley")) {
             fireVolley();
-        } else if (dist > 4 && cooldowns.isReady("fireball")) {
+        } else if (dist > 4 && cooldowns.isReady("fireball") && !strafingAway) {
             fireFireball();
         }
     }
@@ -267,6 +270,7 @@ public class FireMageBrain extends MobBrain {
 
     private void strafeAround() {
         if (entity.getTarget() == null) return;
+        strafingAway = true;
         Vec3d cross = entity.getTarget().getPos().subtract(entity.getPos())
             .crossProduct(new Vec3d(0, 1, 0));
         double dot = cross.dotProduct(entity.getRotationVector());
