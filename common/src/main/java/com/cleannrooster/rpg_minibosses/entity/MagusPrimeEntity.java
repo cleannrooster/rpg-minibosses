@@ -343,12 +343,10 @@ public class MagusPrimeEntity extends PathAwareEntity {
         if(this.firstUpdate) {
             if (!this.getWorld().isClient()) {
                 MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
-                ((WorldScheduler) this.getWorld()).schedule(30, () -> {
-                            this.performing = false;
-                            this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry,-1,0,false,false));
-                        }
+                beginCast(30);
+                ((WorldScheduler) this.getWorld()).schedule(30, () ->
+                        this.addStatusEffect(new StatusEffectInstance(Effects.MAGUS_BARRIER.registryEntry,-1,0,false,false))
                 );
-                this.performing = true;
             }
         }
         if(this.getTarget() != null){
@@ -622,16 +620,38 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
 
     }
+    /** True while the boss is mid-action; gates every ability so only one runs at a time. */
+    public boolean isPerforming() {
+        return this.age < this.performingUntil;
+    }
+
+    /**
+     * Begins a locked action lasting {@code lockTicks}. The lock is an age-based deadline, so it
+     * always auto-expires even if a scheduled effect callback is dropped (e.g. the target is lost
+     * mid-cast). Every ability MUST start via this instead of setting the lock by hand — that is
+     * what prevents the boss from ever locking out of acting. Effects are still scheduled by the
+     * caller; they may be guarded freely, but they must never touch the lock.
+     */
+    private void beginCast(int lockTicks) {
+        this.performingUntil = this.age + lockTicks;
+        // Clear the client-side casting animation flag when the lock ends, unless a newer cast
+        // has already taken over. Unconditional (no target guard) so it can never be stranded.
+        ((WorldScheduler) this.getWorld()).schedule(lockTicks, () -> {
+            if (!this.isPerforming()) {
+                this.getDataTracker().set(CASTINGBOOL, false);
+            }
+        });
+    }
+
     private void startPhaseTransition(int newPhase) {
         if (this.getWorld().isClient()) return;
         this.phase = newPhase;
         this.transitioning = true;
-        this.performing = true;
+        beginCast(60);
         MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
         this.playSound(SoundEvents.ENTITY_EVOKER_CELEBRATE);
         ((WorldScheduler) this.getWorld()).schedule(60, () -> {
             this.transitioning = false;
-            this.performing = false;
             clearDominion();
             this.barrierCycleTimer = 0;
             this.correctHitsThisCycle = 0;
@@ -922,12 +942,12 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 ((MinibossMoveConrol)this.getMoveControl()).strafeTo(-2, this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0, 1, 0)).dotProduct(this.getRotationVector()) > 0 ? -0.6F : 0.6F,0.25F);
             }
         }
-        if (!this.getWorld().isClient() && phase == 3 && darkMatterTimer >= darkMatterCooldown && !this.performing && this.getTarget() != null) {
+        if (!this.getWorld().isClient() && phase == 3 && darkMatterTimer >= darkMatterCooldown && !isPerforming() && this.getTarget() != null) {
             this.resetIndicator();
             darkMatterTimer = 0;
             darkMatterCooldown = Math.max(200, darkMatterCooldown - 60);
             darkMatterCastCount++;
-            this.performing = true;
+            beginCast(50);
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if (this.getTarget() != null) {
@@ -938,8 +958,6 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
                     ((WorldScheduler) this.getWorld()).schedule(40, () -> {
                         if (this.getTarget() != null) {
-                            this.performing = false;
-                            this.getDataTracker().set(CASTINGBOOL, false);
                             for (ServerPlayerEntity player : PlayerLookup.tracking(this)) {
                                 player.addStatusEffect(new StatusEffectInstance(Effects.DARK_MATTER.registryEntry, 200, 0));
                             }
@@ -957,8 +975,9 @@ public class MagusPrimeEntity extends PathAwareEntity {
             this.casting_timer = 0;
             this.quickcast_timer -= 80;
         }
-        if(!this.getWorld().isClient() && casting_timer > 120 && !this.performing && this.getTarget() != null ) {
+        if(!this.getWorld().isClient() && casting_timer > 120 && !isPerforming() && this.getTarget() != null ) {
             this.resetIndicator();
+            beginCast(50);
 
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
                 if(this.getTarget() != null) {
@@ -973,23 +992,13 @@ public class MagusPrimeEntity extends PathAwareEntity {
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
                     String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
                     this.performSpell("long", delivery);
-
-                    ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                                this.performing = false;
-                                this.getDataTracker().set(CASTINGBOOL, false);
-
-
-                            }
-                    );
                 }
 
             });
             this.casting_timer = 0;
             this.quickcast_timer -= 80;
-
-            this.performing = true;
         }
-        if(!this.getWorld().isClient() && quickcast_timer > 80 && !this.performing && this.getTarget() != null ) {
+        if(!this.getWorld().isClient() && quickcast_timer > 80 && !isPerforming() && this.getTarget() != null ) {
             if(this.moveControl.isMoving()){
                 MagusPrimeAnimationProvider.CASTQUICKM.sendForEntity(this);
             }
@@ -1000,22 +1009,18 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
             String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
             this.performSpell("short",delivery);
+            beginCast(10);
             ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                        this.performing = false;
                         this.casting_timer -= 20;
-
-
                     }
             );
 
             this.quickcast_timer = 0;
             this.casting_timer -= 20;
-
-            this.performing = true;
         }
 
 
-        if(!this.getWorld().isClient() && jumptimer > 200 && !this.performing && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
+        if(!this.getWorld().isClient() && jumptimer > 200 && !isPerforming() && this.getTarget() != null  && this.distanceTo(this.getTarget()) < 4 ) {
             MagusPrimeAnimationProvider.DASH.sendForEntity(this);
 
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
@@ -1026,15 +1031,9 @@ public class MagusPrimeEntity extends PathAwareEntity {
             this.setOnGround(false);
             this.setVelocity(vec3);
             this.jumptimer = 0;
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                        this.performing = false;
-
-                    }
-            );
-            this.performing = true;
-
+            beginCast(20);
         }
-        if(!this.getWorld().isClient() && dash_attack_timer > 240 && !this.performing && this.getTarget() != null &&  this.distanceTo(this.getTarget()) > 4) {
+        if(!this.getWorld().isClient() && dash_attack_timer > 240 && !isPerforming() && this.getTarget() != null &&  this.distanceTo(this.getTarget()) > 4) {
             MagusPrimeAnimationProvider.DASH.sendForEntity(this);
             ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
 
@@ -1046,14 +1045,8 @@ public class MagusPrimeEntity extends PathAwareEntity {
             this.quickcast_timer += 40;
             this.casting_timer += 40;
 
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                        this.performing = false;
-
-                    }
-            );
-
             this.dash_attack_timer = 0;
-            this.performing = true;
+            beginCast(20);
         }
 
 
@@ -1301,7 +1294,12 @@ public class MagusPrimeEntity extends PathAwareEntity {
             pathAwareEntity.prevBodyYaw = pathAwareEntity.bodyYaw;
         }
     }
-    private boolean performing;
+    /**
+     * Deadline (in entity {@code age} ticks) until which the boss is busy performing an action.
+     * Because it is a deadline it auto-expires, so the action lock can never be permanently
+     * stranded by a dropped callback — this replaces the old boolean {@code performing} flag.
+     */
+    private int performingUntil = 0;
 
     public int dash_attack_timer;
     public int quickcast_timer;

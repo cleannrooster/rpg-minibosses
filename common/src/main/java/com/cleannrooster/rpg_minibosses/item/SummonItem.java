@@ -22,6 +22,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypeFilter;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.UseAction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,15 @@ public class SummonItem<T extends LivingEntity> extends Item {
         super(settings);
     }
 
+    @Override
+    public int getMaxUseTime(ItemStack stack, LivingEntity user) {
+        return 80;
+    }
+
+    @Override
+    public UseAction getUseAction(ItemStack stack) {
+        return UseAction.BOW;
+    }
 
     public SummonItem(Settings settings, List<EntityType<T>> typelist, TagKey<Instrument> instrumentTag, String encounterName) {
         super(settings);
@@ -54,37 +64,37 @@ public class SummonItem<T extends LivingEntity> extends Item {
 
     @Override
     public void onStoppedUsing(ItemStack stack, World world, LivingEntity user, int remainingUseTicks) {
+        if (world instanceof ServerWorld level1 && user instanceof PlayerEntity player) {
 
-        super.onStoppedUsing(stack, world, user, remainingUseTicks);
-            if (world instanceof ServerWorld level1 && user instanceof PlayerEntity player) {
+            if (level1.getEntitiesByType(TypeFilter.instanceOf(GeminiEntity.class), archmagus -> archmagus.distanceTo(player) < 200).isEmpty()) {
+                for (int i = 0; i < 10; i++) {
+                    BlockPos vec3 = getSafePositionAroundPlayer2(world, player.getSteppingPos(), 10);
+                    if (vec3 != null && world.isSkyVisible(vec3.up()) && !world.isClient()) {
+                        for (EntityType<T> type : entityTypelist) {
 
-                if (level1.getEntitiesByType(TypeFilter.instanceOf(GeminiEntity.class), archmagus -> archmagus.distanceTo(player) < 200).isEmpty()) {
-                    for (int i = 0; i < 10; i++) {
-                        BlockPos vec3 = getSafePositionAroundPlayer2(world, player.getSteppingPos(), 10);
-                        if (vec3 != null && world.isSkyVisible(vec3.up()) && !world.isClient()) {
-                            for (EntityType<T> type : entityTypelist) {
-
-                                T magus = type.create(world);
-                                magus.setPosition(vec3.getX(), vec3.getY(), vec3.getZ());
+                            T magus = type.create(world);
+                            magus.setPosition(vec3.getX(), vec3.getY(), vec3.getZ());
 
 
-                                magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, player.getPos());
-                                world.spawnEntity(magus);
-                            }
-                                stack.decrement(1);
-                            user.playSound(this.getBreakSound());
-
-                            player.sendMessage(Text.translatable("A dark force has been unleashed!"));
-
-
-                            return;
+                            magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, player.getPos());
+                            world.spawnEntity(magus);
                         }
+                        stack.decrement(1);
+                        user.playSound(this.getBreakSound());
+
+                        player.sendMessage(Text.translatable("A dark force has been unleashed!"));
+
+
+                        return;
                     }
-                    player.sendMessage(Text.translatable("There is no room at your location"));
-                } else {
-                    player.sendMessage(Text.translatable("A dark force is already present within 200 blocks."));
                 }
+                player.sendMessage(Text.translatable("There is no room at your location"));
+            } else {
+                player.sendMessage(Text.translatable("A dark force is already present within 200 blocks."));
             }
+        }
+        super.onStoppedUsing(stack, world, user, remainingUseTicks);
+
         }
 
     @Override

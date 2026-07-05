@@ -28,9 +28,9 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
         super(AzAnimatorConfig.defaultConfig());
         builders = List.of(
                 AzAnimationController.builder(this, "base_controller").setTransitionLength(5),
-                AzAnimationController.builder(this, "dash").setTransitionLength(2).setEasingType(AzEasingTypes.BEZIER),
+                AzAnimationController.builder(this, "dash").setTransitionLength(2),
 
-                AzAnimationController.builder(this, "attacks").setTransitionLength(2).setEasingType(AzEasingTypes.BEZIER));
+                AzAnimationController.builder(this, "attacks").setTransitionLength(2));
 
     }
     public List<AzAnimationControllerBuilder> builders;
