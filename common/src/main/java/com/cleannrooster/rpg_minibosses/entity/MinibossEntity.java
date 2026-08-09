@@ -81,6 +81,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.village.*;
 import net.minecraft.world.*;
 import net.spell_engine.api.effect.Synchronized;
+import net.spell_engine.internals.target.EntityRelations;
+import net.spell_engine.internals.target.SpellTarget;
 import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
@@ -275,19 +277,38 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
 
 
     }*/
-        public int getIndicator(){
-            return this.getDataTracker().get(INDICATOR);
+    // ── Anticipation indicator (deprecated) ───────────────────────────────────
+    //
+    // The old attack warning — a red flash plus the anticipation sting fired at the moment an ability
+    // committed — is retired. It predates the phase model: every attack now telegraphs through its own
+    // windup animation, which is longer, more specific and readable from the mob's silhouette rather than
+    // from a colour. Keeping both meant the warning fired on the same frame the windup started, which read
+    // as a stutter in front of every heavy attack.
+    //
+    // These methods are kept as no-ops rather than deleted so any external caller still links, and the
+    // INDICATOR tracked value stays registered so the data-tracker layout is unchanged for saves and for
+    // clients on the same build. MagusPrimeEntity has its own independent copy of this system and is
+    // untouched.
 
-        }
-        public void playBoom(){
-            SoundHelper.playSound(this.getWorld(), this,new Sound( RPGMinibosses.ANTICIPATION_SOUND.getId().toString()));
-        }
-    public void resetIndicator(){
-        this.getDataTracker().set(INDICATOR,0);
-        this.playBoom();
+    /** @deprecated the attack warning system is retired; always returns 0. */
+    @Deprecated
+    public int getIndicator(){
+        return 0;
     }
+
+    /** @deprecated the attack warning system is retired; does nothing. */
+    @Deprecated
+    public void playBoom(){
+    }
+
+    /** @deprecated the attack warning system is retired; does nothing. Telegraphs live in attack windups. */
+    @Deprecated
+    public void resetIndicator(){
+    }
+
+    /** @deprecated the attack warning system is retired; does nothing. */
+    @Deprecated
     public void tickIndicator(){
-        this.getDataTracker().set(INDICATOR,this.getDataTracker().get(INDICATOR)+1);
     }
     public static ArrayList<Item> itemList = new ArrayList<>();
 
@@ -471,26 +492,48 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
             }
             this.getDataTracker().set(HAS_ROLLED,true);
         }
-        if (this.getWorld().isClient() && this instanceof ArtilleristEntity artilleristEntity && artilleristEntity.getDataTracker().get(ArtilleristEntity.RUNNING) && artilleristEntity.getVelocity().length() > 0.01F) {
-            setRotationAndHeadFromVelocity(this);
-
-        } else if (this.getWorld().isClient() ) {
+        // Out of combat the body still snaps to its travel direction, which is what a wandering mob should
+        // do. In combat that behaviour is exactly what made a strafing miniboss look like it was running
+        // forward sideways, so there the body is held on the server's synced facing instead and the
+        // directional locomotion clips carry the movement.
+        if (this.getWorld().isClient() && !this.isAttacking()) {
             setRotationFromVelocity(this);
         }
         super.tick();
         moveAnalysis.update();
         animTick();
-        if(this.getWorld() instanceof ServerWorld){
-            this.tickIndicator();
+        if (this.getWorld().isClient() && !this.isAttacking()) {
+            setRotationFromVelocity(this);
         }
-            if (this.getWorld().isClient() && this instanceof ArtilleristEntity artilleristEntity && artilleristEntity.getDataTracker().get(ArtilleristEntity.RUNNING) && artilleristEntity.getVelocity().length() > 0.01F) {
-
-            } else if (this.getWorld().isClient() ) {
-                setRotationFromVelocity(this);
-            }
 
         if (this.getWorld().isClient()) {
             tickHeadRotation();
+        }
+    }
+
+    /**
+     * While combat steering or an attack owns the body, the facing the server chose <em>is</em> the
+     * facing — vanilla's body control would otherwise drag it back toward the travel direction every
+     * tick, and a mob that turns to face wherever it is sliding cannot read as deliberate.
+     */
+    @Override
+    protected float turnHead(float bodyRotation, float headRotation) {
+        if (!this.getWorld().isClient()
+                && this.brain != null
+                && this.brain.locomotion.owner()
+                != com.cleannrooster.rpg_minibosses.entity.combat.MovementOwner.NAVIGATION) {
+            this.bodyYaw = this.getYaw();
+            return headRotation;
+        }
+        return super.turnHead(bodyRotation, headRotation);
+    }
+
+    @Override
+    public void takeKnockback(double strength, double x, double z) {
+        super.takeKnockback(strength, x, z);
+        // Steering yields for a few ticks so a shove actually lands instead of being overwritten.
+        if (strength > 0.0 && this.brain != null) {
+            this.brain.onKnockback();
         }
     }
 
@@ -685,7 +728,11 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         if(this.getDataTracker().get(DOWN) && source.getAttacker() instanceof MinibossEntity && !RPGMinibossesEntities.config.betrayal){
             return false;
         }
-        if(source.getAttacker() instanceof MinibossEntity entity && !RPGMinibossesEntities.config.betrayal && entity.getOwnerUuid() == null){
+        // The friendly-fire reduction exists so a patrol does not blow itself apart with splash. It has no
+        // business softening a fight the two of them actually picked, so a deliberate enemy takes the full
+        // hit.
+        if(source.getAttacker() instanceof MinibossEntity entity && !RPGMinibossesEntities.config.betrayal
+                && entity.getOwnerUuid() == null && !entity.isEnemyOf(this)){
             amount *= RPGMinibossesEntities.config.friendlyFire;
         }
         if(source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)){
@@ -713,6 +760,50 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         return result;
     }
 
+
+    /**
+     * Whether this miniboss may harm {@code candidate} with an attack.
+     *
+     * <p>Melee and spells now answer this the same way. Spell Engine's relations model — customised for
+     * these mobs in {@code EntityRelationsMixin} — is the authority, so a Juggernaut's hammer and its slam
+     * agree about who is a valid victim instead of each carrying its own opinion. Under that model a wild
+     * miniboss may harm whatever it is actually fighting but will not cleave its own patrol apart, and a
+     * tamed one may harm anything that is not its owner or a sibling under the same owner.
+     *
+     * <p>The three cases checked here first are the ones the relations model does not cover: never the
+     * hand that owns you, never a downed miniboss unless betrayal is enabled, and never a sibling serving
+     * the same master.
+     */
+    public boolean canHarm(Entity candidate) {
+        if (candidate == this || candidate.isSpectator() || !(candidate instanceof LivingEntity living)
+                || !living.isAlive()) {
+            return false;
+        }
+        if (this.isTeammate(candidate)) {
+            return false;
+        }
+        if (this.getOwnerUuid() != null && this.getOwnerUuid().equals(candidate.getUuid())) {
+            return false;
+        }
+        if (candidate instanceof MinibossEntity other) {
+            if (other.getDataTracker().get(DOWN) && !RPGMinibossesEntities.config.betrayal) {
+                return false;
+            }
+            if (this.getOwnerUuid() != null && this.getOwnerUuid().equals(other.getOwnerUuid())) {
+                return false;
+            }
+        }
+        return EntityRelations.actionAllowed(SpellTarget.FocusMode.AREA, SpellTarget.Intent.HARMFUL,
+                this, candidate);
+    }
+
+    /**
+     * True when these two are actually fighting each other rather than merely standing near one another.
+     * Used to decide whether the friendly-fire reduction applies — see {@link #damage}.
+     */
+    public boolean isEnemyOf(MinibossEntity other) {
+        return super.getTarget() == other || other.getTarget() == this;
+    }
 
     public void playIntro(PlayerEntity player) {
             if(!this.notPetrified()) {
@@ -1436,60 +1527,128 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
     boolean wasRunning;
     boolean isRunning;
     AnimState prevState;
+    /** Speed the last locomotion clip was dispatched at; re-sent only when it drifts meaningfully. */
+    private float prevAnimSpeed = -1F;
+    /** Candidate state and how long it has held, so a single frame can't thrash the clip. */
+    private AnimState candidateState;
+    private int candidateTicks;
+
     enum AnimState {
-        IDLE, IDLE_AGGRO,
-        WALK, WALK_AGGRO,
-        RUN,
+        // Out of combat — the pre-overhaul behaviour, unchanged.
+        IDLE, WALK, RUN,
+        // In combat: the directional set. Which one plays is decided from the mob's actual displacement
+        // resolved against its body facing, so what the model does matches where the body goes.
+        STANCE, ADVANCE, LATERAL_LEFT, LATERAL_RIGHT, BACKSTEP,
         DOWN
     }
+
+    /** Below this displacement per tick the mob is treated as standing. */
+    private static final float MOVE_EPSILON = 0.012F;
+    /** Ground speed a locomotion clip is authored for; the clip is time-scaled around it. */
+    private static final float NOMINAL_COMBAT_SPEED = 0.16F;
+    /** Ticks a new direction must hold before the clip changes. */
+    private static final int DIRECTION_DEBOUNCE = 2;
+
     public void animTick(){
 
         if (this.getWorld().isClient) {
-            float horizontalSpeed = (float)this.getVelocity().horizontalLength();
+            // Real displacement, not reported velocity: vanilla decays velocity by ground friction after
+            // it has been applied, so the velocity field understates what actually happened this tick.
+            double dx = this.getX() - this.prevX;
+            double dz = this.getZ() - this.prevZ;
+            float horizontalSpeed = (float) Math.sqrt(dx * dx + dz * dz);
 
             // Asymmetric filter: snap up quickly when accelerating, decay slowly when stopping.
             // Fast ramp-up (0.6) makes new movement feel responsive; slow decay (0.2) prevents
             // a pop-to-idle on momentary zero-velocity frames and smooths the stop tail-off.
             float alpha = horizontalSpeed > this.smoothedSpeed ? 0.6F : 0.2F;
             this.smoothedSpeed = MathHelper.lerp(alpha, this.smoothedSpeed, horizontalSpeed);
-            float animSpeed = this.smoothedSpeed / 0.2F;
 
-            // Both checks use smoothedSpeed so a single dropped-velocity frame can't trigger
-            // a state change; the hysteresis band on isRunning stays clear of thrash.
-            boolean isMoving = this.smoothedSpeed > 0.03F;
-
+            boolean isMoving = this.smoothedSpeed > MOVE_EPSILON;
             this.isRunning = this.wasRunning
                     ? this.smoothedSpeed > 0.15F
                     : this.smoothedSpeed >= 0.20F;
-
             this.wasRunning = this.isRunning;
+
             AnimState newState;
+            float animSpeed;
 
             if (this.getDataTracker().get(DOWN)) {
                 newState = AnimState.DOWN;
+                animSpeed = 1F;
+            } else if (this.isAttacking()) {
+                animSpeed = MathHelper.clamp(this.smoothedSpeed / NOMINAL_COMBAT_SPEED, 0.55F, 1.9F);
+                newState = isMoving ? combatDirection(dx, dz, horizontalSpeed) : AnimState.STANCE;
             } else if (isMoving) {
-                if (this.isAttacking()) {
-                    newState = this.isRunning ? AnimState.RUN : AnimState.WALK_AGGRO;
-                } else {
-                    newState = (this instanceof ArtilleristEntity)
-                            ? AnimState.WALK_AGGRO
-                            : AnimState.WALK;
-                }
+                animSpeed = MathHelper.clamp(this.smoothedSpeed / 0.2F, 0.5F, 2.0F);
+                newState = this.isRunning ? AnimState.RUN : AnimState.WALK;
             } else {
-                newState = this.isAttacking() ? AnimState.IDLE_AGGRO : AnimState.IDLE;
-            }
-            if (newState != this.prevState) {
-                switch (newState) {
-                    case RUN -> dispatcher.run(animSpeed);
-                    case WALK_AGGRO -> dispatcher.walkAggro(animSpeed);
-                    case WALK -> dispatcher.walk(animSpeed);
-                    case IDLE_AGGRO -> dispatcher.idleAggro();
-                    case IDLE -> dispatcher.idle();
-                    case DOWN -> dispatcher.setDown();
-                }
-                this.prevState = newState;
+                newState = AnimState.IDLE;
+                animSpeed = 1F;
             }
 
+            // Debounce direction changes only. Entering or leaving combat, going down, or stopping should
+            // all read immediately; it is the left/right/forward flicker that needs settling.
+            if (newState != this.prevState) {
+                boolean directional = isDirectional(newState) && isDirectional(this.prevState);
+                if (directional) {
+                    if (newState == this.candidateState) {
+                        this.candidateTicks++;
+                    } else {
+                        this.candidateState = newState;
+                        this.candidateTicks = 1;
+                    }
+                    if (this.candidateTicks < DIRECTION_DEBOUNCE) {
+                        newState = this.prevState;
+                    }
+                } else {
+                    this.candidateState = newState;
+                    this.candidateTicks = DIRECTION_DEBOUNCE;
+                }
+            }
+
+            boolean speedChanged = Math.abs(animSpeed - this.prevAnimSpeed) > 0.22F;
+            if (newState != this.prevState || (speedChanged && isDirectional(newState))) {
+                dispatchLocomotion(newState, animSpeed);
+                this.prevState = newState;
+                this.prevAnimSpeed = animSpeed;
+            }
+        }
+    }
+
+    /** Resolve this tick's displacement against the body's facing into one of the four directional clips. */
+    private AnimState combatDirection(double dx, double dz, float speed) {
+        Vec3d forward = Vec3d.fromPolar(0F, this.bodyYaw);
+        Vec3d right   = Vec3d.fromPolar(0F, this.bodyYaw + 90F);
+        double along   = dx * forward.x + dz * forward.z;
+        double lateral = dx * right.x + dz * right.z;
+
+        // Lateral wins only when it clearly dominates, so a curving advance still reads as an advance.
+        if (Math.abs(lateral) > Math.abs(along) * 1.25) {
+            return lateral > 0 ? AnimState.LATERAL_RIGHT : AnimState.LATERAL_LEFT;
+        }
+        if (along < -speed * 0.2) {
+            return AnimState.BACKSTEP;
+        }
+        return AnimState.ADVANCE;
+    }
+
+    private static boolean isDirectional(AnimState state) {
+        return state == AnimState.ADVANCE || state == AnimState.LATERAL_LEFT
+                || state == AnimState.LATERAL_RIGHT || state == AnimState.BACKSTEP;
+    }
+
+    private void dispatchLocomotion(AnimState state, float animSpeed) {
+        switch (state) {
+            case DOWN -> dispatcher.setDown();
+            case STANCE -> dispatcher.stance();
+            case ADVANCE -> dispatcher.advance(animSpeed);
+            case LATERAL_LEFT -> dispatcher.lateral(1, animSpeed);
+            case LATERAL_RIGHT -> dispatcher.lateral(-1, animSpeed);
+            case BACKSTEP -> dispatcher.backstep(animSpeed);
+            case RUN -> dispatcher.run(animSpeed);
+            case WALK -> dispatcher.walk(animSpeed);
+            case IDLE -> dispatcher.idle();
         }
     }
 /*

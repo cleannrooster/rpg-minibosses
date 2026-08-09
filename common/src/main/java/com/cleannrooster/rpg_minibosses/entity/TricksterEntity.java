@@ -181,27 +181,20 @@ public class TricksterEntity extends MinibossEntity{
         return true;
     }
 
+    /**
+     * Reactive dodge.
+     *
+     * <p>The evade itself — direction, clearance check, clip and committed motion — lives in
+     * {@link com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain#tryDodge()}, so it goes through
+     * the same committed-motion path as every other movement the Trickster makes instead of being a bare
+     * velocity write with a scheduled callback to undo it.
+     */
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if(!this.getDataTracker().get(DOWN) && amount > 4 && !this.getWorld().isClient() && !this.performing && this.getTarget() != null
-                && brain instanceof com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain rb && rb.tryDodge()) {
-            if(this.getTarget().getPos().subtract(this.getPos()).crossProduct(new Vec3d(0,1,0)).dotProduct(this.getRotationVector()) > 0 ) {
-                dispatcher.dashleft();
-                this.setVelocity(this.getRotationVector().crossProduct(new Vec3d(0,-1,0)).multiply(2));
-            }
-            else{
-                dispatcher.dashright();
-                this.setVelocity(this.getRotationVector().crossProduct(new Vec3d(0,1,0)).multiply(2));
-
-            }
-            ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
-
-            ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                        this.performing = false;
-
-                    }
-            );
-            this.performing = true;
+        if (!this.getDataTracker().get(DOWN) && amount > 4 && !this.getWorld().isClient()
+                && this.getTarget() != null
+                && brain instanceof com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain rb
+                && rb.tryDodge()) {
             this.playSound(SoundEvents.ENTITY_PILLAGER_AMBIENT);
             return false;
         }
@@ -221,31 +214,36 @@ public class TricksterEntity extends MinibossEntity{
             return new PathNodeNavigator(this.nodeMaker, range);
         }
     }
+    /**
+     * Contact damage.
+     *
+     * <p>The periodic pommel strike keeps its debuff on its own timer regardless of how the contact was
+     * produced, but its clip — like the legacy swing clips — is only played when no combat action is
+     * running. During a crossing slash the action already owns the presentation, and layering a second
+     * one-shot over it would fight the swing it is meant to be part of.
+     */
     @Override
     public boolean tryAttack(Entity target) {
-        if(pommelTick > 120){
-
-            dispatcher.setPommelstrike();
-            if(target instanceof LivingEntity living){
-                living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS,20,10));
-                living.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS,10,10));
-
+        if (pommelTick > 120) {
+            if (!performing) {
+                dispatcher.setPommelstrike();
             }
-            pommelTick = 120 - (int)(120*this.getCooldownCoeff());
+            if (target instanceof LivingEntity living) {
+                living.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 20, 10));
+                living.addStatusEffect(new StatusEffectInstance(StatusEffects.DARKNESS, 10, 10));
+            }
+            pommelTick = 120 - (int) (120 * this.getCooldownCoeff());
             return super.tryAttack(target);
         }
-        else if(swingBool){
-            dispatcher.setSwing();
-            swingBool = false;
-            return super.tryAttack(target);
-
+        if (!performing) {
+            if (swingBool) {
+                dispatcher.setSwing();
+            } else {
+                dispatcher.setSwing2();
+            }
+            swingBool = !swingBool;
         }
-        else{
-            dispatcher.setSwing2();
-            swingBool = true;
-            return super.tryAttack(target);
-
-        }
+        return super.tryAttack(target);
     }
    /* @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {

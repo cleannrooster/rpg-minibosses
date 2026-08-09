@@ -42,6 +42,9 @@ public final class RPGMinibossesClient {
     }
 
     public static void init() {
+        // Attack ribbons: receives one swing packet per attack and rebuilds the arc locally from the same
+        // geometry the server damaged with.
+        com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.init();
         EntityRendererRegistry.register(RPGMinibosses.ORBENTITY, OrbRenderer::new);
 
         CustomModelStatusEffect.register(Effects.FEATHER.effect, new FeatherRenderer());

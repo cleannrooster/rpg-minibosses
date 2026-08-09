@@ -30,6 +30,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -146,13 +147,41 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         return super.getMoveControl();
     }
 
+    /**
+     * Shot timing now lives in {@link MercenaryBrain} as phase-driven actions, so
+     * {@link ArtilleristCrossbowAttackGoal} is no longer installed — it fired on its own schedule next to
+     * the brain's movement, which is exactly how shots ended up going off while the body was still
+     * running. The goal class is retained, unused, alongside the legacy animation resource.
+     */
     @Override
     protected void initCustomGoals() {
         this.brain = new MercenaryBrain(this);
 
-        this.goalSelector.add(0, new ArtilleristCrossbowAttackGoal<>(this,0.5,16));
         this.goalSelector.add(1, new com.cleannrooster.rpg_minibosses.entity.brain.MobBrainGoal(this, brain));
         super.initCustomGoals();
+    }
+
+    /**
+     * Fire one bolt at the target. Charging state is handled implicitly — the crossbow is reloaded here,
+     * because the visible "charge" is now the aim animation's hold rather than an item-use timer running
+     * in parallel with the AI.
+     */
+    public void fireBolt(LivingEntity target) {
+        if (target == null || this.getWorld().isClient()) {
+            return;
+        }
+        this.lookAtEntity(target, 30, 30);
+        this.getLookControl().lookAt(target);
+        Hand hand = ProjectileUtil.getHandPossiblyHolding(this, Items.CROSSBOW);
+        ItemStack stack = this.getStackInHand(hand);
+        if (!(stack.getItem() instanceof CrossbowItem crossbow)) {
+            return;
+        }
+        ArtilleristCrossbowAttackGoal.reload(this, stack);
+        crossbow.shootAll(this.getWorld(), this, hand, stack, 1.6F,
+                (float) (14 - this.getWorld().getDifficulty().getId() * 4), target);
+        ArtilleristCrossbowAttackGoal.reload(this, stack);
+        this.postShoot();
     }
 
     @Override
@@ -203,55 +232,19 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         return super.getLookControl();
     }
 
+    /**
+     * Relocation is now a real destination-seeking action owned by {@link MercenaryBrain} — it picks a
+     * firing position with line of sight and a meaningfully different angle, sprints there, and arrests on
+     * arrival. The loose "run somewhere random for eighty ticks while scattering traps" behaviour that used
+     * to live here has been removed; {@link #startRunning} and the RUNNING flag are kept because the brain
+     * still drives them and the client reads them.
+     */
     @Override
     protected void mobTick() {
-
         super.mobTick();
-        if(this.startRunning){
-            if(!this.getNavigation().isFollowingPath()) {
-                Vec3d vec3d = NoPenaltyTargeting.find(this, 16, 12);
-                for(int i = 0 ; i < 8; i++){
-                    Vec3d newVec = NoPenaltyTargeting.find(this, 16, 12);
-
-                    if(vec3d == null || (newVec != null && newVec.getY()> vec3d.getY())){
-                        vec3d = newVec;
-                    }
-                }
-                if(vec3d != null) {
-                    this.getNavigation().startMovingTo(vec3d.getX(), vec3d.getY(), vec3d.getZ(), 1.4);
-
-                    if(this.trapCooldown <= 0){
-                        for(int i = 0; i < 4; i++){
-                            TrapCleann trap = new TrapCleann(RPGMinibossesEntities.TRAP, this, this.getWorld(), Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"explosion"), new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_RANGED,this)));
-                            trap.setPosition(this.getEyePos());
-                            trap.setVelocity(this.getRotationVector().multiply(0.1).rotateY(i*90));
-                            trap.setYaw(this.getYaw());
-                            trap.prevYaw = this.getYaw();
-                            this.getWorld().spawnEntity(trap);
-                            this.getWorld().playSound((PlayerEntity) null, trap.getX(), trap.getY(), trap.getZ(), SoundEvents.ENTITY_ARMOR_STAND_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
-
-
-                        }
-                        this.trapCooldown = 160;
-                    }
-                }
-
-            }
-            this.runningTick--;
-        }
-        if(this.startRunning && (this.runningTick  <= 0 || (this.getTarget()!= null &&( this.getTarget().isDead() || this.getTarget().distanceTo(this) > 16 || !this.canSee(this.getTarget()))))){
-            this.startRunning = false;
-            this.getDataTracker().set(RUNNING,false);
-            this.getNavigation().stop();
-
-        }
-        if(!this.getDataTracker().get(RUNNING) && this.getTarget() != null && this.canSee(this.getTarget())){
-            this.getNavigation().stop();
-        }
-        if(!this.getWorld().isClient()){
+        if (!this.getWorld().isClient()) {
             this.trapCooldown--;
         }
-
     }
 
     public boolean startRunning = false;

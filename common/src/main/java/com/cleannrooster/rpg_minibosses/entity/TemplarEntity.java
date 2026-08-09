@@ -411,30 +411,30 @@ public class TemplarEntity extends MinibossEntity{
         return super.damage(source, amount);
     }
 
+    /**
+     * Contact damage.
+     *
+     * <p>While a combat action is running it owns the swing's presentation — its own clip is already
+     * playing and its own slash particles have already been emitted — so this only adds the legacy
+     * flourish for contacts that happen outside the action system. It must still deal the damage in
+     * both cases: the brain's melee helper routes through here precisely so vanilla knockback, enchantment
+     * effects and attack events all fire normally.
+     */
     public boolean tryAttack(Entity target) {
-        if(!performing && target instanceof LivingEntity living) {
-            if(this.getWorld() instanceof ServerWorld serverWorld) {
-                spawnParticlesSlash(this, serverWorld, 180 + (swingBool ? 60F : -60F)+this.getRandom().nextBetween(0,60), 1, 2F+(float) +3.5F);
-
+        if (!performing) {
+            if (this.getWorld() instanceof ServerWorld serverWorld) {
+                spawnParticlesSlash(this, serverWorld,
+                        180 + (swingBool ? 60F : -60F) + this.getRandom().nextBetween(0, 60), 1, 5.5F);
             }
             if (swingBool) {
                 dispatcher.setSwing();
-
-                //(this).triggerAnim("actions", "swing1");
                 swingBool = false;
-
             } else {
                 dispatcher.setSwing2();
-
-                //(this).triggerAnim("actions", "swing2");
                 swingBool = true;
-
             }
-            return super.tryAttack(target);
-
         }
-        return false;
-
+        return super.tryAttack(target);
     }
 
 }

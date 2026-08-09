@@ -143,7 +143,6 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 if(this.isTakingLonger){
                     useTime += this.extraUseTime;
                     if(i == 5){
-                        this.actor.resetIndicator();
 
                     }
                 }
@@ -304,6 +303,15 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
         }
     }
 
+
+    /**
+     * Public entry point to the projectile-loading logic below, so the Mercenary brain can fire a bolt
+     * without installing this goal. The goal itself is retained for reference but is no longer added to
+     * the Artillerist's goal selector.
+     */
+    public static boolean reload(LivingEntity shooter, ItemStack crossbow) {
+        return loadProjectiles(shooter, crossbow);
+    }
 
     private static boolean loadProjectiles(LivingEntity shooter, ItemStack crossbow) {
 

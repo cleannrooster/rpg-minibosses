@@ -127,6 +127,8 @@ public final class RPGMinibosses {
 
     /** Spell handlers, gameplay events, world-gen injection, model ids. No registry mutation. */
     public static void init() {
+        // Declared on both sides: the server needs the payload type to send, the client to receive.
+        com.cleannrooster.rpg_minibosses.entity.combat.net.AttackNetwork.register();
         registerSpellHandlers();
         registerModelIds();
         registerEvents();

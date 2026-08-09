@@ -40,9 +40,23 @@ public final class MobBrainGoal extends Goal {
         return entity.getTarget() != null;
     }
 
+    /**
+     * Must stay true.
+     *
+     * <p>Everything the brain owns is counted in ticks and assumes it is counting real ones: attack
+     * windup/active/recovery phases, ability cooldowns, and the steering integrator that rewrites the
+     * mob's velocity each tick. When this returned false the goal selector only ticked the goal on
+     * alternate ticks, so every one of those ran at half rate — an attack's damage resolved twice as many
+     * real ticks after it started as its animation said it would, and the steering only got to write
+     * velocity every other tick, letting ground friction eat the rest.
+     *
+     * <p>This was survivable before the combat overhaul because the old abilities did their timing through
+     * {@code WorldScheduler}, which ticks with the world rather than with the goal. Moving that timing into
+     * the goal-driven action runner is what made it matter.
+     */
     @Override
     public boolean shouldRunEveryTick() {
-        return false;
+        return true;
     }
 
     @Override

@@ -192,6 +192,11 @@ public class JuggernautEntity extends MinibossEntity{
         }
     }
 
+    /**
+     * The legacy swing dispatch is kept only for contacts that happen outside the combat action system —
+     * an owned Juggernaut swinging at something the brain isn't driving, for instance. While an action is
+     * running it owns the presentation, so nothing here may play a second clip over the top of it.
+     */
     public boolean tryAttack(Entity target) {
         if(!performing) {
             if (swingBool) {
