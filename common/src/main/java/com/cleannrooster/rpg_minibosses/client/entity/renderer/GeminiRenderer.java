@@ -46,7 +46,7 @@ public class GeminiRenderer extends AzEntityRenderer<GeminiEntity> {
         try {
             for (Synchronized.Effect effect : Synchronized.effectsOf(entity)) {
                 if (effect != null && effect.effect() != null && CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
-                    CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(effect.amplifier(), entity, partialTick, poseStack, bufferSource, packedLight);
+                    CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(entity.getWorld().getTime(), effect.amplifier(), entity, partialTick, poseStack, bufferSource, packedLight);
                 }
             }
         } catch (Exception ignored) {}

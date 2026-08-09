@@ -12,6 +12,7 @@ import net.spell_engine.api.config.ArmorSetConfig;
 import net.spell_engine.api.entity.SpellEngineAttributes;
 import net.spell_engine.api.item.set.EquipmentSet;
 import net.spell_engine.api.spell.container.SpellContainerHelper;
+import net.spell_engine.api.spell.container.SpellContainers;
 import net.spell_power.api.SpellPowerMechanics;
 import net.spell_power.api.SpellSchools;
 import net.wizards.item.Group;
@@ -61,7 +62,7 @@ public class SetBonuses {
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
-                        EquipmentSet.Bonus.withSpells(2, SpellContainerHelper.createForModifier(Identifier.of(CONTENT_NAMESPACE,"savant")))
+                        EquipmentSet.Bonus.withSpells(2, SpellContainers.forModifier(Identifier.of(CONTENT_NAMESPACE, "savant")))
                 )
         );
     }
@@ -78,7 +79,7 @@ public class SetBonuses {
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
-                        EquipmentSet.Bonus.withSpells(2, SpellContainerHelper.createForModifier(Identifier.of(CONTENT_NAMESPACE,"savant")))
+                        EquipmentSet.Bonus.withSpells(2, SpellContainers.forModifier(Identifier.of(CONTENT_NAMESPACE,"savant")))
                 )
         );
     }
@@ -95,7 +96,7 @@ public class SetBonuses {
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
-                        EquipmentSet.Bonus.withSpells(2, SpellContainerHelper.createForModifier(Identifier.of(CONTENT_NAMESPACE,"savant")))
+                        EquipmentSet.Bonus.withSpells(2, SpellContainers.forModifier(Identifier.of(CONTENT_NAMESPACE,"savant")))
                 )
         );
     }
@@ -113,7 +114,7 @@ public class SetBonuses {
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
-                        EquipmentSet.Bonus.withSpells(2, SpellContainerHelper.createForModifier(Identifier.of(CONTENT_NAMESPACE,"despot")))
+                        EquipmentSet.Bonus.withSpells(2, SpellContainers.forModifier(Identifier.of(CONTENT_NAMESPACE,"despot")))
                 )
         );
     }
@@ -130,7 +131,7 @@ public class SetBonuses {
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
-                        EquipmentSet.Bonus.withSpells(2, SpellContainerHelper.createForModifier(Identifier.of(CONTENT_NAMESPACE,"kintsugi")))
+                        EquipmentSet.Bonus.withSpells(2, SpellContainers.forModifier(Identifier.of(CONTENT_NAMESPACE,"kintsugi")))
                 )
         );
     }
@@ -147,7 +148,7 @@ public class SetBonuses {
                                 EntityAttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                                 id.withPath(SET_BONUS))
                         ),
-                        EquipmentSet.Bonus.withSpells(2, SpellContainerHelper.createForModifier(Identifier.of(CONTENT_NAMESPACE,"foxshade")))
+                        EquipmentSet.Bonus.withSpells(2, SpellContainers.forModifier(Identifier.of(CONTENT_NAMESPACE,"foxshade")))
                 )
         );
     }
