@@ -301,9 +301,11 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
 
     @Override
     public void onAttacking(Entity target) {
-        target.timeUntilRegen = 0;
-        if(target instanceof LivingEntity living){
-            living.hurtTime = 0;
+        if (target != null) {
+            target.timeUntilRegen = 0;
+            if(target instanceof LivingEntity living){
+                living.hurtTime = 0;
+            }
         }
         super.onAttacking(target);
     }
