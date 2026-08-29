@@ -17,31 +17,33 @@
     }
   },
   "release": {
-
     "sound": {
       "id": "entity.iron_golem.hurt"
     },
-    "particles": [
-      {
-        "particle_id": "smoke",
-        "shape": "CIRCLE",
-        "origin": "CENTER",
-        "count": 60.0,
-        "min_speed": 0.2,
-        "max_speed": 0.6
-      },
-      {
-        "particle_id": "cloud",
-        "shape": "CIRCLE",
-        "origin": "CENTER",
-        "count": 80.0,
-        "min_speed": 0.5,
-        "max_speed": 0.9
-      }
-    ]
+    "visuals": {
+      "particles": [
+        {
+          "id": "smoke",
+          "batch": {
+            "count": 60.0,
+            "shape": "CIRCLE",
+            "min_speed": 0.2,
+            "max_speed": 0.6
+          }
+        },
+        {
+          "id": "cloud",
+          "batch": {
+            "count": 80.0,
+            "shape": "CIRCLE",
+            "min_speed": 0.5,
+            "max_speed": 0.9
+          }
+        }
+      ]
+    }
   },
   "impacts": [
-
     {
       "action": {
         "type": "DAMAGE",
@@ -50,19 +52,21 @@
           "spell_power_coefficient": 1.8
         }
       },
-
-      "particles": [
-        {
-          "particle_id": "cloud",
-          "shape": "SPHERE",
-          "origin": "CENTER",
-          "count": 20.0,
-          "min_speed": 0.5,
-          "max_speed": 0.9
-        }
-      ],
       "sound": {
         "id": "entity.iron_golem.hurt"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "cloud",
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.5,
+              "max_speed": 0.9
+            }
+          }
+        ]
       }
     }
   ],

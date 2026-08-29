@@ -10,64 +10,76 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:flame",
-          "origin": "FEET",
-          "shape": "WIDE_PIPE",
-          "count": 1.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1
+          "id": "spell_engine:flame",
+          "batch": {
+            "shape": "PIPE",
+            "width_factor": 2.0,
+            "vertical_origin": 0.1,
+            "min_speed": 0.05,
+            "max_speed": 0.1
+          }
         }
       ]
     }
   },
   "release": {
-    "particles": [
-      {
-        "particle_id": "spell_engine:snowflake",
-        "shape": "CIRCLE",
-        "origin": "CENTER",
-        "count": 130.0,
-        "min_speed": 0.2,
-        "max_speed": 0.6
-      },
-      {
-        "particle_id": "spell_engine:frost_shard",
-        "shape": "CIRCLE",
-        "origin": "CENTER",
-        "count": 130.0,
-        "min_speed": 0.5,
-        "max_speed": 0.9
-      },
-      {
-        "particle_id": "spell_engine:snowflake",
-        "origin": "FEET",
-        "shape": "PILLAR",
-        "count": 100.0,
-        "min_speed": 0.3,
-        "max_speed": 0.5,
-        "extent": 7.5
-      },
-      {
-        "particle_id": "spell_engine:frost_shard",
-        "origin": "FEET",
-        "shape": "PILLAR",
-        "count": 50.0,
-        "min_speed": 0.1,
-        "max_speed": 0.5,
-        "extent": 7.5
-      },
-      {
-        "particle_id": "minecraft:smoke",
-        "origin": "FEET",
-        "shape": "PIPE",
-        "count": 50.0,
-        "min_speed": 0.1,
-        "max_speed": 0.2,
-        "extent": 8.0
-      }
-    ],
     "sound": {
       "id": "minecraft:entity.player.attack.knockback"
+    },
+    "visuals": {
+      "particles": [
+        {
+          "id": "spell_engine:snowflake",
+          "batch": {
+            "count": 130.0,
+            "shape": "CIRCLE",
+            "min_speed": 0.2,
+            "max_speed": 0.6
+          }
+        },
+        {
+          "id": "spell_engine:frost_shard",
+          "batch": {
+            "count": 130.0,
+            "shape": "CIRCLE",
+            "min_speed": 0.5,
+            "max_speed": 0.9
+          }
+        },
+        {
+          "id": "spell_engine:snowflake",
+          "batch": {
+            "count": 100.0,
+            "shape": "PILLAR",
+            "vertical_origin": 0.1,
+            "min_speed": 0.3,
+            "max_speed": 0.5,
+            "extent": 7.5
+          }
+        },
+        {
+          "id": "spell_engine:frost_shard",
+          "batch": {
+            "count": 50.0,
+            "shape": "PILLAR",
+            "vertical_origin": 0.1,
+            "min_speed": 0.1,
+            "max_speed": 0.5,
+            "extent": 7.5
+          }
+        },
+        {
+          "id": "minecraft:smoke",
+          "batch": {
+            "count": 50.0,
+            "shape": "PIPE",
+            "vertical_origin": 0.1,
+            "min_speed": 0.1,
+            "max_speed": 0.2,
+            "extent": 8.0
+          }
+        }
+      ]
     }
   },
   "target": {
@@ -111,30 +123,37 @@
           "spell_power_coefficient": 0.8
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:magic_frost_impact_burst",
-          "origin": "CENTER",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "count": 20.0,
-          "min_speed": 0.2,
-          "max_speed": 0.7,
-          "angle": 360.0
-        },
-        {
-          "particle_id": "spell_engine:frost_shard",
-          "origin": "CENTER",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "count": 20.0,
-          "min_speed": 0.2,
-          "max_speed": 0.7,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "minecraft:entity.player.hurt_on_fire"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:magic_frost",
+            "appearance": {
+              "motion": "BURST"
+            },
+            "batch": {
+              "count": 20.0,
+              "shape": "CIRCLE",
+              "alignment": "LOOK",
+              "min_speed": 0.2,
+              "max_speed": 0.7,
+              "angle": 360.0
+            }
+          },
+          {
+            "id": "spell_engine:frost_shard",
+            "batch": {
+              "count": 20.0,
+              "shape": "CIRCLE",
+              "alignment": "LOOK",
+              "min_speed": 0.2,
+              "max_speed": 0.7,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     },
     {

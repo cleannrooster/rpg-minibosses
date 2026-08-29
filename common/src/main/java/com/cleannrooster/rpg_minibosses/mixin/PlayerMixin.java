@@ -13,7 +13,10 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.internals.casting.SpellCast;
 import net.spell_engine.internals.casting.SpellCasterEntity;
 import net.spell_engine.internals.container.SpellContainerSource;
@@ -35,7 +38,7 @@ public class PlayerMixin {
         PlayerEntity player = (PlayerEntity) (Object) this;
         if(stat.equals(Stats.SPRINT_ONE_CM) &&  player instanceof ServerPlayerEntity serverPlayer && SpellContainerSource.getFirstSourceOfSpell(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberrath_nova"),player) != null){
             if(serverPlayer.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(stat))  % 400 +amount >= 400){
-                    SpellHelper.performSpell(player.getWorld(), player,SpellRegistry.from( player.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberrath_nova")).get(), SpellTarget.SearchResult.of(TargetHelper.targetsFromArea(player,
+                    SpellExecution.performSpell(player.getWorld(), player,SpellRegistry.from( player.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberrath_nova")).get(), SpellTarget.SearchResult.of(TargetHelper.targetsFromArea(player,
                             SpellRegistry.from( player.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberrath_nova")).get().value().range,
                             SpellRegistry.from( player.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberrath_nova")).get().value().target.area, (target) -> EntityRelations.actionAllowed(SpellTarget.FocusMode.AREA, SpellTarget.Intent.HARMFUL,player,target)))
                     , SpellCast.Action.RELEASE,1.0F);

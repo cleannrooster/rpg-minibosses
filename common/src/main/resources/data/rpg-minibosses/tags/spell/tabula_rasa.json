@@ -1,7 +1,7 @@
 {
   "values": [
-    "wizards:arcane_blast",
-    "wizards:arcane_missile",
+    "arcane_blast",
+    "arcane_missile",
     "wizards:arcane_beam",
     "wizards:arcane_blink",
     "wizards:fire_blast",

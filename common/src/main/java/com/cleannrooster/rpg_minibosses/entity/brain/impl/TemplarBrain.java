@@ -22,7 +22,10 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.internals.target.SpellTarget;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
@@ -339,14 +342,14 @@ public class TemplarBrain extends MobBrain {
         }
         var spell = SpellRegistry.from(entity.getWorld())
                 .getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "divine_fall"));
-        var context = new SpellHelper.ImpactContext(
+        var context = new SpellExecution.ImpactContext(
                 1.0F, 1.0F, target.getPos(),
                 SpellPower.getSpellPower(SpellSchools.HEALING, entity),
                 SpellTarget.FocusMode.DIRECT, 0);
         net.spell_engine.utils.SoundHelper.playSound(entity.getWorld(), entity,
                 new net.spell_engine.api.spell.fx.Sound(
                         net.spell_engine.fx.SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
-        SpellHelper.fallProjectile(entity.getWorld(), entity, target, target.getPos(),
+        ProjectileLauncher.fallProjectile(entity.getWorld(), entity, target, target.getPos(),
                 spell.get(), context);
     }
 

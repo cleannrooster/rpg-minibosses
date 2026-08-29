@@ -23,7 +23,10 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.internals.target.SpellTarget;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
@@ -39,7 +42,7 @@ public class OrbEntity extends Entity implements Ownable {
     private Entity owner;
     @Nullable
     private int ownerUuid;
-    public SpellHelper.ImpactContext context;
+    public SpellExecution.ImpactContext context;
     public int castCount = 0;
     public int deathStacks = 0;
     private float size = 0.0f;
@@ -119,8 +122,8 @@ public class OrbEntity extends Entity implements Ownable {
                                 this.getBoundingBox().expand(48), e -> true);
                         int count = 1 + deathStacks / 2;
                         for (int i = 0; i < count && i < targets.size(); i++) {
-                            SpellHelper.shootProjectile(this.getWorld(), livingEntity, targets.get(i),
-                                    projSpell.get(), new SpellHelper.ImpactContext(1.0f, 1.0f,
+                            ProjectileLauncher.shootProjectile(this.getWorld(), livingEntity, targets.get(i),
+                                    projSpell.get(), new SpellExecution.ImpactContext(1.0f, 1.0f,
                                             this.getPos(),
                                             SpellPower.getSpellPower(SpellSchools.SOUL, livingEntity),
                                             SpellTarget.FocusMode.DIRECT, 0));

@@ -19,7 +19,10 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.Spell;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.internals.target.SpellTarget;
 import net.spell_engine.utils.TargetHelper;
 import org.jetbrains.annotations.Nullable;
@@ -35,14 +38,14 @@ public class TrapCleann extends Explosive {
     public TrapCleann(EntityType<? extends PersistentProjectileEntity> entityType, World world) {
         super(entityType, world);
     }
-    public TrapCleann(EntityType<? extends PersistentProjectileEntity> entityType, Entity owner, World world, Identifier spellId, SpellHelper.ImpactContext context) {
+    public TrapCleann(EntityType<? extends PersistentProjectileEntity> entityType, Entity owner, World world, Identifier spellId, SpellExecution.ImpactContext context) {
         super(entityType, owner,world,spellId,context);
         this.setOwner(owner);
         this.spellId = spellId;
         this.context = context;
     }
 
-    public SpellHelper.ImpactContext getImpactContext() {
+    public SpellExecution.ImpactContext getImpactContext() {
         return this.context;
     }
     public void writeCustomDataToNbt(NbtCompound nbt) {
@@ -52,7 +55,7 @@ public class TrapCleann extends Explosive {
         nbt.putString(NBT_IMPACT_CONTEXT, gson.toJson(this.context));
     }
     private Identifier spellId;
-    private SpellHelper.ImpactContext context;
+    private SpellExecution.ImpactContext context;
     private static String NBT_SPELL_ID = "Spell.ID";
     private static String NBT_PERKS = "Perks";
     private static String NBT_IMPACT_CONTEXT = "Impact.Context";
@@ -64,7 +67,7 @@ public class TrapCleann extends Explosive {
             try {
                 Gson gson = new Gson();
                 this.spellId = Identifier.tryParse(nbt.getString(NBT_SPELL_ID));
-                this.context = (SpellHelper.ImpactContext)gson.fromJson(nbt.getString(NBT_IMPACT_CONTEXT), SpellHelper.ImpactContext.class);
+                this.context = (SpellExecution.ImpactContext)gson.fromJson(nbt.getString(NBT_IMPACT_CONTEXT), SpellExecution.ImpactContext.class);
 
             } catch (Exception var3) {
                 System.err.println("SpellProjectile - Failed to read spell data from NBT " + var3.getMessage());

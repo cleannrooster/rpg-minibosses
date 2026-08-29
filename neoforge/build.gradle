@@ -57,13 +57,13 @@ dependencies {
     modImplementation "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
     include(modImplementation("maven.modrinth:tiny-config:${rootProject.tiny_config_version}-${platform}"))
     // Player Animator uses the `forge` classifier for its NeoForge artifact.
-    modImplementation "dev.kosmx.player-anim:player-animation-lib-forge:${rootProject.player_anim_version}"
+   // modImplementation "dev.kosmx.player-anim:player-animation-lib-forge:${rootProject.player_anim_version}"
     modImplementation "me.shedaniel.cloth:cloth-config-${platform}:${rootProject.cloth_config_version}"
 
     // Content / library deps
     modImplementation "mod.azure.azurelib:azurelib-neo-${rootProject.minecraft_version}:${rootProject.azure_lib_version}"
     modImplementation "maven.modrinth:structure-pool-api:${rootProject.structure_pool_api_version_neoforge}-${platform}"
-    modImplementation "maven.modrinth:wizards:${rootProject.wizards_version}-${platform}"
+    //modImplementation "maven.modrinth:wizards:${rootProject.wizards_version}-${platform}"
     modImplementation "maven.modrinth:runes:${rootProject.runes_version}-${platform}"
 
     // NeoForge accessory slot provider (Trinkets replacement)

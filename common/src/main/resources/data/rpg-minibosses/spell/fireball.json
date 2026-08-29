@@ -11,12 +11,17 @@
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_frost_spell_ascend",
-          "origin": "FEET",
-          "shape": "WIDE_PIPE",
-          "count": 1.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1
+          "id": "spell_engine:magic_frost",
+          "appearance": {
+            "motion": "ASCEND"
+          },
+          "batch": {
+            "shape": "PIPE",
+            "width_factor": 2.0,
+            "vertical_origin": 0.1,
+            "min_speed": 0.05,
+            "max_speed": 0.1
+          }
         }
       ]
     }
@@ -28,7 +33,6 @@
       "launch_properties": {
         "velocity": 1.6
       },
-
       "projectile": {
         "divergence": 15.0,
         "hitbox": {
@@ -38,45 +42,53 @@
         "client_data": {
           "travel_particles": [
             {
-              "particle_id": "spell_engine:flame",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 3.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
+              "id": "spell_engine:flame",
+              "batch": {
+                "count": 3.0,
+                "shape": "SPHERE",
+                "min_speed": 0.05,
+                "max_speed": 0.1,
+                "angle": 360.0
+              }
             },
             {
-              "particle_id": "spell_engine:flame_medium_a",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 1.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
+              "id": "spell_engine:flame_medium_a",
+              "batch": {
+                "shape": "SPHERE",
+                "min_speed": 0.05,
+                "max_speed": 0.1,
+                "angle": 360.0
+              }
             },
             {
-              "particle_id": "spell_engine:flame_medium_b",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 1.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
+              "id": "spell_engine:flame_medium_b",
+              "batch": {
+                "shape": "SPHERE",
+                "min_speed": 0.05,
+                "max_speed": 0.1,
+                "angle": 360.0
+              }
             },
             {
-              "particle_id": "minecraft:smoke",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 2.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0
+              "id": "minecraft:smoke",
+              "batch": {
+                "count": 2.0,
+                "shape": "SPHERE",
+                "min_speed": 0.05,
+                "max_speed": 0.1,
+                "angle": 360.0
+              }
             }
           ],
-          "model": {
-            "model_id": "rpg-minibosses:projectile/flamewaveprojectile",
-            "scale": 1.0
+          "composite_model": {
+            "models": [
+              {
+                "fx": {
+                  "model_id": "rpg-minibosses:projectile/flamewaveprojectile",
+                  "scale": 1.0
+                }
+              }
+            ]
           }
         }
       }
@@ -104,30 +116,34 @@
           "knockback": 0.2
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:flame_spark",
-          "origin": "CENTER",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "count": 20.0,
-          "min_speed": 0.2,
-          "max_speed": 0.7,
-          "angle": 360.0
-        },
-        {
-          "particle_id": "minecraft:smoke",
-          "origin": "CENTER",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "count": 20.0,
-          "min_speed": 0.2,
-          "max_speed": 0.7,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "minecraft:entity.player.hurt_on_fire"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:flame_spark",
+            "batch": {
+              "count": 20.0,
+              "shape": "CIRCLE",
+              "alignment": "LOOK",
+              "min_speed": 0.2,
+              "max_speed": 0.7,
+              "angle": 360.0
+            }
+          },
+          {
+            "id": "minecraft:smoke",
+            "batch": {
+              "count": 20.0,
+              "shape": "CIRCLE",
+              "alignment": "LOOK",
+              "min_speed": 0.2,
+              "max_speed": 0.7,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     },
     {

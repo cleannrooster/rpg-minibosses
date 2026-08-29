@@ -42,7 +42,10 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
 
@@ -153,6 +156,13 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
      * the brain's movement, which is exactly how shots ended up going off while the body was still
      * running. The goal class is retained, unused, alongside the legacy animation resource.
      */
+    @Override
+    public void registerAttackPrototypes() {
+        // Discarded immediately; building it is what registers this mob's attack geometry
+        // with AttackRegistry, which the client needs to draw incoming swings.
+        new MercenaryBrain(this);
+    }
+
     @Override
     protected void initCustomGoals() {
         this.brain = new MercenaryBrain(this);

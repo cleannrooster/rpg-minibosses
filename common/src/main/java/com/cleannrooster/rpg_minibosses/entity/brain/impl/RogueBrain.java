@@ -29,7 +29,10 @@ import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.SoundHelper;
 import net.spell_power.api.SpellPower;
 
@@ -373,12 +376,12 @@ public class RogueBrain extends MobBrain {
         entity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, target.getEyePos());
         SoundHelper.playSound(entity.getWorld(), entity,
                 new Sound(Identifier.of("minecraft:entity.player.attack.sweep")));
-        SpellHelper.shootProjectile(entity.getWorld(), entity, target,
+        ProjectileLauncher.shootProjectile(entity.getWorld(), entity, target,
                 SpellRegistry.from(entity.getWorld()).getEntry(id).get(),
-                new SpellHelper.ImpactContext()
+                new SpellExecution.ImpactContext()
                         .power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, entity))
                         .position(entity.getPos()));
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.particles);
+        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.visuals.particles);
     }
 
     /** Roll toward the target — an approach, not an escape. */

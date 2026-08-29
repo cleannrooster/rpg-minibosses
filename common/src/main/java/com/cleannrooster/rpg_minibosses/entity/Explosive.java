@@ -25,7 +25,10 @@ import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.entity.SpellProjectile;
 import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.internals.target.SpellTarget;
 import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
@@ -45,7 +48,7 @@ public class Explosive extends PersistentProjectileEntity  {
     public Explosive(EntityType<? extends PersistentProjectileEntity> entityType, World world) {
         super(entityType, world);
     }
-    public Explosive(EntityType<? extends PersistentProjectileEntity> entityType, Entity owner, World world, Identifier spellId, SpellHelper.ImpactContext context) {
+    public Explosive(EntityType<? extends PersistentProjectileEntity> entityType, Entity owner, World world, Identifier spellId, SpellExecution.ImpactContext context) {
         super(entityType, world);
         this.setOwner(owner);
         this.spellId = spellId;
@@ -57,7 +60,7 @@ public class Explosive extends PersistentProjectileEntity  {
     }
 
 
-    public SpellHelper.ImpactContext getImpactContext() {
+    public SpellExecution.ImpactContext getImpactContext() {
         return this.context;
     }
     public void writeCustomDataToNbt(NbtCompound nbt) {
@@ -67,7 +70,7 @@ public class Explosive extends PersistentProjectileEntity  {
         nbt.putString(NBT_IMPACT_CONTEXT, gson.toJson(this.context));
     }
     private Identifier spellId;
-    private SpellHelper.ImpactContext context;
+    private SpellExecution.ImpactContext context;
     private static String NBT_SPELL_ID = "Spell.ID";
     private static String NBT_PERKS = "Perks";
     private static String NBT_IMPACT_CONTEXT = "Impact.Context";
@@ -79,7 +82,7 @@ public class Explosive extends PersistentProjectileEntity  {
             try {
                 Gson gson = new Gson();
                 this.spellId = Identifier.tryParse(nbt.getString(NBT_SPELL_ID));
-                this.context = (SpellHelper.ImpactContext)gson.fromJson(nbt.getString(NBT_IMPACT_CONTEXT), SpellHelper.ImpactContext.class);
+                this.context = (SpellExecution.ImpactContext)gson.fromJson(nbt.getString(NBT_IMPACT_CONTEXT), SpellExecution.ImpactContext.class);
 
             } catch (Exception var3) {
                 System.err.println("SpellProjectile - Failed to read spell data from NBT " + var3.getMessage());
@@ -133,7 +136,7 @@ public class Explosive extends PersistentProjectileEntity  {
         return false;
     }
 
-    public void shootProjectile(World world, Entity caster, Entity target, Spell spellInfo, SpellHelper.ImpactContext context, int sequenceIndex) {
+    public void shootProjectile(World world, Entity caster, Entity target, Spell spellInfo, SpellExecution.ImpactContext context, int sequenceIndex) {
         if (!world.isClient) {
             if(target != null) {
                 this.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, target.getBoundingBox().getCenter());
@@ -201,7 +204,7 @@ public class Explosive extends PersistentProjectileEntity  {
 
                     if(!this.getWorld().isClient() && this.spellId.getNamespace().equals(RPGMinibosses.CONTENT_NAMESPACE)  && this.getSpellEntry().isPresent() && this.getSpellEntry().get().value().active != null) {
 
-                        if (this.getSpellEntry().get().value().active.cast.channel_ticks > 0) {
+                        if (this.getSpellEntry().get().value().active.cast.channelTicks() > 0) {
                             this.channeling = true;
                         } else if(this.getSpellEntry().get().value().deliver.type.equals(Spell.Delivery.Type.PROJECTILE) && !this.shotprojectile){
                             List<Entity> list = TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(),
@@ -224,11 +227,11 @@ public class Explosive extends PersistentProjectileEntity  {
                                 i = this.random.nextInt(targets.size());
                                 entity = targets.get(i);
                             }
-                            SpellHelper.fallProjectile(this.getWorld(),player,entity,this.getPos(),getSpellEntry().get(),this.getImpactContext().position(this.getPos()));
+                            ProjectileLauncher.fallProjectile(this.getWorld(),player,entity,this.getPos(),getSpellEntry().get(),this.getImpactContext().position(this.getPos()));
                             return true;
                         }else if (!this.shotprojectile && this.getSpellEntry().get().value().area_impact != null) {
-                            boolean bool = SpellHelper.lookupAndPerformAreaImpact(this.getSpellEntry().get().value().area_impact, getSpellEntry().get(), player, this, this,this.getSpellEntry().get().value().impacts, this.getImpactContext().position(this.getPos()), false);
-                            ParticleHelper.sendBatches(this, this.getSpellEntry().get().value().release.particles);
+                            boolean bool = SpellImpacts.lookupAndPerformAreaImpact(this.getSpellEntry().get().value().area_impact, getSpellEntry().get(), player, this, this,this.getSpellEntry().get().value().impacts, this.getImpactContext().position(this.getPos()), false);
+                            ParticleHelper.sendBatches(this, this.getSpellEntry().get().value().release.visuals.particles);
                         return true;
                         }
 

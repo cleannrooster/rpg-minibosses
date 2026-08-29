@@ -3,6 +3,7 @@ package com.cleannrooster.rpg_minibosses.client.entity.renderer;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.entity.ArchmageFireEntity;
 import com.cleannrooster.rpg_minibosses.entity.ArtilleristEntity;
 import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
@@ -77,11 +78,56 @@ public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
             RPGMinibosses.CONTENT_NAMESPACE, "textures/mob/artillerist.png"
     );
 
+    // ── Fire Mage incantation ────────────────────────────────────────────────
+    //
+    // Same treatment as Magus: the mouth is sequenced rather than alternated, so the wide frames
+    // read as stressed syllables and the base texture's closed mouth as the gap between words.
+    // These two files do not exist yet — until they are added the mage simply stays mouth-closed,
+    // see talkTexturesPresent().
+    public static final Identifier FIREMAGE_TALK_OPEN = Identifier.of(
+            RPGMinibosses.CONTENT_NAMESPACE, "textures/mob/archmagetexturefire_casting.png"
+    );
+    public static final Identifier FIREMAGE_TALK_WIDE = Identifier.of(
+            RPGMinibosses.CONTENT_NAMESPACE, "textures/mob/archmagetexturefire_casting_2.png"
+    );
 
+    /** {@code null} means "use the mob's own texture", i.e. mouth closed. */
+    private static final Identifier[] TALK_CYCLE = {
+            FIREMAGE_TALK_OPEN, FIREMAGE_TALK_WIDE, FIREMAGE_TALK_OPEN, null,
+            FIREMAGE_TALK_WIDE, FIREMAGE_TALK_OPEN, FIREMAGE_TALK_WIDE, FIREMAGE_TALK_WIDE,
+            FIREMAGE_TALK_OPEN, null, FIREMAGE_TALK_OPEN, FIREMAGE_TALK_WIDE,
+    };
+
+    private static final int TALK_FRAME_TICKS = 3;
+
+    /**
+     * The mouth textures are art that does not exist in the repo yet. Rather than render the mage
+     * with a missing-texture checkerboard every time it casts, fall back to its normal skin until
+     * both files are present. Only consulted while a fire mage is actually mid-incantation, so this
+     * is not a per-frame cost for the other four minibosses.
+     */
+    private static boolean talkTexturesPresent() {
+        var resources = net.minecraft.client.MinecraftClient.getInstance().getResourceManager();
+        return resources.getResource(FIREMAGE_TALK_OPEN).isPresent()
+                && resources.getResource(FIREMAGE_TALK_WIDE).isPresent();
+    }
+
+    /**
+     * AzureLib resolves the texture through this config function every frame — there is no
+     * renderer-side hook to override, so per-entity texture logic belongs here.
+     */
+    private static Identifier textureFor(MinibossEntity entity, Identifier base) {
+        if (entity instanceof ArchmageFireEntity mage && mage.isTalking() && talkTexturesPresent()) {
+            Identifier frame = TALK_CYCLE[Math.floorMod(entity.age / TALK_FRAME_TICKS, TALK_CYCLE.length)];
+            return frame == null ? base : frame;
+        }
+        return base;
+    }
 
     public MinibossRenderer(EntityRendererFactory.Context context, Identifier model, Identifier texture) {
         super(
-                AzEntityRendererConfig.<MinibossEntity>builder(model  ,texture)
+                AzEntityRendererConfig.<MinibossEntity>builder(
+                                entity -> model, entity -> textureFor(entity, texture))
                         .setModelRenderer(MinibossModelRenderer::new)
                         .setAnimatorProvider(MinibossAnimationProvider::new) // Custom animator
 
@@ -90,7 +136,9 @@ public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
                         .setShadowRadius(exampleEntity -> 1.0F) // Sets a shadow radius with context
 
                         .setRenderType(RenderLayer.getEntityTranslucent(texture)) // Sets RenderType
-                        .setRenderType(exampleEntity -> RenderLayer.getEntityTranslucent(texture)) // Sets RenderType with context
+                        // The render layer carries the texture, so it has to follow the same swap —
+                        // changing only the texture provider would leave the mouth frames unused.
+                        .setRenderType(entity -> RenderLayer.getEntityTranslucent(textureFor(entity, texture)))
 
                         .addRenderLayer(new MinibossItemRenderer<>()) // Add render layers
                       //  .setModelRenderer(ExampleCustomEntityModelRenderer::new) // Sets the Model Renderer of your render to the ExampleCustomEntityModelRenderer

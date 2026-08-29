@@ -39,14 +39,18 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.fx.ParticleBatch;
+import net.spell_engine.api.spell.fx.ParticleGroup;
+import net.spell_engine.api.spell.fx.ParticleGroupBuilder;
 import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.entity.SpellProjectile;
 import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.fx.SpellEngineParticles;
 import net.spell_engine.fx.SpellEngineSounds;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.internals.target.SpellTarget;
 import net.spell_engine.network.Packets;
 import net.spell_engine.utils.SoundHelper;
@@ -64,8 +68,8 @@ import java.util.Optional;
 import static java.lang.Math.*;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-import static net.spell_engine.internals.SpellHelper.fallProjectile;
-import static net.spell_engine.internals.SpellHelper.lookupAndPerformAreaImpact;
+import static net.spell_engine.internals.delivery.ProjectileLauncher.fallProjectile;
+import static net.spell_engine.internals.impact.SpellImpacts.lookupAndPerformAreaImpact;
 
 public class TemplarEntity extends MinibossEntity{
     List<Item> bonusList = List.of();
@@ -159,6 +163,13 @@ public class TemplarEntity extends MinibossEntity{
 */
 
     @Override
+    public void registerAttackPrototypes() {
+        // Discarded immediately; building it is what registers this mob's attack geometry
+        // with AttackRegistry, which the client needs to draw incoming swings.
+        new TemplarBrain(this);
+    }
+
+    @Override
     protected void initCustomGoals() {
         this.brain = new TemplarBrain(this);
 
@@ -212,12 +223,12 @@ public class TemplarEntity extends MinibossEntity{
 
                                 if (finalIi % 4 == 1) {
                                     //serverWorld.spawnParticles(player, Particles.snowflake.particleType,true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, SpellEngineParticles.MagicParticles.get(SpellEngineParticles.MagicParticles.Shape.SPARK, SpellEngineParticles.MagicParticles.Motion.BURST).particleType(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                    world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
                                     world.spawnParticles(player, ParticleTypes.ELECTRIC_SPARK, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
 
                                 }
                                 //serverWorld.spawnParticles(player,Particles.frost_shard.particleType, true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                world.spawnParticles(player, SpellEngineParticles.MagicParticles.get(SpellEngineParticles.MagicParticles.Shape.SPARK, SpellEngineParticles.MagicParticles.Motion.BURST).particleType(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
                             }
                         }
                         if(entity instanceof ServerPlayerEntity player) {
@@ -225,12 +236,12 @@ public class TemplarEntity extends MinibossEntity{
 
                                 if (finalIi % 4 == 1) {
                                     //serverWorld.spawnParticles(player, Particles.snowflake.particleType,true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, SpellEngineParticles.MagicParticles.get(SpellEngineParticles.MagicParticles.Shape.SPARK, SpellEngineParticles.MagicParticles.Motion.BURST).particleType(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                    world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
                                     world.spawnParticles(player, ParticleTypes.ELECTRIC_SPARK, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
 
                                 }
                                 //serverWorld.spawnParticles(player,Particles.frost_shard.particleType, true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                world.spawnParticles(player, SpellEngineParticles.MagicParticles.get(SpellEngineParticles.MagicParticles.Shape.SPARK, SpellEngineParticles.MagicParticles.Motion.BURST).particleType(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
 
                             }
                         }
@@ -315,36 +326,9 @@ public class TemplarEntity extends MinibossEntity{
         return super.getMovementSpeed();
     }
 
-    public static void sendBatches(Vec3d target, Entity trackedEntity, ParticleBatch[] batches, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
-        if (batches != null && batches.length != 0) {
-            int sourceEntityId = trackedEntity.getId();
-            Packets.ParticleBatches.SourceType sourceType = Packets.ParticleBatches.SourceType.COORDINATE;
-            ArrayList<Packets.ParticleBatches.Spawn> spawns = new ArrayList();
-            ParticleBatch[] var8 = batches;
-            int var9 = batches.length;
-
-            for(int var10 = 0; var10 < var9; ++var10) {
-                ParticleBatch batch = var8[var10];
-                Vec3d sourceLocation = Vec3d.ZERO;
-                sourceLocation =target;
-
-                spawns.add(new Packets.ParticleBatches.Spawn(includeSourceEntity ? sourceEntityId : 0, trackedEntity.getYaw(), trackedEntity.getPitch(), sourceLocation, batch));
-            }
-
-            Packets.ParticleBatches packet = new Packets.ParticleBatches(sourceType, countMultiplier, spawns);
-            if (trackedEntity instanceof ServerPlayerEntity) {
-                ServerPlayerEntity serverPlayer = (ServerPlayerEntity)trackedEntity;
-                if (ServerPlayNetworking.canSend(serverPlayer, Packets.ParticleBatches.ID)) {
-                    ServerPlayNetworking.send(serverPlayer, packet);
-                }
-            }
-
-            trackers.forEach((serverPlayerx) -> {
-                if (ServerPlayNetworking.canSend(serverPlayerx, Packets.ParticleBatches.ID)) {
-                    ServerPlayNetworking.send(serverPlayerx, packet);
-                }
-
-            });
+    public static void sendBatches(Vec3d target, Entity trackedEntity, List<ParticleGroup> batches, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
+        if (batches != null && !batches.isEmpty()) {
+            ParticleHelper.sendBatches(trackedEntity, target, batches, countMultiplier, trackers, includeSourceEntity);
         }
     }
     private static BlockHitResult raycastObstacle(Entity entity, Vec3d start, Vec3d end) {

@@ -28,9 +28,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Rarity;
 import net.spell_engine.SpellEngineMod;
-import net.spell_engine.api.config.ArmorSetConfig;
-import net.spell_engine.api.config.AttributeModifier;
-import net.spell_engine.api.config.WeaponConfig;
+import net.spell_engine.rpg_series.config.ArmorSetConfig;
+import net.spell_engine.rpg_series.config.AttributeModifier;
+import net.spell_engine.rpg_series.config.WeaponConfig;
 import net.spell_engine.api.entity.SpellEngineAttributes;
 
 import net.spell_engine.api.spell.SpellDataComponents;

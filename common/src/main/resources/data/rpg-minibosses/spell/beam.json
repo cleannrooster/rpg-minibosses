@@ -7,157 +7,197 @@
     "scroll": {},
     "cast": {
       "duration": 1.0,
-              "animation": {"id":""},
-
-
+      "animation": {
+        "id": ""
+      },
       "sound": {
         "id": "spell_engine:generic_arcane_casting"
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_spell_float",
-          "origin": "LAUNCH_POINT",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "roll": 45.0,
-          "roll_offset": 45.0,
-          "count": 10.0,
-          "min_speed": 0.2,
-          "max_speed": 0.2,
-          "pre_spawn_travel": 10.0,
-          "color_rgba": 4284940287,
-          "scale": 2.0
+          "id": "spell_engine:magic_spell",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 10.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.2,
+            "max_speed": 0.2,
+            "pre_travel": 10.0
+          }
         },
         {
-          "particle_id": "spell_engine:magic_arcane_float",
-          "origin": "LAUNCH_POINT",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "roll": 45.0,
-          "roll_offset": 45.0,
-          "count": 10.0,
-          "min_speed": 0.02,
-          "max_speed": 0.02,
-          "pre_spawn_travel": 50.0,
-          "color_rgba": 4284940287,
-          "scale": 2.0
+          "id": "spell_engine:magic_arcane",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 10.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.02,
+            "max_speed": 0.02,
+            "pre_travel": 50.0
+          }
         },
         {
-          "particle_id": "spell_engine:magic_arcane_float",
-          "origin": "LAUNCH_POINT",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "roll": 45.0,
-          "roll_offset": 45.0,
-          "count": 10.0,
-          "min_speed": 0.02,
-          "max_speed": 0.02,
-          "pre_spawn_travel": 75.0,
-          "color_rgba": 4284940287,
-          "scale": 2.0
+          "id": "spell_engine:magic_arcane",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 10.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.02,
+            "max_speed": 0.02,
+            "pre_travel": 75.0
+          }
         }
       ]
     }
   },
   "release": {
-            "animation": {"id":""},
-
-
-    "particles": [
-      {
-        "particle_id": "spell_engine:flame",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 200.0,
-        "min_speed": 2.0,
-        "max_speed": 4.0,
-        "angle": 20.0
-      },
-      {
-        "particle_id": "spell_engine:flame_medium_a",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 100.0,
-        "min_speed": 1.0,
-        "max_speed": 2.0,
-        "angle": 40.0
-      },
-      {
-        "particle_id": "spell_engine:flame_medium_b",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 100.0,
-        "min_speed": 0.5,
-        "angle": 75.0
-      },
-      {
-        "particle_id": "spell_engine:electric_arc_a",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 400.0,
-        "min_speed": 0.1,
-        "max_speed": 20.0,
-        "angle": 5.0
-      },
-      {
-        "particle_id": "spell_engine:electric_arc_b",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 200.0,
-        "min_speed": 2.0,
-        "max_speed": 4.0,
-        "angle": 20.0
-      },
-      {
-        "particle_id": "spell_engine:flame",
-        "origin": "LAUNCH_POINT",
-        "shape": "CIRCLE",
-        "rotation": "LOOK",
-        "roll": 45.0,
-        "roll_offset": 45.0,
-        "count": 100.0,
-        "min_speed": 0.2,
-        "max_speed": 0.2,
-        "pre_spawn_travel": 10.0,
-        "color_rgba": 4284889343,
-        "scale": 2.0
-      },
-      {
-        "particle_id": "spell_engine:flame_medium_a",
-        "origin": "LAUNCH_POINT",
-        "shape": "CIRCLE",
-        "rotation": "LOOK",
-        "roll": 45.0,
-        "roll_offset": 45.0,
-        "count": 100.0,
-        "min_speed": 0.02,
-        "max_speed": 0.02,
-        "pre_spawn_travel": 50.0,
-        "color_rgba": 4284889343,
-        "scale": 2.0
-      },
-      {
-        "particle_id": "spell_engine:flame_spark",
-        "origin": "LAUNCH_POINT",
-        "shape": "CIRCLE",
-        "rotation": "LOOK",
-        "roll": 45.0,
-        "roll_offset": 45.0,
-        "count": 100.0,
-        "min_speed": 0.02,
-        "max_speed": 0.02,
-        "pre_spawn_travel": 75.0,
-        "color_rgba": 4284889343,
-        "scale": 2.0
-      }
-    ],
+    "animation": {
+      "id": ""
+    },
     "sound": {
       "id": "spell_engine:generic_lightning_release"
+    },
+    "visuals": {
+      "particles": [
+        {
+          "id": "spell_engine:flame",
+          "batch": {
+            "count": 200.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 2.0,
+            "max_speed": 4.0,
+            "angle": 20.0
+          }
+        },
+        {
+          "id": "spell_engine:flame_medium_a",
+          "batch": {
+            "count": 100.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 1.0,
+            "max_speed": 2.0,
+            "angle": 40.0
+          }
+        },
+        {
+          "id": "spell_engine:flame_medium_b",
+          "batch": {
+            "count": 100.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 0.5,
+            "max_speed": 1,
+            "angle": 75.0
+          }
+        },
+        {
+          "id": "spell_engine:electric_arc_a",
+          "batch": {
+            "count": 400.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 0.1,
+            "max_speed": 20.0,
+            "angle": 5.0
+          }
+        },
+        {
+          "id": "spell_engine:electric_arc_b",
+          "batch": {
+            "count": 200.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 2.0,
+            "max_speed": 4.0,
+            "angle": 20.0
+          }
+        },
+        {
+          "id": "spell_engine:flame",
+          "appearance": {
+            "color": 4284889343,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 100.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.2,
+            "max_speed": 0.2,
+            "pre_travel": 10.0
+          }
+        },
+        {
+          "id": "spell_engine:flame_medium_a",
+          "appearance": {
+            "color": 4284889343,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 100.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.02,
+            "max_speed": 0.02,
+            "pre_travel": 50.0
+          }
+        },
+        {
+          "id": "spell_engine:flame_spark",
+          "appearance": {
+            "color": 4284889343,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 100.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.02,
+            "max_speed": 0.02,
+            "pre_travel": 75.0
+          }
+        }
+      ]
     }
   },
   "target": {
@@ -176,28 +216,32 @@
           "knockback": 1
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:flame",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        },
-        {
-          "particle_id": "spell_engine:flame_spark",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "spell_engine:generic_arcane_release"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:flame",
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          },
+          {
+            "id": "spell_engine:flame_spark",
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     },
     {
@@ -209,19 +253,22 @@
           "knockback": 1
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:flame_spark",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "spell_engine:generic_arcane_release"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:flame_spark",
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     },
     {
@@ -233,28 +280,32 @@
           "knockback": 1
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:electric_arc_a",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        },
-        {
-          "particle_id": "spell_engine:electric_arc_b",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "spell_engine:generic_lightning_release"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:electric_arc_a",
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          },
+          {
+            "id": "spell_engine:electric_arc_b",
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     }
   ],

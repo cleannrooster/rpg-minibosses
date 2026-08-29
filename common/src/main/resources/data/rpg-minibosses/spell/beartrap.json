@@ -2,9 +2,8 @@
   "range": 32.0,
   "school": "PHYSICAL_MELEE",
   "tier": 2,
-  "learn": { },
+  "learn": {},
   "type": "ACTIVE",
-
   "active": {
     "cast": {
       "duration": 0
@@ -23,10 +22,9 @@
     }
   },
   "release": {
-            "animation": {"id":""}
-
-
-
+    "animation": {
+      "id": ""
+    }
   },
   "impacts": [
     {
@@ -41,26 +39,27 @@
         }
       }
     }
-
   ],
   "area_impact": {
     "radius": 2.5,
-    "area": {
-    },
+    "area": {},
     "sound": {
       "id": "entity.armor_stand.place"
     },
-    "particles": [
-      {
-        "particle_id": "minecraft:smoke",
-        "origin": "CENTER",
-        "shape": "CIRCLE",
-        "count": 20.0,
-        "min_speed": 0.2,
-        "max_speed": 0.7,
-        "angle": 360.0
-      }
-    ]
+    "visuals": {
+      "particles": [
+        {
+          "id": "minecraft:smoke",
+          "batch": {
+            "count": 20.0,
+            "shape": "CIRCLE",
+            "min_speed": 0.2,
+            "max_speed": 0.7,
+            "angle": 360.0
+          }
+        }
+      ]
+    }
   },
   "cost": {
     "cooldown": {

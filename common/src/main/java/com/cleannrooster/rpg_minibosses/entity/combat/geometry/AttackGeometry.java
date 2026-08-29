@@ -46,7 +46,14 @@ public final class AttackGeometry {
                                       float rollOffset) {
         var swing = volume.swing();
         var yaw = MathHelper.wrapDegrees(attacker.getYaw() + swing.yawOffset());
-        var pitch = MathHelper.wrapDegrees(swing.pitchOffset());
+        // Vertical aim comes from the attacker's own aim channel, not from getPitch(). Vanilla's
+        // LookControl zeroes pitch every tick, after custom AI has run, so pitch is not a value a mob
+        // can own — see AttackAim. Attackers that do not opt in, and radial impacts that must not be
+        // tilted at all, fall through to level, which is exactly what this did before.
+        var aim = attacker instanceof AttackAim.Aiming aiming && AttackAim.appliesTo(volume)
+                ? aiming.attackPitch()
+                : 0.0f;
+        var pitch = MathHelper.wrapDegrees(aim + swing.pitchOffset());
         var scale = attacker.getScaleFactor();
         var base = new AttackFrame(attacker.getPos(), yaw, pitch, rollOffset, mirrored, (float) scale);
         var lateral = volume.offsetLateral() * swing.handedness().lateralSign() * (mirrored ? -1.0 : 1.0);

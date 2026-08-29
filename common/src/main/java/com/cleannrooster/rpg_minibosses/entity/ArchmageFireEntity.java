@@ -43,7 +43,10 @@ import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.fx.SpellEngineSounds;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_engine.utils.WorldScheduler;
@@ -132,6 +135,13 @@ public class ArchmageFireEntity extends MinibossEntity  {
     }
 
     @Override
+    public void registerAttackPrototypes() {
+        // Discarded immediately; building it is what registers this mob's attack geometry
+        // with AttackRegistry, which the client needs to draw incoming swings.
+        new FireMageBrain(this);
+    }
+
+    @Override
     protected void initCustomGoals() {
         this.brain = new FireMageBrain(this);
 
@@ -142,8 +152,31 @@ public class ArchmageFireEntity extends MinibossEntity  {
     public boolean isTwoHand() {
         return false;
     }
+    /**
+     * Ticks of incantation left to mouth. Tracked so the client can drive the mouth texture without
+     * needing to know anything about the combat action that started it.
+     */
+    public static final TrackedData<Integer> TALK_TICKS =
+            DataTracker.registerData(ArchmageFireEntity.class, TrackedDataHandlerRegistry.INTEGER);
+
+    /** Mouthed for the length of a quick cast. */
+    public static final int TALK_SHORT = 14;
+    /** Mouthed across the volley's long charge, stopping short of its recovery. */
+    public static final int TALK_LONG = 58;
+
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
+        builder.add(TALK_TICKS, 0);
+    }
+
+    /** Starts (or extends) the mouth flap. Server-side; the countdown syncs to the client. */
+    public void startTalking(int ticks) {
+        if (this.getWorld().isClient()) return;
+        this.dataTracker.set(TALK_TICKS, Math.max(this.dataTracker.get(TALK_TICKS), ticks));
+    }
+
+    public boolean isTalking() {
+        return this.dataTracker.get(TALK_TICKS) > 0;
     }
     public Item getDefaultItem(){
         return Items.AIR;
@@ -157,7 +190,12 @@ public class ArchmageFireEntity extends MinibossEntity  {
 
     @Override
     public void tick() {
-
+            if (!this.getWorld().isClient()) {
+                int talking = this.dataTracker.get(TALK_TICKS);
+                if (talking > 0) {
+                    this.dataTracker.set(TALK_TICKS, talking - 1);
+                }
+            }
             super.tick();
     }
 

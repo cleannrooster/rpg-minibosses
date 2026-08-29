@@ -1,7 +1,7 @@
 package com.cleannrooster.rpg_minibosses.config;
 
 import net.fabric_extras.structure_pool.api.StructurePoolConfig;
-import net.spell_engine.api.config.ConfigFile;
+import net.spell_engine.rpg_series.config.ConfigFile;
 import net.spell_engine.rpg_series.item.Weapon;
 
 

@@ -30,7 +30,10 @@ import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.minecraft.server.world.ServerWorld;
 import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_power.api.SpellPower;
 
@@ -362,9 +365,7 @@ public class JuggernautBrain extends MobBrain {
         // Emit shield particles every 4 ticks while braced
         if (entity.age % 4 == 0 && entity.getWorld() instanceof ServerWorld sw) {
             sw.spawnParticles(
-                SpellEngineParticles.MagicParticles.get(
-                    SpellEngineParticles.MagicParticles.Shape.SPARK,
-                    SpellEngineParticles.MagicParticles.Motion.BURST).particleType(),
+                SpellEngineParticles.magic_spark.type(),
                 entity.getX(), entity.getY() + entity.getHeight() * 0.5, entity.getZ(),
                 6, 0.5, 0.6, 0.5, 0.02);
         }
@@ -410,15 +411,15 @@ public class JuggernautBrain extends MobBrain {
         if (entity.getWorld().isClient()) return;
         var world = entity.getWorld();
         var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound");
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(world).get(id).release.particles);
+        ParticleHelper.sendBatches(entity, SpellRegistry.from(world).get(id).release.visuals.particles);
         // Filtered by the same predicate the melee arcs use. Passing null here meant Slam and the Leap
         // landing hit every living thing in six blocks — the mob's own owner and its allies included.
         for (Entity struck : TargetHelper.targetsFromArea(entity, radius, new Spell.Target.Area(),
                 entity::canHarm)) {
-            SpellHelper.performImpacts(world, entity, struck, entity,
+            SpellImpacts.performImpacts(world, entity, struck, entity,
                 SpellRegistry.from(world).getEntry(id).get(),
                 SpellRegistry.from(world).get(id).impacts,
-                new SpellHelper.ImpactContext()
+                new SpellExecution.ImpactContext()
                     .power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, entity))
                     .position(entity.getPos()));
         }

@@ -6,98 +6,131 @@
   "active": {
     "cast": {
       "duration": 1.0,
-              "animation": {"id":""},
-
-
+      "animation": {
+        "id": ""
+      },
       "sound": {
         "id": "spell_engine:generic_arcane_casting"
       },
       "particles": [
         {
-          "particle_id": "spell_engine:magic_spell_float",
-          "origin": "LAUNCH_POINT",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "roll": 45.0,
-          "roll_offset": 45.0,
-          "count": 10.0,
-          "min_speed": 0.2,
-          "max_speed": 0.2,
-          "pre_spawn_travel": 10.0,
-          "color_rgba": 4284940287,
-          "scale": 2.0
+          "id": "spell_engine:magic_spell",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 10.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.2,
+            "max_speed": 0.2,
+            "pre_travel": 10.0
+          }
         },
         {
-          "particle_id": "spell_engine:magic_stripe_float",
-          "origin": "LAUNCH_POINT",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "roll": 45.0,
-          "roll_offset": 45.0,
-          "count": 10.0,
-          "min_speed": 0.02,
-          "max_speed": 0.02,
-          "pre_spawn_travel": 50.0,
-          "color_rgba": 4284940287,
-          "scale": 2.0
+          "id": "spell_engine:magic_stripe",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 10.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.02,
+            "max_speed": 0.02,
+            "pre_travel": 50.0
+          }
         },
         {
-          "particle_id": "spell_engine:magic_spark_float",
-          "origin": "LAUNCH_POINT",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "roll": 45.0,
-          "roll_offset": 45.0,
-          "count": 10.0,
-          "min_speed": 0.02,
-          "max_speed": 0.02,
-          "pre_spawn_travel": 75.0,
-          "color_rgba": 4284940287,
-          "scale": 2.0
+          "id": "spell_engine:magic_spark",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287,
+            "scale": 2.0
+          },
+          "batch": {
+            "count": 10.0,
+            "shape": "CIRCLE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "roll_per_tick": 45.0,
+            "roll_offset": 45.0,
+            "min_speed": 0.02,
+            "max_speed": 0.02,
+            "pre_travel": 75.0
+          }
         }
       ]
     }
   },
   "release": {
-            "animation": {"id":""},
-
-
-    "particles": [
-      {
-        "particle_id": "spell_engine:magic_spell_float",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 200.0,
-        "min_speed": 2.0,
-        "max_speed": 4.0,
-        "angle": 20.0,
-        "color_rgba": 4284940287
-      },
-      {
-        "particle_id": "spell_engine:magic_spark_float",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 100.0,
-        "min_speed": 1.0,
-        "max_speed": 2.0,
-        "angle": 40.0,
-        "color_rgba": 4284940287
-      },
-      {
-        "particle_id": "spell_engine:magic_stripe_float",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 100.0,
-        "min_speed": 0.5,
-        "angle": 75.0,
-        "color_rgba": 4284940287
-      }
-    ],
+    "animation": {
+      "id": ""
+    },
     "sound": {
       "id": "spell_engine:generic_arcane_release"
+    },
+    "visuals": {
+      "particles": [
+        {
+          "id": "spell_engine:magic_spell",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287
+          },
+          "batch": {
+            "count": 200.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 2.0,
+            "max_speed": 4.0,
+            "angle": 20.0
+          }
+        },
+        {
+          "id": "spell_engine:magic_spark",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287
+          },
+          "batch": {
+            "count": 100.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 1.0,
+            "max_speed": 2.0,
+            "angle": 40.0
+          }
+        },
+        {
+          "id": "spell_engine:magic_stripe",
+          "appearance": {
+            "motion": "FLOAT",
+            "color": 4284940287
+          },
+          "batch": {
+            "count": 100.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 0.5,
+            "max_speed": 1,
+            "angle": 75.0
+          }
+        }
+      ]
     }
   },
   "target": {
@@ -117,29 +150,42 @@
         "client_data": {
           "travel_particles": [
             {
-              "particle_id": "spell_engine:magic_spell_float",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 3.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0,
-              "color_rgba": 4284940287
+              "id": "spell_engine:magic_spell",
+              "appearance": {
+                "motion": "FLOAT",
+                "color": 4284940287
+              },
+              "batch": {
+                "count": 3.0,
+                "shape": "SPHERE",
+                "min_speed": 0.05,
+                "max_speed": 0.1,
+                "angle": 360.0
+              }
             },
             {
-              "particle_id": "spell_engine:magic_stripe_float",
-              "origin": "CENTER",
-              "shape": "SPHERE",
-              "count": 1.0,
-              "min_speed": 0.05,
-              "max_speed": 0.1,
-              "angle": 360.0,
-              "color_rgba": 4284940287
+              "id": "spell_engine:magic_stripe",
+              "appearance": {
+                "motion": "FLOAT",
+                "color": 4284940287
+              },
+              "batch": {
+                "shape": "SPHERE",
+                "min_speed": 0.05,
+                "max_speed": 0.1,
+                "angle": 360.0
+              }
             }
           ],
-          "model": {
-            "model_id": "wizards:spell_projectile/arcane_missile",
-            "scale": 2.0
+          "composite_model": {
+            "models": [
+              {
+                "fx": {
+                  "model_id": "wizards:spell_projectile/arcane_missile",
+                  "scale": 2.0
+                }
+              }
+            ]
           }
         }
       }
@@ -155,28 +201,38 @@
           "knockback": 0.0
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:magic_arcane_spark_float",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        },
-        {
-          "particle_id": "spell_engine:magic_spark_float",
-          "origin": "CENTER",
-          "shape": "SPHERE",
-          "count": 20.0,
-          "min_speed": 0.05,
-          "max_speed": 0.1,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "spell_engine:generic_arcane_release"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:magic_arcane",
+            "appearance": {
+              "motion": "FLOAT"
+            },
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          },
+          {
+            "id": "spell_engine:magic_spark",
+            "appearance": {
+              "motion": "FLOAT"
+            },
+            "batch": {
+              "count": 20.0,
+              "shape": "SPHERE",
+              "min_speed": 0.05,
+              "max_speed": 0.1,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     }
   ],

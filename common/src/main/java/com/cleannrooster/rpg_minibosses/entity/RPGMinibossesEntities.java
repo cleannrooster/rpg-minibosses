@@ -58,7 +58,7 @@ import net.minecraft.world.spawner.PatrolSpawner;
 import net.minecraft.world.spawner.SpecialSpawner;
 import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.rpg_series.config.Defaults;
+import net.spell_engine.rpg_series.config.LootDefaults;
 import net.spell_power.api.SpellSchools;
 
 import java.util.ArrayList;

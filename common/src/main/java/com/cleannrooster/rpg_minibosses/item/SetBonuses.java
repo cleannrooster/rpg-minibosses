@@ -8,14 +8,13 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.spell_engine.api.config.ArmorSetConfig;
+import net.spell_engine.rpg_series.config.ArmorSetConfig;
 import net.spell_engine.api.entity.SpellEngineAttributes;
 import net.spell_engine.api.item.set.EquipmentSet;
 import net.spell_engine.api.spell.container.SpellContainerHelper;
 import net.spell_engine.api.spell.container.SpellContainers;
 import net.spell_power.api.SpellPowerMechanics;
 import net.spell_power.api.SpellSchools;
-import net.wizards.item.Group;
 
 import java.util.ArrayList;
 import java.util.List;

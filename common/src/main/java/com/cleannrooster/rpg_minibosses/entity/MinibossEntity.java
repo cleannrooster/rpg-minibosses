@@ -98,7 +98,8 @@ import static java.lang.Math.max;
 import static net.minecraft.entity.mob.HostileEntity.canSpawnIgnoreLightLevel;
 import static net.minecraft.entity.mob.HostileEntity.isSpawnDark;
 
-public class MinibossEntity extends PathAwareEntity implements Tameable,  Angerable, Merchant {
+public class MinibossEntity extends PathAwareEntity implements Tameable,  Angerable, Merchant,
+        com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackAim.Aiming {
     private UUID ownerUuid;
     public boolean performing;
 
@@ -447,6 +448,12 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
 
     @Override
     public void tick() {
+        // Teach this client the shapes of this mob's attacks. Done on tick rather than in the
+        // constructor because the hook is overridden per mob, and a base constructor calling it would
+        // build the brain before the subclass's own fields exist.
+        if (this.getWorld().isClient()) {
+            com.cleannrooster.rpg_minibosses.entity.combat.AttackRegistry.ensureClientPrototypes(this);
+        }
         if(this.getTarget() != null){
             if(this.getTarget() instanceof MinibossEntity entity && entity.getDataTracker().get(DOWN) && this.isTamed()){
                 this.setTarget(null);
@@ -629,8 +636,45 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
         ((MobNavigation)this.getNavigation()).setCanPathThroughDoors(true);
         ((MobNavigation)this.getNavigation()).setCanEnterOpenDoors(true);
         ((MobNavigation)this.getNavigation()).setCanWalkOverFences(true);
+        aimAt(this.getTarget());
         super.mobTick();
 
+    }
+
+    /**
+     * Pitch committed attacks are thrown at, in degrees. Negative is up.
+     *
+     * <p>A field of its own rather than the entity's pitch, because vanilla's {@code LookControl}
+     * resets pitch to zero every tick after custom AI runs — see
+     * {@link com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackAim}. Server-side only: it
+     * is read at the moment an attack commits and travels to clients inside the attack frame's pitch,
+     * so there is nothing to sync.
+     */
+    private float attackPitch;
+
+    @Override
+    public float attackPitch() {
+        return this.attackPitch;
+    }
+
+    /**
+     * How fast the aim tracks. Brisk enough to follow a player up a step, slow enough that a jump does
+     * not yank the aim skyward for the two ticks the player is airborne.
+     */
+    private static final float AIM_EASE = 0.35f;
+
+    /** Ease the aim toward a target's elevation, curved and capped by {@code AttackAim}. */
+    public void aimAt(@Nullable Entity target) {
+        if (this.getWorld().isClient()) return;
+        if (target == null) {
+            this.attackPitch = com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackAim
+                    .ease(this.attackPitch, 0.0f, AIM_EASE);
+            return;
+        }
+        this.attackPitch = com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackAim.ease(
+                this.attackPitch,
+                com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackAim.pitchToward(this, target),
+                AIM_EASE);
     }
     @Override
     public void tickMovement() {
@@ -830,7 +874,7 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
 
     public void playReleaseParticlesAndSound(){
         if(!this.getWorld().isClient()) {
-            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.particles);
+            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.visuals.particles);
             SoundHelper.playSound(this.getWorld(), this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.sound);
         }
     }
@@ -981,6 +1025,15 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
     }
 
 
+
+    /**
+     * Build this mob's brain purely so its {@link com.cleannrooster.rpg_minibosses.entity.combat.CombatAction}s
+     * register their geometry. Called once per mob class on the client, where {@code initGoals} — and
+     * so the real brain — never runs. The brain built here is discarded immediately; only the
+     * side effect on {@code AttackRegistry} matters. Mobs with no brain need not override this.
+     */
+    public void registerAttackPrototypes() {
+    }
 
     protected void initCustomGoals() {
     }

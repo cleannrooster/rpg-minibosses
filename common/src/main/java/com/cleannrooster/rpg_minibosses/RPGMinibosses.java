@@ -50,7 +50,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
-import net.spell_engine.api.config.ConfigFile;
+import net.spell_engine.rpg_series.config.ConfigFile;
 import net.spell_engine.api.render.CustomModels;
 import net.spell_engine.api.spell.event.SpellHandlers;
 import net.spell_engine.rpg_series.loot.LootConfig;
@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static net.minecraft.registry.Registries.ENTITY_TYPE;
-import static net.spell_engine.rpg_series.config.Defaults.itemLootConfig;
+import static net.spell_engine.rpg_series.config.LootDefaults.itemLootConfig;
 
 /**
  * Loader-independent core. Does NOT implement {@code ModInitializer} / NeoForge entrypoint types.

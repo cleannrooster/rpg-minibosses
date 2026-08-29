@@ -7,6 +7,7 @@ import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.GoatHornItem;
 import net.minecraft.item.Instrument;
@@ -70,13 +71,31 @@ public class SummonItem<T extends LivingEntity> extends Item {
                 for (int i = 0; i < 10; i++) {
                     BlockPos vec3 = getSafePositionAroundPlayer2(world, player.getSteppingPos(), 10);
                     if (vec3 != null && world.isSkyVisible(vec3.up()) && !world.isClient()) {
-                        for (EntityType<T> type : entityTypelist) {
+                        for (int index = 0; index < entityTypelist.size(); index++) {
+                            EntityType<T> type = entityTypelist.get(index);
 
                             T magus = type.create(world);
-                            magus.setPosition(vec3.getX(), vec3.getY(), vec3.getZ());
+                            // Every summon after the first gets its own validated spot. Stacking the
+                            // pair on one block made them look like a single frozen mob, and none of
+                            // their spacing logic can separate them until something moves first.
+                            BlockPos spawnPos = vec3;
+                            if (index > 0) {
+                                BlockPos alt = getSafePositionAroundPlayer2(world, player.getSteppingPos(), 10);
+                                if (alt != null && world.isSkyVisible(alt.up())
+                                        && alt.getSquaredDistance(vec3) > 9.0) {
+                                    spawnPos = alt;
+                                }
+                            }
+                            magus.setPosition(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
 
 
                             magus.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, player.getPos());
+                            // These bosses carry targeting goals but no movement goals, so without an
+                            // explicit target on spawn nothing in their tick ever runs and they stand
+                            // there inert until something damages them.
+                            if (magus instanceof MobEntity mob) {
+                                mob.setTarget(player);
+                            }
                             world.spawnEntity(magus);
                         }
                         stack.decrement(1);

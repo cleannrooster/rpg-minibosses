@@ -20,7 +20,10 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.minecraft.registry.entry.RegistryEntry;
 
 import java.util.List;
@@ -48,6 +51,13 @@ public class StormAnchorEntity extends Entity {
     private static final int   DAMAGE_INTERVAL = 10;  // ticks between DoT pulses
     private static final int   LIGHTNING_INTERVAL = 40; // ticks between lightning bursts
     private static final double PARTICLE_SEND_RANGE_SQ = 64.0 * 64.0;
+    // Per-layer particle budget, cut by roughly a third from the original emission. The storm still
+    // reads as a solid wall of motion at this density; the extra third was mostly hidden behind
+    // itself and cost the most on lower-end clients and in multiplayer.
+    private static final int   SWIRL_PARTICLES   = 54; // was 80, every tick
+    private static final int   WALL_PARTICLES    = 27; // was 40, every 2 ticks
+    private static final int   SHADOW_PARTICLES  = 27; // was 40, every 3 ticks
+    private static final int   UPDRAFT_PARTICLES = 54; // was 80, every 4 ticks
     private static final int   WANDER_INTERVAL = 120; // ticks between wander target picks
     private static final double WANDER_RANGE   = 12.0; // max blocks from spawn anchor
     private static final double WANDER_SPEED   = 0.03; // lerp fraction per tick
@@ -272,7 +282,7 @@ public class StormAnchorEntity extends Entity {
         // ── 1. Main swirl — PORTAL across disk ───────────────────────────────
         //    Random angles. Tangential speed scales with r (faster at the rim)
         //    + steady inward radial pull → spiral inward.
-        for (int i = 0; i < 80; i++) {
+        for (int i = 0; i < SWIRL_PARTICLES; i++) {
             double angle = random.nextDouble() * Math.PI * 2;
             double r     = radius * (minInner + random.nextDouble() * (1.0 - minInner));
             double px    = cx + Math.cos(angle) * r;
@@ -295,7 +305,7 @@ public class StormAnchorEntity extends Entity {
         //    Dense smoke ring with strong tangential + moderate inward pull.
         //    Emitted every other tick to keep counts manageable.
         if (this.age % 2 == 0) {
-            for (int i = 0; i < 40; i++) {
+            for (int i = 0; i < WALL_PARTICLES; i++) {
                 double angle = random.nextDouble() * Math.PI * 2;
                 double r     = radius * (0.60 + random.nextDouble() * 0.40);
                 double px    = cx + Math.cos(angle) * r;
@@ -317,7 +327,7 @@ public class StormAnchorEntity extends Entity {
         //    Flat disk, tangential + inward so the shadow itself visibly rotates.
         //    When player-centered, bias spawn toward outer 70 % to keep the centre clear.
         if (!fading && this.age % 3 == 0) {
-            for (int i = 0; i < 40; i++) {
+            for (int i = 0; i < SHADOW_PARTICLES; i++) {
                 double angle = random.nextDouble() * Math.PI * 2;
                 // uniform disk biased to outer zone when player-centered
                 double rNorm = playerCentered
@@ -343,7 +353,7 @@ public class StormAnchorEntity extends Entity {
         //    rise — opposite radial direction to the outer layers.
         //    Skipped when player-centered (inner zone is kept clear for visibility).
         if (!fading && !playerCentered && this.age % 4 == 0) {
-            for (int i = 0; i < 80; i++) {
+            for (int i = 0; i < UPDRAFT_PARTICLES; i++) {
                 double angle = random.nextDouble() * Math.PI * 2;
                 double r     = radius * (random.nextDouble() * 0.35);
                 double px    = cx + Math.cos(angle) * r;
@@ -371,7 +381,7 @@ public class StormAnchorEntity extends Entity {
         double cy = this.getY();
         double cz = this.getZ();
 
-        int count = 6 + random.nextInt(4); // 6–9 particles per burst
+        int count = 4 + random.nextInt(3); // 4–6 particles per burst (was 6–9)
         for (int i = 0; i < count; i++) {
             // Random position inside the cylinder
             float angle = (float) (random.nextDouble() * Math.PI * 2);
@@ -440,9 +450,9 @@ public class StormAnchorEntity extends Entity {
             double height = bb.maxY - bb.minY;  // vertical extent
             // Particle count scales with surface area proxy (width² + width×height)
             double sizeScale = Math.sqrt(width * width + width * height);
-            int particleCount = Math.max(2, (int) Math.round(sizeScale * 3.0));
+            int particleCount = Math.max(2, (int) Math.round(sizeScale * 2.0));
             // Occasional bright spark count scales similarly
-            int sparkCount = Math.max(1, (int) Math.round(sizeScale * 1.2));
+            int sparkCount = Math.max(1, (int) Math.round(sizeScale * 0.8));
 
             // ── Main disintegration stream — PORTAL particles ────────────────
             for (int i = 0; i < particleCount; i++) {
@@ -622,9 +632,9 @@ public class StormAnchorEntity extends Entity {
         if (spellEntry.isPresent() && owner instanceof LivingEntity livingOwner) {
             net.minecraft.registry.entry.RegistryEntry<Spell> spell = spellEntry.get();
             for (LivingEntity target : targets) {
-                SpellHelper.performImpacts(this.getWorld(), livingOwner, target, livingOwner,
+                SpellImpacts.performImpacts(this.getWorld(), livingOwner, target, livingOwner,
                         spell, spell.value().impacts,
-                        new SpellHelper.ImpactContext().position(this.getPos()));
+                        new SpellExecution.ImpactContext().position(this.getPos()));
             }
         } else {
             for (LivingEntity target : targets) {

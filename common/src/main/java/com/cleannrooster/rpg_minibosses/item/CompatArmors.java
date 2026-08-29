@@ -7,8 +7,8 @@ import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
-import net.spell_engine.api.config.ArmorSetConfig;
-import net.spell_engine.api.config.AttributeModifier;
+import net.spell_engine.rpg_series.config.ArmorSetConfig;
+import net.spell_engine.rpg_series.config.AttributeModifier;
 import net.spell_engine.rpg_series.item.Armor;
 import net.spell_engine.rpg_series.item.Armor.*;
 

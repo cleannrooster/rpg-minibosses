@@ -8,7 +8,10 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.util.Identifier;
 import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchools;
@@ -38,9 +41,9 @@ public class Feather extends CustomEffect{
            target = TargetHelper.targetFromRaycast(entity,SpellRegistry.from(entity.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"firefeather2")).range, entity1 -> true);
 
         }
-        SpellHelper.shootProjectile(entity.getWorld(),entity,target
+        ProjectileLauncher.shootProjectile(entity.getWorld(),entity,target
                         , SpellRegistry.from(entity.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"firefeather2")).get(),
-                new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,entity)).channeled(1.0F).distance(1.0F));
+                new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,entity)).channeled(1.0F).distance(1.0F));
         entity.removeStatusEffect(Effects.FEATHER.registryEntry);
         if(amplifier >  0) {
             entity.addStatusEffect(new StatusEffectInstance(Effects.FEATHER.registryEntry, 3, amplifier-1, false, false));

@@ -28,7 +28,10 @@ import net.spell_engine.api.spell.fx.Sound;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
 import net.spell_engine.fx.SpellEngineSounds;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_power.api.SpellPower;
@@ -103,6 +106,7 @@ public class FireMageBrain extends MobBrain {
                 .motion(AttackMotion.MOBILE)
                 .tracking(TrackingMode.FULL, TrackingMode.REDUCED)
                 .cooldown(80)
+                .onStart(ctx -> archmage.startTalking(ArchmageFireEntity.TALK_SHORT))
                 .onActiveStart(ctx -> castFireball())
                 .onActiveTick(ctx -> {
                     if (ctx.phaseTick() == 5) {
@@ -143,8 +147,13 @@ public class FireMageBrain extends MobBrain {
                 .motion(AttackMotion.MOBILE)
                 .tracking(TrackingMode.REDUCED, TrackingMode.REDUCED)
                 .cooldown(640)
-                .onStart(ctx -> SoundHelper.playSound(entity.getWorld(), entity,
-                        new Sound(SpellEngineSounds.GENERIC_FIRE_CASTING.id())))
+                .onStart(ctx -> {
+                    SoundHelper.playSound(entity.getWorld(), entity,
+                            new Sound(SpellEngineSounds.GENERIC_FIRE_CASTING.id()));
+                    // The long charge is the one the player most needs to recognise early, so the
+                    // incantation runs the length of the wind-up rather than just its opening.
+                    archmage.startTalking(ArchmageFireEntity.TALK_LONG);
+                })
                 .onActiveStart(this::castVolley)
                 .onFinish(ctx -> cooldowns.trigger("volley_recovered", 1))
                 .build();
@@ -157,7 +166,10 @@ public class FireMageBrain extends MobBrain {
                 .motion(AttackMotion.PLANTED)
                 .tracking(TrackingMode.REDUCED, TrackingMode.LOCKED)
                 .cooldown(440)
-                .onStart(ctx -> ctx.locomotion().arrest(MovementProfile.HARD_STOP))
+                .onStart(ctx -> {
+                    ctx.locomotion().arrest(MovementProfile.HARD_STOP);
+                    archmage.startTalking(ArchmageFireEntity.TALK_SHORT);
+                })
                 .onActiveStart(ctx -> castNova())
                 .onFinish(ctx -> {
                     // Nova always resolves into separation — that is the whole trade it just made.
@@ -194,7 +206,7 @@ public class FireMageBrain extends MobBrain {
                     }
                     ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld())
                             .get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "fire_nova"))
-                            .release.particles);
+                            .release.visuals.particles);
                     SoundHelper.playSound(entity.getWorld(), entity,
                             new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
                 })
@@ -346,11 +358,11 @@ public class FireMageBrain extends MobBrain {
         var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "fireball");
         entity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, target.getEyePos());
         SoundHelper.playSound(entity.getWorld(), entity, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-        SpellHelper.shootProjectile(entity.getWorld(), entity, target,
+        ProjectileLauncher.shootProjectile(entity.getWorld(), entity, target,
             SpellRegistry.from(entity.getWorld()).getEntry(id).get(),
-            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
+            new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
                     .position(entity.getPos()));
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.particles);
+        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.visuals.particles);
     }
 
     private void castVolley(com.cleannrooster.rpg_minibosses.entity.combat.ActionContext ctx) {
@@ -358,11 +370,11 @@ public class FireMageBrain extends MobBrain {
         if (target == null || entity.getWorld().isClient() || !entity.canSee(target)) return;
         var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "lesser_fire_volley");
         SoundHelper.playSound(entity.getWorld(), entity, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-        SpellHelper.shootProjectile(entity.getWorld(), entity, target,
+        ProjectileLauncher.shootProjectile(entity.getWorld(), entity, target,
             SpellRegistry.from(entity.getWorld()).getEntry(id).get(),
-            new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
+            new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
                     .position(entity.getPos()));
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.particles);
+        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.visuals.particles);
     }
 
     private void castNova() {
@@ -373,12 +385,12 @@ public class FireMageBrain extends MobBrain {
         // Same predicate as the mage's melee sweep; Nova used to catch allies and its owner too.
         for (Entity struck : TargetHelper.targetsFromArea(entity, 6, new Spell.Target.Area(),
                 entity::canHarm)) {
-            SpellHelper.performImpacts(world, entity, struck, entity,
+            SpellImpacts.performImpacts(world, entity, struck, entity,
                 SpellRegistry.from(world).getEntry(id).get(),
                 SpellRegistry.from(world).get(id).impacts,
-                new SpellHelper.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
+                new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
                         .position(entity.getPos()));
         }
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(world).get(id).release.particles);
+        ParticleHelper.sendBatches(entity, SpellRegistry.from(world).get(id).release.visuals.particles);
     }
 }

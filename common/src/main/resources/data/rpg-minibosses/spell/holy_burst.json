@@ -22,33 +22,45 @@
     ]
   },
   "release": {
-            "animation": {"id":""},
-
-
-    "particles": [
-      {
-        "particle_id": "spell_engine:magic_spell_float",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 80.0,
-        "min_speed": 0.15,
-        "max_speed": 0.45,
-        "angle": 90.0
-      },
-      {
-        "particle_id": "spell_engine:magic_spark_float",
-        "origin": "LAUNCH_POINT",
-        "shape": "CONE",
-        "rotation": "LOOK",
-        "count": 60.0,
-        "min_speed": 0.15,
-        "max_speed": 0.45,
-        "angle": 9.0
-      }
-    ],
+    "animation": {
+      "id": ""
+    },
     "sound": {
       "id": "spell_engine:generic_frost_release"
+    },
+    "visuals": {
+      "particles": [
+        {
+          "id": "spell_engine:magic_spell",
+          "appearance": {
+            "motion": "FLOAT"
+          },
+          "batch": {
+            "count": 80.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 0.15,
+            "max_speed": 0.45,
+            "angle": 90.0
+          }
+        },
+        {
+          "id": "spell_engine:magic_spark",
+          "appearance": {
+            "motion": "FLOAT"
+          },
+          "batch": {
+            "count": 60.0,
+            "shape": "CONE",
+            "anchor": "LAUNCH_POINT",
+            "alignment": "LOOK",
+            "min_speed": 0.15,
+            "max_speed": 0.45,
+            "angle": 9.0
+          }
+        }
+      ]
     }
   },
   "target": {
@@ -65,23 +77,28 @@
         "min_power": 2.0,
         "damage": {
           "spell_power_coefficient": 1.2
-
         }
       },
-      "particles": [
-        {
-          "particle_id": "spell_engine:magic_holy_impact_burst",
-          "origin": "CENTER",
-          "shape": "CIRCLE",
-          "rotation": "LOOK",
-          "count": 20.0,
-          "min_speed": 0.2,
-          "max_speed": 0.7,
-          "angle": 360.0
-        }
-      ],
       "sound": {
         "id": "spell_engine:generic_healing_impact_1"
+      },
+      "visuals": {
+        "particles": [
+          {
+            "id": "spell_engine:magic_holy",
+            "appearance": {
+              "motion": "BURST"
+            },
+            "batch": {
+              "count": 20.0,
+              "shape": "CIRCLE",
+              "alignment": "LOOK",
+              "min_speed": 0.2,
+              "max_speed": 0.7,
+              "angle": 360.0
+            }
+          }
+        ]
       }
     }
   ],

@@ -43,7 +43,10 @@ import net.spell_engine.api.spell.ExternalSpellSchools;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.internals.SpellHelper;
+import net.spell_engine.internals.SpellExecution;
+import net.spell_engine.internals.impact.SpellImpacts;
+import net.spell_engine.internals.delivery.ProjectileLauncher;
+import net.spell_engine.internals.delivery.CloudPlacer;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellDamageSource;
@@ -135,6 +138,13 @@ public class JuggernautEntity extends MinibossEntity{
     public boolean skipOffHand(){
         return true;
     }
+    @Override
+    public void registerAttackPrototypes() {
+        // Discarded immediately; building it is what registers this mob's attack geometry
+        // with AttackRegistry, which the client needs to draw incoming swings.
+        new JuggernautBrain(this);
+    }
+
     @Override
     protected void initCustomGoals() {
         this.brain = new JuggernautBrain(this);
