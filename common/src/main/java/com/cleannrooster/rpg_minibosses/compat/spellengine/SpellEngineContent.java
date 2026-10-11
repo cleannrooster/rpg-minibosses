@@ -7,6 +7,7 @@ import com.cleannrooster.rpg_minibosses.compat.spellengine.item.SummonHorn;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.MagusPrimeEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import com.cleannrooster.rpg_minibosses.entity.StormAnchorEntity;
+import com.cleannrooster.rpg_minibosses.magic.MagicBackend;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.EntityEvent;
 import dev.architectury.registry.CreativeTabRegistry;
@@ -157,6 +158,11 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
     public void registerEquipment() {
         Armors.register(itemConfig.value.weapons);
         Armors.registerArmors(itemConfig.value.armor_sets);
+    }
+
+    @Override
+    public MagicBackend magicBackend() {
+        return SpellPowerMagicBackend.INSTANCE;
     }
 
     @Override

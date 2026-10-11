@@ -7,6 +7,8 @@ import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompatClient;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import com.cleannrooster.rpg_minibosses.entity.TrapRenderer;
+import com.cleannrooster.rpg_minibosses.magic.entity.MagicEntities;
+import net.minecraft.client.render.entity.EmptyEntityRenderer;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import net.minecraft.text.Text;
@@ -52,6 +54,9 @@ public final class RPGMinibossesClient {
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_BETA_UBER.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FROST_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.STORM_ANCHOR, (context) -> new net.minecraft.client.render.entity.EmptyEntityRenderer<>(context));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.TRAP, TrapRenderer::new);
+        // Ability carriers draw nothing themselves yet; their visuals arrive with the effect cues.
+        EntityRendererRegistry.register(() -> MagicEntities.PROJECTILE, EmptyEntityRenderer::new);
+        EntityRendererRegistry.register(() -> MagicEntities.CLOUD, EmptyEntityRenderer::new);
 
         ClientTickEvent.CLIENT_PRE.register((client) -> {
             if (client.crosshairTarget instanceof EntityHitResult hitResult

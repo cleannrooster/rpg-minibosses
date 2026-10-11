@@ -11,7 +11,7 @@ loaded when Spell Engine is installed.
 | 0 | Dead-import sweep, spell classification | done |
 | 1 | Isolate Spell Engine content behind `compat.SpellEngineCompat` (SE still required) | done, checked in-game |
 | 2a | Architectury API replaces Forgified Fabric API; AtlasVFX added (jar-in-jar) | done — awaiting in-game check |
-| 2b | Core mechanics (`CombatAction.cast`, `Impact`, `MagicDamage`, `CasterPower`, `Relations`, `TickScheduler`) | |
+| 2b | Core mechanics in `magic/` (see below) | done — awaiting in-game check |
 | 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | |
 | 4 | Cue layer (`FxEmitter` / `FxCueHandler`) + telegraphs | |
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | |
@@ -71,6 +71,29 @@ pound, fire_nova, deatomization_storm.
 ### Unreferenced
 
 beartrap, holy_burst, dark_matter (the spell; the `dark_matter` effect and entity are separate and live).
+
+## Mechanics core (phase 2b)
+
+Package `magic/`, no Spell Engine types:
+
+| Piece | Role |
+|---|---|
+| `AbilitySpec` (+ `AbilityRegistry`) | One ability: school, intent, `Delivery`, `Impact`s. Built in code; replaces a boss spell JSON |
+| `Delivery` | `Direct`, `Area` (AtlasVFX `TelegraphArea`, anchored on caster or committed target), `Projectile`, `Meteor`, `Cloud` |
+| `Impact` | `Damage` (Spell Engine's formula), `Ignite`, `ApplyEffect`, `Knockback`, `Heal` |
+| `MagicSchool` | Spell Power's schools; magical ones have damage types `rpg-minibosses:<school>`, tagged like Spell Power's |
+| `MagicCaster` | Bosses state their own power per school (config values) |
+| `MagicBackend` | `VanillaMagicBackend` (no crits, own damage types) or `compat/spellengine/SpellPowerMagicBackend` (crit, vulnerability, Spell Power damage types) |
+| `Relations`, `AbilityTargets` | Who can be hurt/helped; footprint hit-test against a `TelegraphArea` |
+| `TickScheduler` | Per-world delayed tasks (replaces `WorldScheduler`) |
+| `entity/BossProjectile`, `entity/BossCloud` | Transient carriers; no visuals until the cue layer |
+| `CombatAction.Builder.cast(spec)` | Fired by `ActionRunner` as the active window opens, at the committed target/heading |
+
+`Relations.canHarm` delegates to `MinibossEntity.canHarm` for minibosses, which still ends in Spell
+Engine's `EntityRelations` until phase 5 ports it.
+
+Test from in-game with `/rpgminibosses ability rpg-minibosses:debug/<bolt|fireball|nova|ring|cone|line|meteor|cloud|heal> [power]`
+(aims at the entity or block under the crosshair) and `/rpgminibosses backend`.
 
 ## Loader API rule (phase 2a)
 

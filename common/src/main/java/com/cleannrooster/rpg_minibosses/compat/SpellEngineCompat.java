@@ -1,8 +1,10 @@
 package com.cleannrooster.rpg_minibosses.compat;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.MagicBackend;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.world.ServerWorld;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The only door from the core mod into Spell Engine content.
@@ -80,6 +82,9 @@ public final class SpellEngineCompat {
 
         /** An uber Gemini died: drop its spell scrolls. */
         void onGeminiUberDeath(LivingEntity gemini, ServerWorld world);
+
+        /** The Spell Power damage backend, or null to use the core one. */
+        @Nullable MagicBackend magicBackend();
     }
 
     public static final Hooks NONE = new Hooks() {
@@ -91,5 +96,6 @@ public final class SpellEngineCompat {
         @Override public void registerSummonItems() {}
         @Override public void registerEquipment() {}
         @Override public void onGeminiUberDeath(LivingEntity gemini, ServerWorld world) {}
+        @Override public @Nullable MagicBackend magicBackend() { return null; }
     };
 }

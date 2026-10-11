@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity.combat;
 
 import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackVolume;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -18,6 +19,9 @@ import java.util.function.Consumer;
  * {@link SwingExecution}, so the crescent a player sees is the volume that can hit them. Abilities that
  * resolve some other way (a Spell Engine impact, a projectile) simply leave the volume unset and do their
  * work in the phase hooks.
+ *
+ * <p>An action that casts states its {@link AbilitySpec} with {@link Builder#cast}; the runner fires it
+ * as the active window opens, aimed at what the action committed to.
  */
 public final class CombatAction {
 
@@ -60,6 +64,9 @@ public final class CombatAction {
     /** How the swept surface is drawn as a ribbon. Where it is drawn comes from the volume. */
     private final @Nullable SlashProfile ribbon;
 
+    /** The ability fired as the active window opens, or null. */
+    private final @Nullable AbilitySpec cast;
+
     private final int cooldownTicks;
     /** Ticks trimmed from the tail of recovery when the owner is in an urgent phase. */
     private final int urgentRecoveryTrim;
@@ -98,6 +105,7 @@ public final class CombatAction {
         this.multiHitCooldown = builder.multiHitCooldown;
         this.slash = builder.slash;
         this.ribbon = builder.ribbon;
+        this.cast = builder.cast;
         this.cooldownTicks = builder.cooldownTicks;
         this.urgentRecoveryTrim = builder.urgentRecoveryTrim;
         this.onStart = builder.onStart;
@@ -221,6 +229,11 @@ public final class CombatAction {
         return this.ribbon;
     }
 
+    /** The ability this action casts as its active window opens, or null. */
+    public @Nullable AbilitySpec cast() {
+        return this.cast;
+    }
+
     public int cooldownTicks() {
         return this.cooldownTicks;
     }
@@ -297,6 +310,7 @@ public final class CombatAction {
         private int multiHitCooldown = 10;
         private @Nullable SlashVisual slash;
         private @Nullable SlashProfile ribbon;
+        private @Nullable AbilitySpec cast;
 
         private int cooldownTicks = 40;
         private int urgentRecoveryTrim;
@@ -427,6 +441,15 @@ public final class CombatAction {
         /** The ribbon mesh laid over the swept surface — the visible blade. */
         public Builder ribbon(SlashProfile ribbon) {
             this.ribbon = ribbon;
+            return this;
+        }
+
+        /**
+         * The ability fired as the active window opens, aimed at the target, target position and heading
+         * the action committed to — so a player who moved during the wind-up is out of the way.
+         */
+        public Builder cast(AbilitySpec ability) {
+            this.cast = ability;
             return this;
         }
 

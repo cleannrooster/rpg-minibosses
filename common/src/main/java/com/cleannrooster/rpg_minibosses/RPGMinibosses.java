@@ -110,6 +110,8 @@ public final class RPGMinibosses {
     public static void init() {
         // Declared on both sides: the server needs the payload type to send, the client to receive.
         com.cleannrooster.rpg_minibosses.entity.combat.net.AttackNetwork.register();
+        com.cleannrooster.rpg_minibosses.magic.TickScheduler.register();
+        com.cleannrooster.rpg_minibosses.magic.MagicDebugCommand.register();
         SpellEngineCompat.hooks().init();
         registerModelIds();
         registerEvents();
@@ -138,6 +140,7 @@ public final class RPGMinibosses {
     public static void registerEntities() {
         SpellEngineCompat.hooks().declareEntities();
         RPGMinibossesEntities.registerEntityTypes();
+        com.cleannrooster.rpg_minibosses.magic.entity.MagicEntities.register();
         SpellEngineCompat.hooks().registerEntities();
     }
 

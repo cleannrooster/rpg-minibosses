@@ -2,7 +2,10 @@ package com.cleannrooster.rpg_minibosses.entity.combat;
 
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackGeometry;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
@@ -196,6 +199,10 @@ public final class ActionRunner {
             if (action.committedCorrection() > 0.0 && ctx.committedTargetPos() != null) {
                 this.locomotion.setCommittedAim(ctx.committedTargetPos());
             }
+        }
+        var ability = action.cast();
+        if (ability != null && this.entity.getWorld() instanceof ServerWorld world) {
+            AbilityExecutor.cast(world, this.entity, ability, CastTarget.of(ctx));
         }
         action.fireActiveStart(ctx);
     }
