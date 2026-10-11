@@ -28,6 +28,11 @@ public final class FxCues {
     public static final Identifier BURST = id("burst");
     /** Motes drifting within {@code size} of {@code at}: a cloud pulsing. */
     public static final Identifier WISP = id("wisp");
+    /**
+     * A horizontal blade trail from {@code at}, facing {@code to} (a direction), reaching {@code size}
+     * blocks through {@code angle} degrees either side; {@code tier} 1 sweeps from the right.
+     */
+    public static final Identifier SLASH = id("slash");
     /** Smoke and dust rising over {@code size} around {@code at}; school is ignored. */
     public static final Identifier SMOKE = id("smoke");
     /** The school's falling motes over {@code size} around {@code at}. */

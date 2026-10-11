@@ -1,6 +1,12 @@
 package com.cleannrooster.rpg_minibosses.client.fx;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import dev.eann.atlasvfx.trail.TrailStyles;
+import dev.eann.atlasvfx.trail.Trail;
+import dev.eann.atlasvfx.trail.SweepFrameSource;
+import dev.eann.atlasvfx.trail.SweepFrame;
+import dev.eann.atlasvfx.trail.ArcSweep;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
 import com.cleannrooster.rpg_minibosses.magic.entity.BossCloud;
 import com.cleannrooster.rpg_minibosses.magic.entity.BossProjectile;
 import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
@@ -65,6 +71,9 @@ public final class CueHandlers {
         register(FxCues.CONE, (world, a) -> world.play(FxShapes.cone(style(a), a.at(), a.to(), a.angle(), a.size(), a.tier(), a.seed()), DENSITY));
         register(FxCues.BURST, (world, a) -> FxShapes.burst(world, style(a), a.at(), a.size(), 12, a.seed(), DENSITY));
         register(FxCues.WISP, (world, a) -> FxShapes.wisp(world, style(a), a.at(), a.size(), 16, DENSITY.effective()));
+        register(FxCues.SLASH, (world, a) -> world.play(Trail.slash(
+                SweepFrameSource.fixed(SweepFrame.of(a.at(), CastTarget.yawOf(a.to()), 0.0f)), a.size(), a.angle(),
+                a.tier() == 1, ArcSweep.Plane.HORIZONTAL, 5, 6, TrailStyles.slash(a.school().color()), a.seed()), DENSITY));
         register(FxCues.SMOKE, (world, a) -> FxShapes.smoke(world, a.at(), a.size(), 24, DENSITY.effective()));
         register(FxCues.RAIN, (world, a) -> FxShapes.rain(world, style(a), a.at(), a.size(), 16, DENSITY.effective()));
 

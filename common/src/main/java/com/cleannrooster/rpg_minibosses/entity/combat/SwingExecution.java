@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity.combat;
 
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
+import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackShape;
 import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackFrame;
 import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackGeometry;
 import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackVolume;
@@ -178,6 +179,11 @@ public final class SwingExecution {
     private void drawSlash(ServerWorld world, float from, float to) {
         var visual = this.action.slash();
         if (visual == null || visual.perTick() <= 0) {
+            return;
+        }
+        // A swept arc with a ribbon is drawn client-side as an AtlasVFX trail on this same surface.
+        if (this.action.ribbon() != null && this.volume.shape().isSwept()
+                && this.volume.shape().family() == AttackShape.Family.ARC) {
             return;
         }
         var random = this.attacker.getRandom();

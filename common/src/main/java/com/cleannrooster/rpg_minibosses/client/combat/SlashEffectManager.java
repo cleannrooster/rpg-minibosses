@@ -1,6 +1,14 @@
 package com.cleannrooster.rpg_minibosses.client.combat;
 
 import com.cleannrooster.rpg_minibosses.client.WorldRenderHook;
+import net.minecraft.util.math.MathHelper;
+import dev.eann.atlasvfx.trail.TrailWindow;
+import dev.eann.atlasvfx.trail.TrailStyles;
+import dev.eann.atlasvfx.trail.Trail;
+import dev.eann.atlasvfx.FxWorld;
+import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackVolume;
+import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackShape;
+import com.cleannrooster.rpg_minibosses.client.fx.CueHandlers;
 import com.cleannrooster.rpg_minibosses.entity.combat.AttackRegistry;
 import com.cleannrooster.rpg_minibosses.entity.combat.net.SwingPayload;
 import dev.architectury.event.events.client.ClientTickEvent;
@@ -56,7 +64,32 @@ public final class SlashEffectManager {
         if (action == null || action.volume() == null) {
             return;
         }
+        var ribbon = action.ribbon();
+        if (drawsAsTrail(action.volume()) && ribbon != null) {
+            // A sweep is drawn by AtlasVFX on the attack's own damage surface; its colour, length and fade
+            // come from the ribbon profile it replaces.
+            int colour = rgb(ribbon.red(), ribbon.green(), ribbon.blue());
+            var trail = new Trail(new AttackSurface(action.volume(), payload.frame()), TrailStyles.slash(colour),
+                    TrailWindow.swing(action.activeTicks(), ribbon.trail(), ribbon.fadeOutTicks()),
+                    payload.attackerId() * 31L + payload.attackId().hashCode());
+            FxWorld.get().play(trail, CueHandlers.DENSITY);
+            return;
+        }
         ACTIVE.add(new SlashEffect(action, payload.frame(), payload.attackerId()));
+    }
+
+    /**
+     * Swept arcs are drawn as AtlasVFX trails; thrust lanes, charge paths and one-tick shapes keep the
+     * ribbon until AtlasVFX can draw them.
+     */
+    public static boolean drawsAsTrail(AttackVolume volume) {
+        return volume.shape().isSwept() && volume.shape().family() == AttackShape.Family.ARC;
+    }
+
+    private static int rgb(float red, float green, float blue) {
+        return (Math.round(MathHelper.clamp(red, 0.0f, 1.0f) * 255.0f) << 16)
+                | (Math.round(MathHelper.clamp(green, 0.0f, 1.0f) * 255.0f) << 8)
+                | Math.round(MathHelper.clamp(blue, 0.0f, 1.0f) * 255.0f);
     }
 
     private static void tick() {

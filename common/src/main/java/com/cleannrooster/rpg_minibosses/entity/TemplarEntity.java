@@ -1,6 +1,10 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
@@ -156,102 +160,6 @@ public class TemplarEntity extends MinibossEntity{
         return true;
     }
 
-    public static void spawnParticlesSlash(Entity entity, ServerWorld world, float yaw, float pitch, float range){
-
-        int iii = -200;
-        for (int i = 0; i < 5; i++) {
-
-            for (int ii = 0; ii < 80; ii++) {
-
-                iii++;
-
-                int finalIii = iii;
-                int finalI = i;
-                int finalIi = ii;
-                TickScheduler.schedule(world, i+1, () ->{
-                    if(world != null) {
-                        double x = 0;
-                        double x2 = 0;
-
-                        double z = 0;
-                        x =  ((range*entity.getWidth() + range*entity.getWidth() * sin(20 *  ((double) finalIii /(double)(4*31.74)))) * cos(((double) finalIii /(double)(4*31.74))));
-                        x2 =  -((1.2*range*entity.getWidth() + range*entity.getWidth()*sin(20 *  ((double) finalIii /(double)(4*31.74)))) * cos(((double) finalIii /(double)(4*31.74))));
-
-                        z =  pitch*((1.2*range*entity.getWidth() + 0*entity.getWidth() * sin(20 * ((double) finalIii /(double)(4*31.74)))) * sin(((double) finalIii /(double)(4*31.74))));
-                        float f7 = entity.getYaw()+-90;
-                        float f = (float) (yaw - 90);
-                        //Vec3d vec3d = rotate(x,0,z,Math.toRadians(-f7),Math.toRadians(f),0);
-                        Vec3d vec3d2 = rotate(x2,0,z,Math.toRadians(-f7),Math.toRadians(f),0/*( > 0 ? 1 : -1) *  Math.clamp(180/entity.getYaw(),1,180)*Math.toRadians((entity.getPitch())/2)*/);
-                        // vec3d2 = rotate(vec3d2.x,vec3d2.y,vec3d2.z,0,0,Math.toRadians(entity.getPitch()*((Math.atan( Math.toRadians(entity.getYaw()))))));
-                        vec3d2 =  rotateTowards(vec3d2,new Vec3d(0,-1,0),entity.getPitch());
-                        //Vec3d vec3d3 = vec3d.add(entity.getEyePos().getX(),entity.getEyeY(),entity.getEyePos().getZ());
-                        Vec3d vec3d4 = vec3d2.add(entity.getEyePos().getX(),entity.getEyeY(),entity.getEyePos().getZ());
-
-                        double y = entity.getY()+entity.getHeight()/2;
-
-
-
-
-                        for(ServerPlayerEntity player : EntityTracking.playersTracking(entity)) {
-                            if ((2*range - player.getRandom().nextInt(2*Math.max(0,(int)(range - (-x2))) + 1))  == 2*range){
-
-
-                                if (finalIi % 4 == 1) {
-                                    //serverWorld.spawnParticles(player, Particles.snowflake.particleType,true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, ParticleTypes.ELECTRIC_SPARK, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
-
-                                }
-                                //serverWorld.spawnParticles(player,Particles.frost_shard.particleType, true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
-                            }
-                        }
-                        if(entity instanceof ServerPlayerEntity player) {
-                            if ((2*range - player.getRandom().nextInt(2*Math.max(0,(int)(range - (-x2))) + 1))  == 2*range){
-
-                                if (finalIi % 4 == 1) {
-                                    //serverWorld.spawnParticles(player, Particles.snowflake.particleType,true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, ParticleTypes.ELECTRIC_SPARK, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
-
-                                }
-                                //serverWorld.spawnParticles(player,Particles.frost_shard.particleType, true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
-
-                            }
-                        }
-                    }
-                });
-
-            }
-
-
-        }
-    }
-    public static Vec3d rotate(double x, double y, double z, double pitch, double roll, double yaw) {
-        double cosa = Math.cos(yaw);
-        double sina = Math.sin(yaw);
-
-        double cosb = Math.cos(pitch);
-        double sinb = Math.sin(pitch);
-        double cosc = Math.cos(roll);
-        double sinc = Math.sin(roll);
-
-        double Axx = cosa * cosb;
-        double Axy = cosa * sinb * sinc - sina * cosc;
-        double Axz = cosa * sinb * cosc + sina * sinc;
-
-        double Ayx = sina * cosb;
-        double Ayy = sina * sinb * sinc + cosa * cosc;
-        double Ayz = sina * sinb * cosc - cosa * sinc;
-
-        double Azx = -sinb;
-        double Azy = cosb * sinc;
-        double Azz = cosb * cosc;
-
-        Vec3d vec3 = new Vec3d(Axx * x + Axy * y + Axz * z,Ayx * x + Ayy * y + Ayz * z,Azx * x + Azy * y + Azz * z);
-        return vec3;
-    }
 
 /*    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar animationData) {
@@ -377,8 +285,11 @@ public class TemplarEntity extends MinibossEntity{
     public boolean tryAttack(Entity target) {
         if (!performing) {
             if (this.getWorld() instanceof ServerWorld serverWorld) {
-                spawnParticlesSlash(this, serverWorld,
-                        180 + (swingBool ? 60F : -60F) + this.getRandom().nextBetween(0, 60), 1, 5.5F);
+                // The flourish for contacts outside the action system: a short blade trail across the
+                // Templar's front, alternating sides with the swing animation.
+                var facing = Vec3d.fromPolar(0.0f, this.getYaw());
+                FxEmitter.emit(serverWorld, FxCues.SLASH, new CueArgs(MagicSchool.GENERIC, this.getEyePos(), facing,
+                        5.5f * this.getWidth(), 80.0f, swingBool ? 1 : 0, serverWorld.random.nextLong(), -1));
             }
             if (swingBool) {
                 dispatcher.setSwing();
@@ -391,34 +302,5 @@ public class TemplarEntity extends MinibossEntity{
         return super.tryAttack(target);
     }
 
-    /**
-     * Turn {@code vector} toward {@code towards} by at most {@code degrees}, keeping its length. Same maths
-     * as Spell Engine's {@code VectorHelper.rotateTowards}, which the slash flourish was tuned against.
-     */
-    private static Vec3d rotateTowards(Vec3d vector, Vec3d towards, double degrees) {
-        if (degrees == 0.0) {
-            return vector;
-        }
-        var original = vector;
-        var from = vector.normalize();
-        var to = towards.normalize();
-        double angle = angleWithSignBetween(from, to, from.crossProduct(to));
-        if (angle == 0.0) {
-            return original;
-        }
-        Vec3d rotated;
-        if (angle <= degrees) {
-            rotated = to;
-        } else {
-            double scale = Math.sin(Math.toRadians(degrees)) / Math.cos(Math.toRadians(90.0 - angle + degrees));
-            rotated = from.add(to.multiply(scale)).normalize();
-        }
-        return rotated.multiply(original.length());
-    }
 
-    private static double angleWithSignBetween(Vec3d a, Vec3d b, Vec3d normal) {
-        double degrees = Math.toDegrees(Math.acos(a.dotProduct(b) / (a.length() * b.length())));
-        degrees *= Math.signum(a.crossProduct(b).dotProduct(normal));
-        return Double.isNaN(degrees) ? 0.0 : degrees;
-    }
 }

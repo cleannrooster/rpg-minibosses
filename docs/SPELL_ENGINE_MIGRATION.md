@@ -15,7 +15,7 @@ loaded when Spell Engine is installed.
 | 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | done — awaiting in-game check |
 | 4 | Cue layer (`FxEmitter` / `CueHandlers`) + telegraphs | done — awaiting in-game check |
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | done — awaiting in-game check |
-| 6 | `SlashVisual` → AtlasVFX `ArcSweep` trails | |
+| 6 | Swept-arc slashes → AtlasVFX trails | done — awaiting in-game check |
 | 7 | Replace `Synchronized` / `CustomModelStatusEffect` on core bosses (GeminiRenderer) | |
 | 8 | Flip deps to optional, load conditions on SE-only data, bytecode scan, 4-way test | |
 
@@ -143,6 +143,17 @@ Deliberate differences from the Spell Engine versions:
 - Gemini meteor launch divergence is a landing scatter (comet 1.3 blocks, starfall 5.8).
 - Templar's slash flourish uses vanilla `ENCHANTED_HIT` until phase 6 replaces it.
 - The core spell JSONs (`beam`, `comet`, `fireball`, …) are no longer read by anything; they stay for now.
+
+## Slash trails (phase 6)
+
+Swept arcs (horizontal / vertical / diagonal) with a ribbon are drawn by AtlasVFX: the client builds a
+`Trail` on `client/combat/AttackSurface`, a `SweptSurface` whose points come from
+`AttackGeometry.surfacePoint` — the server's damage call — so the trail covers exactly what can be hit,
+speed curve, asymmetric arcs and inner radius included. Colour from the ribbon profile
+(`TrailStyles.slash`), length and fade from its `trail` / `fadeOutTicks`; the ribbon's overreach bloom
+is not carried over. Their server particle spray (`SlashVisual`) is skipped. Thrust lanes, charge paths
+and one-tick cones keep the custom ribbon/particles until AtlasVFX gains thrust/point trails.
+The Templar's out-of-action flourish is an `FxCues.SLASH` cue (an AtlasVFX slash trail).
 
 ## Loader API rule (phase 2a)
 
