@@ -85,6 +85,16 @@ public class JuggernautBrain extends MobBrain {
     private static final float DAMAGE_EXCEEDED_THRESHOLD = 8.0f;
 
     private static final int BRACE_DURATION = 50;
+    /**
+     * After a brace it walks for at least this long before it may brace again. Without it a stream of
+     * heavy hits could chain braces back to back and pin it in place.
+     */
+    private static final int BRACE_REARM = 100;
+    /** How recent a heavy hit must be to provoke a brace: a reaction, not a grudge. */
+    private static final int BRACE_REACTION_TICKS = 10;
+
+    /** Whether the one brace it takes on dropping under 40% health has been spent. */
+    private boolean lowHealthBraceSpent;
 
     /** Arc parameters — a broad sweep for a large hammer wielder. */
     private static final float MELEE_ARC_HALF_ANGLE = 80f;
@@ -251,9 +261,14 @@ public class JuggernautBrain extends MobBrain {
     @Override
     protected List<Transition> combatStateTransitions() {
         return List.of(
-            // ADVANCING → BRACING: big hit received OR health dropped low (not in Last Stand)
+            // ADVANCING → BRACING: a big hit just landed, OR health has just dropped low (not in Last Stand).
+            // Both are moments, not standing conditions: the stimulus keeps its last-hit flag until the next
+            // hit, and health stays low, so testing either as a level re-braced it two ticks after every
+            // brace ended and left it rooted for the rest of the fight.
             new Transition(CombatState.ADVANCING, s ->
-                (s.lastHitDamageExceeded || s.ownHealthPct < 0.4f)
+                ((s.lastHitDamageExceeded && s.timeSinceLastHit <= BRACE_REACTION_TICKS)
+                        || (s.ownHealthPct < 0.4f && !lowHealthBraceSpent))
+                && cooldowns.isReady("brace_rearm")
                 && currentStance != Stance.LAST_STAND
                 && !actions.isBusy(),
                 CombatState.BRACING, 10),
@@ -306,7 +321,11 @@ public class JuggernautBrain extends MobBrain {
             entity.dispatcher.play("attacks",
                     MinibossAnimationProvider.MinibossAnimationDispatcher.JUGG + "brace", false, 1.0f);
             cooldowns.trigger("brace", BRACE_DURATION);
+            if (stimulus.ownHealthPct < 0.4f) {
+                lowHealthBraceSpent = true;
+            }
         } else if (state == CombatState.ADVANCING) {
+            cooldowns.trigger("brace_rearm", BRACE_REARM);
             // Brace does not end in a pause. It ends in an advancing action, or failing that, in movement.
             var target = entity.getTarget();
             if (target != null && entity.distanceTo(target) <= MELEE_ARC_RANGE + 1.0f) {
