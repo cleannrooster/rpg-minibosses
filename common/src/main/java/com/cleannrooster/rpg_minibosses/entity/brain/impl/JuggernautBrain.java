@@ -1,6 +1,17 @@
 package com.cleannrooster.rpg_minibosses.entity.brain.impl;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.BossSounds;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.Delivery;
+import com.cleannrooster.rpg_minibosses.magic.Impact;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
+import dev.eann.atlasvfx.telegraph.TelegraphArea;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.JuggernautEntity;
 import com.cleannrooster.rpg_minibosses.entity.brain.*;
@@ -24,16 +35,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import net.spell_engine.api.spell.ExternalSpellSchools;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.minecraft.server.world.ServerWorld;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.impact.SpellImpacts;
-import net.spell_engine.utils.TargetHelper;
-import net.spell_power.api.SpellPower;
 
 import java.util.List;
 
@@ -55,6 +57,16 @@ import java.util.List;
  * scheduled callbacks firing velocity impulses next to a navigator that was still dragging the mob.
  */
 public class JuggernautBrain extends MobBrain {
+
+    /**
+     * The old {@code pound} spell, shared by Slam and the Leap landing: everything the Juggernaut may harm
+     * within six blocks (three blocks up) takes 1.8 × physical melee power with full knockback.
+     */
+    static final AbilitySpec POUND = AbilitySpec.builder(RPGMinibosses.id("juggernaut/pound"), MagicSchool.PHYSICAL_MELEE)
+            .delivery(new Delivery.Area(new TelegraphArea.Circle(Vec3d.ZERO, 6.0f), Delivery.Anchor.CASTER, 3.0))
+            .impact(new Impact.Damage(1.8f, 1.0f, false))
+            .sounds(null, BossSounds.HEAVY_HIT, null)
+            .build();
 
     public enum Stance implements BrainState {
         ADVANCING, LAST_STAND;
@@ -161,7 +173,7 @@ public class JuggernautBrain extends MobBrain {
                 .tracking(TrackingMode.REDUCED, TrackingMode.LOCKED)
                 .cooldown(280)
                 .urgentRecoveryTrim(6)
-                .onActiveStart(ctx -> groundImpact(6f))
+                .onActiveStart(ctx -> groundImpact())
                 .build();
 
         // Leap. The destination is captured at the moment of launch and then never revisited — mid-air
@@ -177,7 +189,7 @@ public class JuggernautBrain extends MobBrain {
                 .urgentRecoveryTrim(4)
                 .onActiveStart(this::launchLeap)
                 .onRecoveryStart(ctx -> {
-                    groundImpact(6f);
+                    groundImpact();
                     // Landing next to a player is a slam opportunity; the chain is what removes the beat
                     // of nothing that used to sit between a leap and its follow-up.
                     var target = ctx.liveTarget();
@@ -362,10 +374,8 @@ public class JuggernautBrain extends MobBrain {
 
         // Emit shield particles every 4 ticks while braced
         if (entity.age % 4 == 0 && entity.getWorld() instanceof ServerWorld sw) {
-            sw.spawnParticles(
-                SpellEngineParticles.magic_spark.type(),
-                entity.getX(), entity.getY() + entity.getHeight() * 0.5, entity.getZ(),
-                6, 0.5, 0.6, 0.5, 0.02);
+            FxEmitter.emit(sw, FxCues.WISP, CueArgs.at(MagicSchool.ARCANE,
+                entity.getPos().add(0.0, entity.getHeight() * 0.5, 0.0), 0.6f, 0, sw.random.nextLong()));
         }
     }
 
@@ -405,22 +415,11 @@ public class JuggernautBrain extends MobBrain {
     }
 
     /** Shared impact for Slam and the Leap landing. */
-    private void groundImpact(float radius) {
-        if (entity.getWorld().isClient()) return;
-        var world = entity.getWorld();
-        var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound");
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(world).get(id).release.visuals.particles);
-        // Filtered by the same predicate the melee arcs use. Passing null here meant Slam and the Leap
-        // landing hit every living thing in six blocks — the mob's own owner and its allies included.
-        for (Entity struck : TargetHelper.targetsFromArea(entity, radius, new Spell.Target.Area(),
-                entity::canHarm)) {
-            SpellImpacts.performImpacts(world, entity, struck, entity,
-                SpellRegistry.from(world).getEntry(id).get(),
-                SpellRegistry.from(world).get(id).impacts,
-                new SpellExecution.ImpactContext()
-                    .power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, entity))
-                    .position(entity.getPos()));
-        }
+    private void groundImpact() {
+        if (!(entity.getWorld() instanceof ServerWorld world)) return;
+        // Relations.canHarm is the same predicate the melee arcs use. Passing null here once meant Slam and
+        // the Leap landing hit every living thing in six blocks — the mob's own owner and its allies included.
+        AbilityExecutor.cast(world, entity, POUND, CastTarget.at(entity, entity.getPos()));
         entity.playSound(SoundEvents.ENTITY_GENERIC_EXPLODE.value());
     }
 
