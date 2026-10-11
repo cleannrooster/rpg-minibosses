@@ -50,6 +50,25 @@ public final class AbilityExecutor {
                 applyArea(world, spec, context, area, anchor(caster, area.anchor(), target), target.yaw(), null);
                 yield true;
             }
+            case Delivery.Beam beam -> {
+                var eye = caster.getEyePos();
+                var direction = beamDirection(caster, target);
+                double cos = Math.cos(Math.toRadians(beam.halfAngle()));
+                var reach = new net.minecraft.util.math.Box(eye, eye).expand(beam.range());
+                double rangeSq = beam.range() * beam.range();
+                var struck = world.getEntitiesByClass(LivingEntity.class, reach, entity -> {
+                    if (!reaches(spec, caster, entity)) {
+                        return false;
+                    }
+                    var to = entity.getBoundingBox().getCenter().subtract(eye);
+                    double lengthSq = to.lengthSquared();
+                    return lengthSq <= rangeSq && (lengthSq < 1.0e-6 || to.normalize().dotProduct(direction) >= cos);
+                });
+                for (LivingEntity entity : struck) {
+                    applyAll(spec, context, entity);
+                }
+                yield true;
+            }
             case Delivery.Projectile projectile -> {
                 var from = caster.getEyePos();
                 var aim = target.entity() != null ? target.entity().getBoundingBox().getCenter() : target.position();
@@ -120,6 +139,14 @@ public final class AbilityExecutor {
             applyAll(spec, atOrigin, entity);
         }
         return struck;
+    }
+
+    /** Unit direction of a beam: toward the target's middle, or along the caster's gaze without one. */
+    public static Vec3d beamDirection(LivingEntity caster, CastTarget target) {
+        var eye = caster.getEyePos();
+        var aim = target.entity() != null ? target.entity().getBoundingBox().getCenter() : target.position();
+        var direction = aim.subtract(eye);
+        return direction.lengthSquared() < 1.0e-6 ? caster.getRotationVector() : direction.normalize();
     }
 
     private static Vec3d anchor(LivingEntity caster, Delivery.Anchor anchor, CastTarget target) {

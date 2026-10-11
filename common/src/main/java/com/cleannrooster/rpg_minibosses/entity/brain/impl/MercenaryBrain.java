@@ -59,7 +59,7 @@ public class MercenaryBrain extends MobBrain {
      */
     static final AbilitySpec TRAP_BLAST = AbilitySpec.builder(RPGMinibosses.id("mercenary/trap_blast"), MagicSchool.PHYSICAL_RANGED)
             .delivery(Delivery.Area.at(new TelegraphArea.Circle(Vec3d.ZERO, 2.5f)))
-            .impact(new Impact.Damage(1.5f, 1.0f, false))
+            .impact(new Impact.Damage(1.5f, 1.0f, true))
             .looksLike(MagicSchool.FIRE)
             .sounds(null, BossSounds.EXPLOSION, null)
             .noTelegraph()

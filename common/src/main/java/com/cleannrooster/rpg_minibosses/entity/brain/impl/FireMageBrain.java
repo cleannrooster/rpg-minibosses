@@ -59,7 +59,7 @@ public class FireMageBrain extends MobBrain {
     /** The old {@code fireball} spell: a 1.6 b/t bolt, 0.4 × fire power, light knockback, 1.5 s of burning. */
     static final AbilitySpec FIREBALL = AbilitySpec.builder(RPGMinibosses.id("fire_mage/fireball"), MagicSchool.FIRE)
             .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(1.6).withLifetime(20)))
-            .impact(new Impact.Damage(0.4f, 0.2f, false))
+            .impact(new Impact.Damage(0.4f, 0.2f, true))
             .impact(new Impact.Ignite(1.5f))
             .build();
 
@@ -71,7 +71,7 @@ public class FireMageBrain extends MobBrain {
     static final AbilitySpec VOLLEY_BOLT = AbilitySpec.builder(RPGMinibosses.id("fire_mage/volley_bolt"), MagicSchool.FIRE)
             .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(1.0).homing(20.0f, 4).withLifetime(100)
                     .bursting(new TelegraphArea.Circle(Vec3d.ZERO, 4.0f), 3.0)))
-            .impact(new Impact.Damage(0.2f, 2.0f, false))
+            .impact(new Impact.Damage(0.2f, 2.0f, true))
             .build();
 
     private static final float[] VOLLEY_YAW_OFFSETS = {45.0f, -45.0f, 135.0f, -135.0f};

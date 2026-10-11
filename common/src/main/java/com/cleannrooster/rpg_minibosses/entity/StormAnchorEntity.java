@@ -1,6 +1,8 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.ImpactContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -18,10 +20,6 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.impact.SpellImpacts;
 import net.minecraft.registry.entry.RegistryEntry;
 
 import java.util.List;
@@ -624,15 +622,10 @@ public class StormAnchorEntity extends Entity {
                         && !(playerCentered && e.getId() == ownerId) // never damage caster
         );
 
-        var spellEntry = SpellRegistry.from(this.getWorld())
-                .getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "deatomization_storm"));
-
-        if (spellEntry.isPresent() && owner instanceof LivingEntity livingOwner) {
-            net.minecraft.registry.entry.RegistryEntry<Spell> spell = spellEntry.get();
+        if (owner instanceof LivingEntity livingOwner) {
+            var context = ImpactContext.of(livingOwner, GeminiAbilities.DEATOMIZATION.school(), this.getPos(), this);
             for (LivingEntity target : targets) {
-                SpellImpacts.performImpacts(this.getWorld(), livingOwner, target, livingOwner,
-                        spell, spell.value().impacts,
-                        new SpellExecution.ImpactContext().position(this.getPos()));
+                AbilityExecutor.applyAll(GeminiAbilities.DEATOMIZATION, context, target);
             }
         } else {
             for (LivingEntity target : targets) {

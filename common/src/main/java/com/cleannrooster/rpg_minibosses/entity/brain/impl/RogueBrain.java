@@ -100,7 +100,7 @@ public class RogueBrain extends MobBrain {
      */
     static final AbilitySpec KNIFE = AbilitySpec.builder(RPGMinibosses.id("rogue/knife"), MagicSchool.PHYSICAL_MELEE)
             .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(0.8).withLifetime(40)))
-            .impact(new Impact.Damage(1.2f, 1.0f, false))
+            .impact(new Impact.Damage(1.2f, 1.0f, true))
             .sounds(null, BossSounds.DAGGER_THROW, BossSounds.DAGGER_HIT)
             .build();
 

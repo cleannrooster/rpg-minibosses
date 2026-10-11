@@ -4,6 +4,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.registry.entry.RegistryEntry;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * One thing that happens to one target when an ability lands. An ability lists several; they run in
@@ -14,14 +15,26 @@ public sealed interface Impact permits Impact.Damage, Impact.Ignite, Impact.Appl
     void apply(ImpactContext context, LivingEntity target);
 
     /**
-     * Rolled power × {@code coefficient} as the school's damage. Same shape as Spell Engine's DAMAGE impact.
+     * Rolled power × {@code coefficient} as the school's damage. Same shape as Spell Engine's DAMAGE impact,
+     * including its default of hitting through the target's invulnerability window.
      *
      * @param knockback      multiplier on the 0.4 base push Spell Engine uses; 0 for none
-     * @param bypassIframes  hit even inside the target's invulnerability window (multi-hit pulses)
+     * @param bypassIframes  hit even inside the target's invulnerability window (Spell Engine's default)
+     * @param school         deal this school's damage instead of the ability's, still scaled by the
+     *                       ability's power — how one Spell Engine spell hit with several damage types
      */
-    record Damage(float coefficient, float knockback, boolean bypassIframes) implements Impact {
+    record Damage(float coefficient, float knockback, boolean bypassIframes, @Nullable MagicSchool school) implements Impact {
+        public Damage(float coefficient, float knockback, boolean bypassIframes) {
+            this(coefficient, knockback, bypassIframes, null);
+        }
+
         public static Damage of(float coefficient) {
-            return new Damage(coefficient, 1.0f, false);
+            return new Damage(coefficient, 1.0f, true);
+        }
+
+        /** {@code coefficient} × the ability's power, dealt as {@code school}. */
+        public static Damage as(MagicSchool school, float coefficient, float knockback) {
+            return new Damage(coefficient, knockback, true, school);
         }
 
         @Override
@@ -35,7 +48,8 @@ public sealed interface Impact permits Impact.Damage, Impact.Ignite, Impact.Appl
             if (this.bypassIframes) {
                 target.timeUntilRegen = 0;
             }
-            var source = backend.damageSource(context.caster(), context.school(), context.direct());
+            var dealt = this.school != null ? this.school : context.school();
+            var source = backend.damageSource(context.caster(), dealt, context.direct());
             if (target.damage(source, (float) amount) && this.knockback > 0.0f) {
                 Knockback.push(context, target, 0.4 * this.knockback, 0.0);
             }

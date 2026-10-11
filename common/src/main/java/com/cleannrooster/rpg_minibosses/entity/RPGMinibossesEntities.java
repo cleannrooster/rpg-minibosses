@@ -5,6 +5,7 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses.*;
 
 import com.cleannrooster.rpg_minibosses.config.ServerConfig;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import com.cleannrooster.rpg_minibosses.platform.Platform;
 import com.cleannrooster.rpg_minibosses.config.ServerConfigWrapper;
 import com.google.common.base.Predicates;
@@ -287,7 +288,7 @@ public class RPGMinibossesEntities {
             0xebcb6a,true);
 
     public static final Entry<GeminiEntity> GEMINI_ALPHA = new Entry<GeminiEntity>("gemini_alpha",
-            ((type, world) -> new GeminiEntity(type,world,SpellSchools.FIRE)),HostileEntity.createHostileAttributes()
+            ((type, world) -> new GeminiEntity(type,world,MagicSchool.FIRE)),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.alphaArmor)
@@ -304,7 +305,7 @@ public class RPGMinibossesEntities {
             0xebcb6a,false);
 
     public static final Entry<GeminiEntity> GEMINI_BETA = new Entry<GeminiEntity>("gemini_beta",
-            ((type, world) -> new GeminiEntity(type,world,SpellSchools.FROST)),HostileEntity.createHostileAttributes()
+            ((type, world) -> new GeminiEntity(type,world,MagicSchool.FROST)),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.betaArmor)
@@ -320,7 +321,7 @@ public class RPGMinibossesEntities {
             0xebcb6a,false);
 
     public static final Entry<GeminiEntity> GEMINI_ALPHA_UBER = new Entry<GeminiEntity>("gemini_alpha_uber",
-            ((type, world) -> new GeminiEntity(type,world,SpellSchools.FIRE, true)),HostileEntity.createHostileAttributes()
+            ((type, world) -> new GeminiEntity(type,world,MagicSchool.FIRE, true)),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.alphaUberArmor)
@@ -335,7 +336,7 @@ public class RPGMinibossesEntities {
             0xebcb6a,false);
 
     public static final Entry<GeminiEntity> GEMINI_BETA_UBER = new Entry<GeminiEntity>("gemini_beta_uber",
-            ((type, world) -> new GeminiEntity(type,world,SpellSchools.FROST, true)),HostileEntity.createHostileAttributes()
+            ((type, world) -> new GeminiEntity(type,world,MagicSchool.FROST, true)),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
             .add(EntityAttributes.GENERIC_ARMOR,config.betaUberArmor)

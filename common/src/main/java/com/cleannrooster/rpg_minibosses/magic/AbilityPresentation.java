@@ -58,6 +58,14 @@ public final class AbilityPresentation {
             }
             case Delivery.Projectile projectile ->
                     FxEmitter.emit(world, FxCues.PULSE, CueArgs.at(school, caster.getEyePos(), 0.8f, 0, seed));
+            case Delivery.Beam beam -> {
+                var eye = caster.getEyePos();
+                double length = target.entity() != null
+                        ? Math.min(beam.range(), eye.distanceTo(target.entity().getBoundingBox().getCenter()) + 2.0)
+                        : beam.range();
+                var end = eye.add(AbilityExecutor.beamDirection(caster, target).multiply(length));
+                FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, end, 0.6f, 1, seed));
+            }
             case Delivery.Direct direct -> {
             }
             case Delivery.Meteor meteor -> {
@@ -103,6 +111,7 @@ public final class AbilityPresentation {
             case Delivery.Meteor meteor -> meteor.spec().burst() == null ? null
                     : meteor.spec().burst().shape().at(target.position(), target.yaw());
             case Delivery.Projectile projectile -> null;
+            case Delivery.Beam beam -> null;
             case Delivery.Direct direct -> null;
         };
     }

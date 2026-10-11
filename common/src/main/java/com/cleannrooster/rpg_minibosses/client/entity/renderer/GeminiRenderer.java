@@ -13,7 +13,6 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import net.spell_engine.api.effect.CustomModelStatusEffect;
 import net.spell_engine.api.effect.Synchronized;
-import net.spell_power.api.SpellSchools;
 
 public class GeminiRenderer extends AzEntityRenderer<GeminiEntity> {
 
@@ -34,7 +33,7 @@ public class GeminiRenderer extends AzEntityRenderer<GeminiEntity> {
         if (entity.hasStatusEffect(Effects.PETRIFIED.registryEntry)) {
             return Identifier.of("minecraft", "textures/stone.png");
         }
-        return entity.school == SpellSchools.FIRE ? FIRE_TEXTURE : FROST_TEXTURE;
+        return entity.school == com.cleannrooster.rpg_minibosses.magic.MagicSchool.FIRE ? FIRE_TEXTURE : FROST_TEXTURE;
     }
 
     @Override

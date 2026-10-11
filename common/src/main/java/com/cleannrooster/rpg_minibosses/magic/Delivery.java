@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
  * How an ability reaches its targets. The replacement for Spell Engine's deliver types (DIRECT, AREA,
  * PROJECTILE, METEOR, CLOUD) for boss abilities.
  */
-public sealed interface Delivery permits Delivery.Direct, Delivery.Area, Delivery.Projectile, Delivery.Meteor, Delivery.Cloud {
+public sealed interface Delivery permits Delivery.Direct, Delivery.Area, Delivery.Beam, Delivery.Projectile, Delivery.Meteor, Delivery.Cloud {
 
     /** Where an area or cloud is centred. */
     enum Anchor {
@@ -34,6 +34,14 @@ public sealed interface Delivery permits Delivery.Direct, Delivery.Area, Deliver
         public static Area at(TelegraphArea shape) {
             return new Area(shape, Anchor.TARGET, 3.0);
         }
+    }
+
+    /**
+     * Everything within {@code halfAngle} degrees of the line from the caster's eyes toward the target (or
+     * along its gaze, without one), out to {@code range} blocks — in three dimensions, for casters that hover
+     * above their targets. Drawn as a beam; there is no ground footprint to telegraph.
+     */
+    record Beam(double range, float halfAngle) implements Delivery {
     }
 
     /** A projectile from the caster's eyes toward the target. */

@@ -64,7 +64,7 @@ public class JuggernautBrain extends MobBrain {
      */
     static final AbilitySpec POUND = AbilitySpec.builder(RPGMinibosses.id("juggernaut/pound"), MagicSchool.PHYSICAL_MELEE)
             .delivery(new Delivery.Area(new TelegraphArea.Circle(Vec3d.ZERO, 6.0f), Delivery.Anchor.CASTER, 3.0))
-            .impact(new Impact.Damage(1.8f, 1.0f, false))
+            .impact(new Impact.Damage(1.8f, 1.0f, true))
             .sounds(null, BossSounds.HEAVY_HIT, null)
             .build();
 

@@ -1,6 +1,11 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
 import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompat;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.GeminiAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.AI.*;
@@ -36,19 +41,6 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.impact.SpellImpacts;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.internals.delivery.CloudPlacer;
-import net.spell_engine.utils.SoundHelper;
-import net.spell_engine.utils.TargetHelper;
-import net.spell_engine.utils.WorldScheduler;
-import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellSchool;
-import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.item.Item;
@@ -64,7 +56,7 @@ import java.util.function.Predicate;
 
 public class GeminiEntity extends PathAwareEntity implements Monster {
 
-    public SpellSchool school;
+    public MagicSchool school;
     public boolean uber = false;
 
     private boolean spawned;
@@ -101,45 +93,26 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
 
     protected GeminiEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
         super(entityType, world);
-        this.school = SpellSchools.FIRE;
+        this.school = MagicSchool.FIRE;
         this.experiencePoints = 800;
 
         this.lookControl = new MinibossLookControl(this);
     }
-    protected GeminiEntity(EntityType<? extends PathAwareEntity> entityType, World world, SpellSchool school) {
+    protected GeminiEntity(EntityType<? extends PathAwareEntity> entityType, World world, MagicSchool school) {
         super(entityType, world);
         this.experiencePoints = 800;
 
         this.school = school;
-        this.bossBar = (ServerBossBar)(new ServerBossBar(this.getDisplayName(), school.equals(SpellSchools.FROST) ? BossBar.Color.BLUE : BossBar.Color.RED, BossBar.Style.PROGRESS)).setDarkenSky(true);
+        this.bossBar = (ServerBossBar)(new ServerBossBar(this.getDisplayName(), school == MagicSchool.FROST ? BossBar.Color.BLUE : BossBar.Color.RED, BossBar.Style.PROGRESS)).setDarkenSky(true);
 
         this.lookControl = new MinibossLookControl(this);
     }
-    protected GeminiEntity(EntityType<? extends PathAwareEntity> entityType, World world, SpellSchool school, boolean uber) {
+    protected GeminiEntity(EntityType<? extends PathAwareEntity> entityType, World world, MagicSchool school, boolean uber) {
         this(entityType, world, school);
         this.uber = uber;
         if (uber) {
             this.bossBar.setColor(BossBar.Color.PURPLE);
         }
-    }
-    /**
-     * The beam pair. Both are registered under {@code spell_power:lightning} even though their
-     * impacts deal fire/frost, so every beam impact context must take its power from
-     * {@code spell.value().school} — this twin's own fire/frost identity is the wrong lookup, and a
-     * context with no power at all resolves the coefficients at zero while the release particles and
-     * sound still fire, which makes a beam look like it connected when it did nothing.
-     */
-    public RegistryEntry<Spell> getBeamSpell(){
-        return this.school == SpellSchools.FROST ?  SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "beam_cold")).get() : SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "beam")).get();
-
-    }
-    public RegistryEntry<Spell> getMeteorSpell(){
-        return this.school == SpellSchools.FROST ?  SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "comet")).get() : SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "starfall")).get();
-
-    }
-    public RegistryEntry<Spell> getCloudSpell(){
-        return this.school == SpellSchools.FROST ?  SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "frost_cloud")).get() : SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "flame_cloud")).get();
-
     }
     @Override
     public boolean hasNoGravity() {
@@ -290,7 +263,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
     }
 
     public boolean isFrost() {
-        return this.school == SpellSchools.FROST;
+        return this.school == MagicSchool.FROST;
     }
 
     /**
@@ -538,7 +511,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                     // Spawn initial storm for uber variant
                     if (this.uber) {
                         GeminiEntity secondary = alpha.phase == Phase.SECONDARY ? alpha : beta;
-                        ((WorldScheduler) this.getWorld()).schedule(10, secondary::spawnStorm);
+                        TickScheduler.schedule((ServerWorld) this.getWorld(), 10, secondary::spawnStorm);
                     }
                     break; // only pair with the first valid match
                 }
@@ -581,7 +554,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             // immediately spawn a new storm under the djinn that is about to become SECONDARY.
             if (this.uber) {
                 GeminiEntity newSecondary = this.phase == Phase.PRIMARY ? this : this.getPartner();
-                ((WorldScheduler) this.getWorld()).schedule(10, newSecondary::spawnStorm);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 10, newSecondary::spawnStorm);
             }
             this.setPhase(this.phase == Phase.PRIMARY ? Phase.SECONDARY : Phase.PRIMARY);
             this.getPartner().setPhase(this.phase == Phase.PRIMARY ? Phase.SECONDARY : Phase.PRIMARY);
@@ -608,7 +581,6 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             applyAerialDrift();
             if (this.getTarget() != null && !acting && clonesTimer <= 0) {
                 acting = true;
-                RegistryEntry<Spell> spell = this.getBeamSpell();
                 // Take the crossfire position first, then wind up. Dispatching the telegraph before
                 // relocating meant this twin visibly began the cast and then vanished mid-pose.
                 for (int i = 0; i < 8; i++) {
@@ -617,35 +589,18 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                     if (bool) break;
                 }
                 GeminiAnimationProvider.beamChannel(isFrost()).sendForEntity(this);
-                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 20, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 28, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(36, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 36, () -> {
+                    beamPulse();
                 });
                 this.getDataTracker().set(IS_CLONES, true);
 
-                ((WorldScheduler) this.getWorld()).schedule(60, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
                     acting = false;
                     this.getDataTracker().set(IS_CLONES, false);
 
@@ -655,38 +610,19 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             }
             if (this.getTarget() != null && !acting && strongAttackTimer <= 0) {
                 acting = true;
-                RegistryEntry<Spell> spell = this.getBeamSpell();;
 
-                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 20, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 28, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(36, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 36, () -> {
+                    beamPulse();
                 });
                 GeminiAnimationProvider.beamChannel(isFrost()).sendForEntity(this);
                 failSafe = 0;
-                ((WorldScheduler) this.getWorld()).schedule(60, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
                     acting = false;
                 });
                 strongAttackTimer = (int) (strongAttackCooldown + this.getRandom().nextGaussian() * 20);
@@ -695,18 +631,11 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 acting = true;
                 GeminiAnimationProvider.beamSnap(isFrost()).sendForEntity(this);
                 failSafe = 0;
-                RegistryEntry<Spell> spell = this.getBeamSpell();;
 
-                ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(30, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 30, () -> {
                     acting = false;
                 });
                 basicAttackTimer = (int) (basicAttackCooldown );
@@ -761,34 +690,21 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 // shape to the overhead gather the comet cast uses.
                 GeminiAnimationProvider.cloudSpread(isFrost()).sendForEntity(this);
                 failSafe = 0;
-                RegistryEntry<Spell> spell = this.getCloudSpell();;
 
-                ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                    if(this.getTarget() != null) {
-                        CloudPlacer.placeCloud(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 40, () -> {
+                    callCloud();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-                    if(this.getTarget() != null) {
-                        CloudPlacer.placeCloud(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }                });
-                ((WorldScheduler) this.getWorld()).schedule(80, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
+                    callCloud();                });
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 80, () -> {
 
-                    if(this.getTarget() != null) {
-                        CloudPlacer.placeCloud(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }
+                    callCloud();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(100, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 100, () -> {
 
-                    if(this.getTarget() != null) {
-                        CloudPlacer.placeCloud(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }
+                    callCloud();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(120, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 120, () -> {
                     acting = false;
                 });
                 cloudTimer = (int) (cloudCooldown + this.getRandom().nextGaussian() * 20 );
@@ -797,34 +713,21 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 acting = true;
                 GeminiAnimationProvider.cometCall(isFrost()).sendForEntity(this);
                 failSafe = 0;
-                RegistryEntry<Spell> spell = this.getMeteorSpell();;
 
-                ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                    if(this.getTarget() != null) {
-                        ProjectileLauncher.fallProjectile(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 40, () -> {
+                    callMeteor();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(60, () -> {
-                    if(this.getTarget() != null) {
-                        ProjectileLauncher.fallProjectile(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }                });
-                ((WorldScheduler) this.getWorld()).schedule(80, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
+                    callMeteor();                });
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 80, () -> {
 
-                    if(this.getTarget() != null) {
-                        ProjectileLauncher.fallProjectile(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }
+                    callMeteor();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(100, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 100, () -> {
 
-                    if(this.getTarget() != null) {
-                        ProjectileLauncher.fallProjectile(this.getWorld(), this, this.getTarget(), this.getTarget().getPos(), spell, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(this.school,this)).position(this.getTarget().getPos()));
-                        ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
-                    }
+                    callMeteor();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(120, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 120, () -> {
                     acting = false;
                 });
                 meteorTimer = (int) (meteorCooldown + this.getRandom().nextGaussian() * 20 );
@@ -832,38 +735,19 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             // Aerial beam attacks — uber only (normal SECONDARY djinn uses meteors/clouds only)
             if (this.uber && this.getTarget() != null && !acting && strongAttackTimer <= 0) {
                 acting = true;
-                RegistryEntry<Spell> spell = this.getBeamSpell();;
 
-                ((WorldScheduler) this.getWorld()).schedule(20, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 20, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(28, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 28, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(36, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this,  spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 36, () -> {
+                    beamPulse();
                 });
                 GeminiAnimationProvider.beamChannel(isFrost()).sendForEntity(this);
                 failSafe = 0;
-                ((WorldScheduler) this.getWorld()).schedule(60, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
                     acting = false;
                 });
                 strongAttackTimer = (int) (strongAttackCooldown + this.getRandom().nextGaussian() * 20);
@@ -873,18 +757,11 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
                 acting = true;
                 GeminiAnimationProvider.beamSnap(isFrost()).sendForEntity(this);
                 failSafe = 0;
-                RegistryEntry<Spell> spell = this.getBeamSpell();;
 
-                ((WorldScheduler) this.getWorld()).schedule(10, () -> {
-                    List<Entity> entityList = TargetHelper.targetsFromArea(this, spell.value().range, spell.value().target.area, entity -> entity != this.getPartner());
-                    for (Entity entity : entityList) {
-                        boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spell, spell.value().impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(spell.value().school, this)).position(this.getPos()));
-                    }
-                    SoundHelper.playSound(this.getWorld(),this,spell.value().release.sound);
-
-                    ParticleHelper.sendBatches(this, spell.value().release.visuals.particles);
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
+                    beamPulse();
                 });
-                ((WorldScheduler) this.getWorld()).schedule(30, () -> {
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 30, () -> {
                     acting = false;
                 });
                 basicAttackTimer = (int) (basicAttackCooldown);
@@ -918,6 +795,57 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
     public int phaseTimer;
     public GeminiEntity partner;
     public UUID partnerId;
+
+    // ── Casts ─────────────────────────────────────────────────────────────────
+
+    /** One pulse of this twin's beam, along the line to its target (or its gaze, without one). */
+    private void beamPulse() {
+        if (!(this.getWorld() instanceof ServerWorld world)) return;
+        var target = this.getTarget();
+        var aim = target != null ? CastTarget.at(this, target)
+                : CastTarget.at(this, this.getEyePos().add(this.getRotationVector().multiply(16.0)));
+        AbilityExecutor.cast(world, this, GeminiAbilities.beam(isFrost()), aim);
+    }
+
+    /** Mark the target's spot now; the cloud rises there after the spell's delivery delay. */
+    private void callCloud() {
+        var target = this.getTarget();
+        if (target == null || !(this.getWorld() instanceof ServerWorld world)) return;
+        var spot = CastTarget.at(this, target.getPos());
+        var spec = isFrost() ? GeminiAbilities.FROST_CLOUD : GeminiAbilities.FLAME_CLOUD;
+        TickScheduler.schedule(world, GeminiAbilities.CLOUD_DELAY, () -> {
+            if (this.isAlive()) {
+                AbilityExecutor.cast(world, this, spec, spot);
+            }
+        });
+    }
+
+    /** Frost twin: one comet. Fire twin: a run of stars, each falling on wherever the target is by then. */
+    private void callMeteor() {
+        if (this.getTarget() == null || !(this.getWorld() instanceof ServerWorld world)) return;
+        if (isFrost()) {
+            dropOn(world, GeminiAbilities.COMET, GeminiAbilities.COMET_SPREAD);
+            return;
+        }
+        dropOn(world, GeminiAbilities.STARFALL, GeminiAbilities.STARFALL_SPREAD);
+        for (int i = 1; i < GeminiAbilities.STARFALL_STARS; i++) {
+            TickScheduler.schedule(world, i * GeminiAbilities.STARFALL_INTERVAL, () -> {
+                if (this.isAlive()) {
+                    dropOn(world, GeminiAbilities.STARFALL, GeminiAbilities.STARFALL_SPREAD);
+                }
+            });
+        }
+    }
+
+    /** One meteor onto the target, scattered the way the spell's launch divergence scattered it. */
+    private void dropOn(ServerWorld world, AbilitySpec spec, double spread) {
+        var target = this.getTarget();
+        if (target == null) return;
+        double angle = this.random.nextDouble() * Math.PI * 2.0;
+        double distance = Math.sqrt(this.random.nextDouble()) * spread;
+        var spot = target.getPos().add(Math.cos(angle) * distance, 0.0, Math.sin(angle) * distance);
+        AbilityExecutor.cast(world, this, spec, CastTarget.at(this, spot));
+    }
 
     public void setPartner(GeminiEntity partner) {
         this.partner = partner;
