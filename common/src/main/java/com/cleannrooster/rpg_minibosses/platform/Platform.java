@@ -1,6 +1,8 @@
 package com.cleannrooster.rpg_minibosses.platform;
 
-import net.minecraft.server.world.ServerWorld;
+
+
+import java.util.Set;import net.minecraft.entity.EntityType;import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.ServiceLoader;
@@ -21,5 +23,9 @@ public final class Platform {
 
     public static boolean placeGuildHall(ServerWorld world, BlockPos origin) {
         return INSTANCE.placeGuildHall(world, origin);
+    }
+
+    public static void addMonsterSpawnAlongside(EntityType<?> type, int weight, Set<EntityType<?>> ifSpawnsOneOf) {
+        INSTANCE.addMonsterSpawnAlongside(type, weight, ifSpawnsOneOf);
     }
 }

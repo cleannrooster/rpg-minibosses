@@ -5,6 +5,7 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses.*;
 
 import com.cleannrooster.rpg_minibosses.config.ServerConfig;
+import com.cleannrooster.rpg_minibosses.platform.Platform;
 import com.cleannrooster.rpg_minibosses.config.ServerConfigWrapper;
 import com.google.common.base.Predicates;
 import dev.architectury.registry.CreativeTabRegistry;
@@ -382,12 +383,12 @@ public class RPGMinibossesEntities {
             );
             EntityType<?> type = entry.entityType;
             if(entry.shouldSpawn) {
-                addSpawn(context -> spawnsOneOf(context, EntityType.WITCH), type, config.mult);
+                Platform.addMonsterSpawnAlongside(type, config.mult, Set.of(EntityType.WITCH));
                 TagKey<Biome> guildHall = TagKey.of(RegistryKeys.BIOME,Identifier.of(CONTENT_NAMESPACE,"has_structure/guild_hall"));
                 addSpawn(context -> context.hasTag(guildHall), type, 25);
 
                 if(config.hell){
-                    addSpawn(context -> spawnsOneOf(context, EntityType.PIGLIN, EntityType.ZOMBIFIED_PIGLIN), type, config.mult);
+                    Platform.addMonsterSpawnAlongside(type, config.mult, Set.of(EntityType.PIGLIN, EntityType.ZOMBIFIED_PIGLIN));
 
                 }
                 minibosses.add(entry);
@@ -423,14 +424,6 @@ public class RPGMinibossesEntities {
     private static void addSpawn(java.util.function.Predicate<BiomeModifications.BiomeContext> where, EntityType<?> type, int weight) {
         BiomeModifications.addProperties(where, (context, properties) ->
                 properties.getSpawnProperties().addSpawn(SpawnGroup.MONSTER, new SpawnSettings.SpawnEntry(type, weight, 1, 1)));
-    }
-
-    /** Same test as Fabric's {@code BiomeSelectors.spawnsOneOf}: the biome already spawns one of these. */
-    private static boolean spawnsOneOf(BiomeModifications.BiomeContext context, EntityType<?>... types) {
-        var wanted = Set.of(types);
-        return context.getProperties().getSpawnProperties().getSpawners().values().stream()
-                .flatMap(List::stream)
-                .anyMatch(spawn -> wanted.contains(spawn.type));
     }
 
     /** ITEM registry phase: spawn eggs. Requires {@link #registerEntityTypes()} to have run. */
