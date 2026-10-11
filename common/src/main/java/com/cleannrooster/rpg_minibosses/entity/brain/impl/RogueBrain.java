@@ -1,6 +1,14 @@
 package com.cleannrooster.rpg_minibosses.entity.brain.impl;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.BossSounds;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.Delivery;
+import com.cleannrooster.rpg_minibosses.magic.Impact;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import net.minecraft.server.world.ServerWorld;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.TricksterEntity;
 import com.cleannrooster.rpg_minibosses.entity.brain.*;
@@ -25,14 +33,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
 import net.minecraft.util.math.Vec3d;
-import net.spell_engine.api.spell.ExternalSpellSchools;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.utils.SoundHelper;
-import net.spell_power.api.SpellPower;
 
 import java.util.List;
 
@@ -94,6 +94,16 @@ public class RogueBrain extends MobBrain {
 
     private final CombatAction crossSlashLeft;
     private final CombatAction crossSlashRight;
+    /**
+     * The old {@code knifethrow} spell: a thrown dagger at 0.8 blocks/tick, 1.2 × physical melee power,
+     * full knockback, out to 32 blocks.
+     */
+    static final AbilitySpec KNIFE = AbilitySpec.builder(RPGMinibosses.id("rogue/knife"), MagicSchool.PHYSICAL_MELEE)
+            .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(0.8).withLifetime(40)))
+            .impact(new Impact.Damage(1.2f, 1.0f, false))
+            .sounds(null, BossSounds.DAGGER_THROW, BossSounds.DAGGER_HIT)
+            .build();
+
     private final CombatAction knifeThrow;
     private final CombatAction roll;
 
@@ -369,17 +379,9 @@ public class RogueBrain extends MobBrain {
 
     private void throwKnife() {
         var target = entity.getTarget();
-        if (target == null || entity.getWorld().isClient()) return;
-        var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "knifethrow");
+        if (target == null || !(entity.getWorld() instanceof ServerWorld world)) return;
         entity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, target.getEyePos());
-        SoundHelper.playSound(entity.getWorld(), entity,
-                new Sound(Identifier.of("minecraft:entity.player.attack.sweep")));
-        ProjectileLauncher.shootProjectile(entity.getWorld(), entity, target,
-                SpellRegistry.from(entity.getWorld()).getEntry(id).get(),
-                new SpellExecution.ImpactContext()
-                        .power(SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_MELEE, entity))
-                        .position(entity.getPos()));
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.visuals.particles);
+        AbilityExecutor.cast(world, entity, KNIFE, CastTarget.at(entity, target));
     }
 
     /** Roll toward the target — an approach, not an escape. */
