@@ -87,6 +87,14 @@ public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
             RPGMinibosses.CONTENT_NAMESPACE, "textures/mob/archmagetexturefire_casting_2.png"
     );
 
+    /**
+     * A petrified miniboss is drawn in stone. Lost when the renderers moved to AzureLib's config builder:
+     * the old per-mob models swapped to this in their texture getter, and nothing replaced it.
+     */
+    public static final Identifier PETRIFIED_TEXTURE = Identifier.of(
+            RPGMinibosses.CONTENT_NAMESPACE, "textures/mob/petrified.png"
+    );
+
     /** {@code null} means "use the mob's own texture", i.e. mouth closed. */
     private static final Identifier[] TALK_CYCLE = {
             FIREMAGE_TALK_OPEN, FIREMAGE_TALK_WIDE, FIREMAGE_TALK_OPEN, null,
@@ -113,6 +121,10 @@ public class MinibossRenderer extends AzEntityRenderer<MinibossEntity> {
      * renderer-side hook to override, so per-entity texture logic belongs here.
      */
     private static Identifier textureFor(MinibossEntity entity, Identifier base) {
+        // Clients read the synced PETRIFIED flag here; status effects themselves are never sent to them.
+        if (!entity.notPetrified()) {
+            return PETRIFIED_TEXTURE;
+        }
         if (entity instanceof ArchmageFireEntity mage && mage.isTalking() && talkTexturesPresent()) {
             Identifier frame = TALK_CYCLE[Math.floorMod(entity.age / TALK_FRAME_TICKS, TALK_CYCLE.length)];
             return frame == null ? base : frame;
