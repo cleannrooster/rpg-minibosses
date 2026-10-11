@@ -31,7 +31,7 @@ public final class AbilityPresentation {
      */
     public static void windup(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target, int windupTicks) {
         var presentation = spec.presentation();
-        sound(world, caster.getPos(), pick(presentation.windupSound(), BossSounds.of(spec.school()).windup()));
+        sound(world, caster.getPos(), pick(presentation.windupSound(), BossSounds.of(spec.lookSchool()).windup()));
         if (!presentation.telegraph() || windupTicks <= 0) {
             return;
         }
@@ -44,9 +44,9 @@ public final class AbilityPresentation {
     /** The moment it goes off: the release sound on the caster and the shape of the delivery. */
     public static void release(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target) {
         var presentation = spec.presentation();
-        sound(world, caster.getPos(), pick(presentation.releaseSound(), BossSounds.of(spec.school()).release()));
+        sound(world, caster.getPos(), pick(presentation.releaseSound(), BossSounds.of(spec.lookSchool()).release()));
         long seed = world.random.nextLong();
-        var school = spec.school();
+        var school = spec.lookSchool();
         if (presentation.releaseCue() != null) {
             FxEmitter.emit(world, presentation.releaseCue(), CueArgs.between(school, caster.getEyePos(), target.position(), 1.0f, 1, seed));
             return;
@@ -73,9 +73,9 @@ public final class AbilityPresentation {
      */
     public static void impact(ServerWorld world, AbilitySpec spec, Vec3d at, float radius, boolean falling) {
         var presentation = spec.presentation();
-        sound(world, at, pick(presentation.impactSound(), BossSounds.of(spec.school()).impact()));
+        sound(world, at, pick(presentation.impactSound(), BossSounds.of(spec.lookSchool()).impact()));
         long seed = world.random.nextLong();
-        var school = spec.school();
+        var school = spec.lookSchool();
         if (presentation.impactCue() != null) {
             FxEmitter.emit(world, presentation.impactCue(), CueArgs.at(school, at, Math.max(radius, 1.0f), 1, seed));
             return;
@@ -92,7 +92,7 @@ public final class AbilityPresentation {
 
     /** One pulse of a cloud: motes over its area. */
     public static void cloudPulse(ServerWorld world, AbilitySpec spec, Vec3d at, float radius) {
-        FxEmitter.emit(world, FxCues.WISP, CueArgs.at(spec.school(), at, radius, 1, world.random.nextLong()));
+        FxEmitter.emit(world, FxCues.WISP, CueArgs.at(spec.lookSchool(), at, radius, 1, world.random.nextLong()));
     }
 
     /** The area the caster's wind-up warns of, placed and turned, or null if the delivery has none. */

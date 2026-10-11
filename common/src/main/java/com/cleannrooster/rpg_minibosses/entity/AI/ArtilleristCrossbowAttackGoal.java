@@ -35,7 +35,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
-import net.spell_engine.utils.WorldScheduler;
+import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -170,21 +170,21 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 if(this.longanim) {
                     this.actor.dispatcher.setShootHeavyMany();
                    //(this).triggerAnim("shoot_heavy_many", "shoot_heavy_many");
-                        ((WorldScheduler) this.actor.getWorld()).schedule(28, () -> {
+                        TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 28, () -> {
 
                             this.actor.getLookControl().lookAt(livingEntity);
                             this.actor.lookAtEntity(livingEntity,30,30);
                             shoot(livingEntity, 1.6F);
 
                         });
-                        ((WorldScheduler) this.actor.getWorld()).schedule(34, () -> {
+                        TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 34, () -> {
 
                             this.actor.getLookControl().lookAt(livingEntity);
                             this.actor.lookAtEntity(livingEntity,30,30);
                             shoot(livingEntity, 1.6F);
 
                         });
-                        ((WorldScheduler) this.actor.getWorld()).schedule(40, () -> {
+                        TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 40, () -> {
 
                             this.actor.getLookControl().lookAt(livingEntity);
                             this.actor.lookAtEntity(livingEntity,30,30);
@@ -192,7 +192,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                             shoot(livingEntity, 1.6F);
 
                         });
-                        ((WorldScheduler) this.actor.getWorld()).schedule(46, () -> {
+                        TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 46, () -> {
 
                             this.actor.getLookControl().lookAt(livingEntity);
                             this.actor.lookAtEntity(livingEntity,30,30);
@@ -200,7 +200,7 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
 
                         });
 
-                    ((WorldScheduler) this.actor.getWorld()).schedule(60, () -> {
+                    TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 60, () -> {
                         this.actor.performing = false;
                         if(this.actor.getTarget() != null && this.actor.getTarget().distanceTo(this.actor) < 10) {
                             this.longanim = false;
@@ -215,14 +215,14 @@ public class ArtilleristCrossbowAttackGoal<T extends ArtilleristEntity & RangedA
                 else{
                    //(this).triggerAnim("shoot_heavy", "shoot_heavy");
                     this.actor.dispatcher.setShootHeavy();
-                    ((WorldScheduler) this.actor.getWorld()).schedule(20, () -> {
+                    TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 20, () -> {
                         this.actor.lookAtEntity(livingEntity,30,30);
 
                         this.actor.getLookControl().lookAt(livingEntity);
                         shoot(livingEntity, 1.6F);
 
                     });
-                    ((WorldScheduler) this.actor.getWorld()).schedule(28, () -> {
+                    TickScheduler.schedule((ServerWorld) this.actor.getWorld(), 28, () -> {
                         this.actor.performing = false;
                         if(this.actor.getTarget() != null && this.actor.getTarget().distanceTo(this.actor) < 10) {
                             this.longanim = false;

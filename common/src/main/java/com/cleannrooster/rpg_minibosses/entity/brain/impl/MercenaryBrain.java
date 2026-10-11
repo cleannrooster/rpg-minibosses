@@ -11,6 +11,12 @@ import com.cleannrooster.rpg_minibosses.entity.combat.CombatAction;
 import com.cleannrooster.rpg_minibosses.entity.combat.GroundLocomotion;
 import com.cleannrooster.rpg_minibosses.entity.combat.MovementProfile;
 import com.cleannrooster.rpg_minibosses.entity.combat.TrackingMode;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.BossSounds;
+import com.cleannrooster.rpg_minibosses.magic.Delivery;
+import com.cleannrooster.rpg_minibosses.magic.Impact;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import dev.eann.atlasvfx.telegraph.TelegraphArea;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -18,9 +24,6 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.spell_engine.api.spell.ExternalSpellSchools;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_power.api.SpellPower;
 
 import java.util.List;
 
@@ -48,6 +51,19 @@ public class MercenaryBrain extends MobBrain {
         PROBING, PUNISHING;
         @Override public String id() { return name(); }
     }
+
+    /**
+     * What a trap does when it goes off: the old {@code explosion} spell — a 2.5-block blast of physical
+     * ranged damage at 1.5 × power — looking and sounding like fire, as it always did. The trap is its
+     * own warning, so no telegraph.
+     */
+    static final AbilitySpec TRAP_BLAST = AbilitySpec.builder(RPGMinibosses.id("mercenary/trap_blast"), MagicSchool.PHYSICAL_RANGED)
+            .delivery(Delivery.Area.at(new TelegraphArea.Circle(Vec3d.ZERO, 2.5f)))
+            .impact(new Impact.Damage(1.5f, 1.0f, false))
+            .looksLike(MagicSchool.FIRE)
+            .sounds(null, BossSounds.EXPLOSION, null)
+            .noTelegraph()
+            .build();
 
     private static final float MELEE_THRESHOLD      = 4.0f;
     private static final float ENGAGEMENT_THRESHOLD  = 16.0f;
@@ -465,11 +481,7 @@ public class MercenaryBrain extends MobBrain {
 
         for (int i = -1; i <= 1; i++) {
             var direction = centre.rotateY((float) (i * spread));
-            var trap = new TrapCleann(
-                RPGMinibossesEntities.TRAP, entity, entity.getWorld(),
-                Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "explosion"),
-                new SpellExecution.ImpactContext().power(
-                    SpellPower.getSpellPower(ExternalSpellSchools.PHYSICAL_RANGED, entity)));
+            var trap = new TrapCleann(RPGMinibossesEntities.TRAP, entity, entity.getWorld(), TRAP_BLAST);
             trap.setPosition(entity.getEyePos());
             // Throw harder toward a farther prediction so the fan lands near it rather than at its feet.
             var throwSpeed = net.minecraft.util.math.MathHelper.clamp(toPredicted.length() * 0.022, 0.16, 0.42);

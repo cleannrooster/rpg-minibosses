@@ -50,7 +50,7 @@ public class BossCloud extends Entity {
         cloud.spec = spec;
         cloud.context = context;
         cloud.yaw = yaw;
-        cloud.getDataTracker().set(SCHOOL, (byte) context.school().ordinal());
+        cloud.getDataTracker().set(SCHOOL, (byte) ability.lookSchool().ordinal());
         cloud.getDataTracker().set(RADIUS, (float) spec.shape().extent());
         cloud.setPosition(at);
         world.spawnEntity(cloud);

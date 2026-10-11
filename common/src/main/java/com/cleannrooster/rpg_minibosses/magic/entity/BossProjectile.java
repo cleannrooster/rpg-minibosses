@@ -67,7 +67,7 @@ public class BossProjectile extends Entity implements Ownable {
         projectile.context = context;
         projectile.homingTarget = spec.homingDegrees() > 0.0f ? homingTarget : null;
         projectile.meteor = meteor;
-        projectile.getDataTracker().set(SCHOOL, (byte) context.school().ordinal());
+        projectile.getDataTracker().set(SCHOOL, (byte) ability.lookSchool().ordinal());
         projectile.setPosition(from);
         var heading = direction.lengthSquared() < 1.0e-8 ? caster.getRotationVector() : direction.normalize();
         projectile.setVelocity(heading.multiply(spec.speed()));

@@ -44,7 +44,6 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Optional;
 
-import static net.spell_engine.utils.VectorHelper.angleBetween;
 
 
 public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob, CrossbowUser {
@@ -358,4 +357,9 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         this.shoot(this, 1.6F);
     }
 
+    /** Angle between two vectors in degrees; 0 when either is zero-length. Same as Spell Engine's VectorHelper. */
+    private static double angleBetween(Vec3d a, Vec3d b) {
+        double degrees = Math.toDegrees(Math.acos(a.dotProduct(b) / (a.length() * b.length())));
+        return Double.isNaN(degrees) ? 0.0 : degrees;
+    }
 }

@@ -23,11 +23,18 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
      * delivery".
      *
      * @param telegraph whether an action casting this warns of its area during the wind-up
+     * @param look      the school whose colours and default sounds it uses, if not its own (a physical
+     *                  bomb that should look and sound like fire)
      */
     public record Presentation(@Nullable SoundEvent windupSound, @Nullable SoundEvent releaseSound,
                                @Nullable SoundEvent impactSound, @Nullable Identifier releaseCue,
-                               @Nullable Identifier impactCue, boolean telegraph) {
-        public static final Presentation DEFAULT = new Presentation(null, null, null, null, null, true);
+                               @Nullable Identifier impactCue, boolean telegraph, @Nullable MagicSchool look) {
+        public static final Presentation DEFAULT = new Presentation(null, null, null, null, null, true, null);
+    }
+
+    /** The school it looks and sounds like. */
+    public MagicSchool lookSchool() {
+        return this.presentation.look() != null ? this.presentation.look() : this.school;
     }
 
     public enum Intent {
@@ -57,6 +64,7 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
         private @Nullable Identifier releaseCue;
         private @Nullable Identifier impactCue;
         private boolean telegraph = true;
+        private @Nullable MagicSchool look;
 
         private Builder(Identifier id, MagicSchool school) {
             this.id = id;
@@ -103,6 +111,12 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
             return this;
         }
 
+        /** Look and sound like {@code school} while still dealing this ability's own school of damage. */
+        public Builder looksLike(MagicSchool school) {
+            this.look = school;
+            return this;
+        }
+
         /** No wind-up warning, for areas that should land unannounced. */
         public Builder noTelegraph() {
             this.telegraph = false;
@@ -111,7 +125,7 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
 
         public AbilitySpec build() {
             var presentation = new Presentation(this.windupSound, this.releaseSound, this.impactSound,
-                    this.releaseCue, this.impactCue, this.telegraph);
+                    this.releaseCue, this.impactCue, this.telegraph, this.look);
             var spec = new AbilitySpec(this.id, this.school, this.intent, this.delivery, this.impacts, presentation);
             AbilityRegistry.register(spec);
             return spec;
