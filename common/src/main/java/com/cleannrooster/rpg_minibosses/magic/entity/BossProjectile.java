@@ -135,7 +135,7 @@ public class BossProjectile extends Entity implements Ownable {
     /** Turn toward the homing target by at most the spec's degrees this tick, keeping speed. */
     private void steer() {
         var target = this.homingTarget;
-        if (target == null || !target.isAlive() || this.spec == null) {
+        if (target == null || !target.isAlive() || this.spec == null || this.age < this.spec.homingDelay()) {
             return;
         }
         var velocity = this.getVelocity();

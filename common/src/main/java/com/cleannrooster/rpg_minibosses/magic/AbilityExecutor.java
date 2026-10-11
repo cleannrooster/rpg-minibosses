@@ -76,6 +76,20 @@ public final class AbilityExecutor {
         AbilityPresentation.windup(world, caster, spec, target, windupTicks);
     }
 
+    /**
+     * Fire one projectile of {@code spec} along {@code direction} rather than straight at the target — for a
+     * brain that fans a volley out itself. {@code spec} must deliver a projectile; it still homes on the
+     * target if its spec says so.
+     */
+    public static void castProjectile(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target, Vec3d direction) {
+        if (!(spec.delivery() instanceof Delivery.Projectile projectile)) {
+            throw new IllegalArgumentException(spec.id() + " does not deliver a projectile");
+        }
+        AbilityPresentation.release(world, caster, spec, target);
+        var context = ImpactContext.of(caster, spec.school(), caster.getPos(), null);
+        BossProjectile.launch(world, caster, spec, projectile.spec(), context, caster.getEyePos(), direction, target.entity(), false);
+    }
+
     /** Whether {@code spec} may reach {@code entity} at all, by its intent. */
     public static boolean reaches(AbilitySpec spec, LivingEntity caster, Entity entity) {
         return spec.intent() == AbilitySpec.Intent.HELPFUL

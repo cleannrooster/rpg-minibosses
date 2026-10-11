@@ -43,7 +43,7 @@ public sealed interface Impact permits Impact.Damage, Impact.Ignite, Impact.Appl
     }
 
     /** Set on fire for {@code seconds}. */
-    record Ignite(int seconds) implements Impact {
+    record Ignite(float seconds) implements Impact {
         @Override
         public void apply(ImpactContext context, LivingEntity target) {
             target.setOnFireFor(this.seconds);

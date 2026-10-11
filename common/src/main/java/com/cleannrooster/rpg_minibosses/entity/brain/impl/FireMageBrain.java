@@ -1,6 +1,19 @@
 package com.cleannrooster.rpg_minibosses.entity.brain.impl;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import net.minecraft.server.world.ServerWorld;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.BossSounds;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.Delivery;
+import com.cleannrooster.rpg_minibosses.magic.Impact;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
+import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
+import dev.eann.atlasvfx.telegraph.TelegraphArea;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.ArchmageFireEntity;
 import com.cleannrooster.rpg_minibosses.entity.brain.*;
@@ -23,18 +36,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineSounds;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.impact.SpellImpacts;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.utils.SoundHelper;
-import net.spell_engine.utils.TargetHelper;
-import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellSchools;
 
 import java.util.List;
 
@@ -54,6 +55,33 @@ import java.util.List;
  * Jump Back.
  */
 public class FireMageBrain extends MobBrain {
+
+    /** The old {@code fireball} spell: a 1.6 b/t bolt, 0.4 × fire power, light knockback, 1.5 s of burning. */
+    static final AbilitySpec FIREBALL = AbilitySpec.builder(RPGMinibosses.id("fire_mage/fireball"), MagicSchool.FIRE)
+            .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(1.6).withLifetime(20)))
+            .impact(new Impact.Damage(0.4f, 0.2f, false))
+            .impact(new Impact.Ignite(1.5f))
+            .build();
+
+    /**
+     * One bolt of the old {@code lesser_fire_volley}: speed 1, homing 20°/tick once four blocks out,
+     * bursting over four blocks for 0.2 × fire power with heavy knockback. (The spell let each bolt pierce
+     * and bounce indefinitely; here each bursts once, on first contact.)
+     */
+    static final AbilitySpec VOLLEY_BOLT = AbilitySpec.builder(RPGMinibosses.id("fire_mage/volley_bolt"), MagicSchool.FIRE)
+            .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(1.0).homing(20.0f, 4).withLifetime(100)
+                    .bursting(new TelegraphArea.Circle(Vec3d.ZERO, 4.0f), 3.0)))
+            .impact(new Impact.Damage(0.2f, 2.0f, false))
+            .build();
+
+    private static final float[] VOLLEY_YAW_OFFSETS = {45.0f, -45.0f, 135.0f, -135.0f};
+
+    /** The old {@code fire_nova} spell: everything within six blocks takes 0.6 × fire power and burns for 3 s. */
+    static final AbilitySpec NOVA = AbilitySpec.builder(RPGMinibosses.id("fire_mage/nova"), MagicSchool.FIRE)
+            .delivery(Delivery.Area.around(new TelegraphArea.Circle(Vec3d.ZERO, 6.0f)))
+            .damage(0.6f)
+            .impact(new Impact.Ignite(3.0f))
+            .build();
 
     public enum Stance implements BrainState {
         HARASSMENT, ZONING;
@@ -147,8 +175,9 @@ public class FireMageBrain extends MobBrain {
                 .tracking(TrackingMode.REDUCED, TrackingMode.REDUCED)
                 .cooldown(640)
                 .onStart(ctx -> {
-                    SoundHelper.playSound(entity.getWorld(), entity,
-                            new Sound(SpellEngineSounds.GENERIC_FIRE_CASTING.id()));
+                    if (entity.getWorld() instanceof ServerWorld world) {
+                        FxEmitter.sound(world, entity.getPos(), BossSounds.FIRE.windup(), 1.5f, 1.0f);
+                    }
                     // The long charge is the one the player most needs to recognise early, so the
                     // incantation runs the length of the wind-up rather than just its opening.
                     archmage.startTalking(ArchmageFireEntity.TALK_LONG);
@@ -203,11 +232,13 @@ public class FireMageBrain extends MobBrain {
                     if (target != null && entity.distanceTo(target) < 3.6f) {
                         target.setOnFireFor(3);
                     }
-                    ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld())
-                            .get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "fire_nova"))
-                            .release.visuals.particles);
-                    SoundHelper.playSound(entity.getWorld(), entity,
-                            new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
+                    if (entity.getWorld() instanceof ServerWorld world) {
+                        // The flames thrown across the fan: the sweep's own arc, not a nova round the mage.
+                        var mouth = entity.getPos().add(0.0, entity.getHeight() * 0.6, 0.0);
+                        FxEmitter.emit(world, FxCues.CONE, CueArgs.cone(MagicSchool.FIRE, mouth,
+                                ctx.committedForward(), 70.0f, 3.2f, 1, world.random.nextLong()));
+                        FxEmitter.sound(world, entity.getPos(), BossSounds.FIRE.release(), 1.5f, 1.0f);
+                    }
                 })
                 .build();
     }
@@ -353,43 +384,37 @@ public class FireMageBrain extends MobBrain {
 
     private void castFireball() {
         var target = entity.getTarget();
-        if (target == null || entity.getWorld().isClient() || !entity.canSee(target)) return;
-        var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "fireball");
+        if (target == null || !(entity.getWorld() instanceof ServerWorld world) || !entity.canSee(target)) return;
         entity.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, target.getEyePos());
-        SoundHelper.playSound(entity.getWorld(), entity, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-        ProjectileLauncher.shootProjectile(entity.getWorld(), entity, target,
-            SpellRegistry.from(entity.getWorld()).getEntry(id).get(),
-            new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
-                    .position(entity.getPos()));
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.visuals.particles);
+        AbilityExecutor.cast(world, entity, FIREBALL, CastTarget.at(entity, target));
     }
 
+    /**
+     * Four bolts, two ticks apart, thrown up and out to either side and behind (the old spell's direction
+     * offsets), each curling back onto the target once it is clear of the mage.
+     */
     private void castVolley(com.cleannrooster.rpg_minibosses.entity.combat.ActionContext ctx) {
         var target = ctx.liveTarget();
-        if (target == null || entity.getWorld().isClient() || !entity.canSee(target)) return;
-        var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "lesser_fire_volley");
-        SoundHelper.playSound(entity.getWorld(), entity, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-        ProjectileLauncher.shootProjectile(entity.getWorld(), entity, target,
-            SpellRegistry.from(entity.getWorld()).getEntry(id).get(),
-            new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
-                    .position(entity.getPos()));
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(entity.getWorld()).get(id).release.visuals.particles);
+        if (target == null || !(entity.getWorld() instanceof ServerWorld world) || !entity.canSee(target)) return;
+        var aim = CastTarget.at(entity, target);
+        for (int i = 0; i < VOLLEY_YAW_OFFSETS.length; i++) {
+            var direction = Vec3d.fromPolar(-45.0f, aim.yaw() + VOLLEY_YAW_OFFSETS[i]);
+            int delay = i * 2;
+            if (delay == 0) {
+                AbilityExecutor.castProjectile(world, entity, VOLLEY_BOLT, aim, direction);
+            } else {
+                TickScheduler.schedule(world, delay, () -> {
+                    if (entity.isAlive()) {
+                        AbilityExecutor.castProjectile(world, entity, VOLLEY_BOLT, aim, direction);
+                    }
+                });
+            }
+        }
     }
 
     private void castNova() {
-        if (entity.getWorld().isClient()) return;
-        var world = entity.getWorld();
-        var id = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "fire_nova");
-        SoundHelper.playSound(world, entity, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-        // Same predicate as the mage's melee sweep; Nova used to catch allies and its owner too.
-        for (Entity struck : TargetHelper.targetsFromArea(entity, 6, new Spell.Target.Area(),
-                entity::canHarm)) {
-            SpellImpacts.performImpacts(world, entity, struck, entity,
-                SpellRegistry.from(world).getEntry(id).get(),
-                SpellRegistry.from(world).get(id).impacts,
-                new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, entity))
-                        .position(entity.getPos()));
-        }
-        ParticleHelper.sendBatches(entity, SpellRegistry.from(world).get(id).release.visuals.particles);
+        if (!(entity.getWorld() instanceof ServerWorld world)) return;
+        // Relations.canHarm is the mage's melee-sweep predicate too; Nova used to catch allies and its owner.
+        AbilityExecutor.cast(world, entity, NOVA, CastTarget.at(entity, entity.getPos()));
     }
 }
