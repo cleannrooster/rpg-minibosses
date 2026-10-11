@@ -79,7 +79,7 @@ public final class GeminiAbilities {
 
     private static AbilitySpec beam(String name, MagicSchool element) {
         return AbilitySpec.builder(RPGMinibosses.id("gemini/" + name), MagicSchool.LIGHTNING)
-                .delivery(new Delivery.Beam(24.0, 22.5f))
+                .delivery(new Delivery.Beam(24.0, 6.0f))
                 .impact(Impact.Damage.as(element, 1.6f, 1.0f))
                 .impact(Impact.Damage.as(MagicSchool.PHYSICAL_MELEE, 1.6f, 1.0f))
                 .impact(Impact.Damage.as(MagicSchool.LIGHTNING, 1.6f, 1.0f))
