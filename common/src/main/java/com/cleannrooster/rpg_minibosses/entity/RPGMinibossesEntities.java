@@ -56,9 +56,6 @@ import net.minecraft.world.gen.structure.OceanMonumentStructure;
 import net.minecraft.world.gen.structure.StructureType;
 import net.minecraft.world.spawner.PatrolSpawner;
 import net.minecraft.world.spawner.SpecialSpawner;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.rpg_series.config.LootDefaults;
 import net.spell_power.api.SpellSchools;
 
 import java.util.ArrayList;
@@ -230,24 +227,6 @@ public class RPGMinibossesEntities {
             0x09356B,
             0xebcb6a,true);
 
-    public static final Entry<MagusPrimeEntity> MAGuS_PRIME = new Entry<MagusPrimeEntity>("magus",
-            MagusPrimeEntity::new,HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
-            .add(EntityAttributes.GENERIC_ARMOR,config.magusArmor)
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.magusMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.magusMaxHealth)
-            .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.magusKnockbackResistance)
-            .add(SpellSchools.FIRE.attributeEntry,config.magusFirePower)
-            .add(SpellSchools.ARCANE.attributeEntry,config.magusArcanePower)
-            .add(SpellSchools.FROST.attributeEntry,config.magusFrostPower)
-            .add(SpellSchools.LIGHTNING.attributeEntry,config.magusLightningPower)
-            .add(SpellSchools.SOUL.attributeEntry,config.magusSoulPower),
-
-            0x09356B,
-            0xebcb6a,false);
-
-
     public static final Entry<ArchmageFireEntity> ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("archmage_fire",
             (entityType,world) -> new ArchmageFireEntity(entityType,world,false,config.fireMageGreater),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
@@ -374,7 +353,6 @@ public class RPGMinibossesEntities {
 
     public static EntityType<TrapCleann> TRAP;
     public static EntityType<StormAnchorEntity> STORM_ANCHOR;
-    public static EntityType<MagusDominionOrbEntity> MAGUS_DOMINION_ORB;
 
 
 
@@ -436,15 +414,6 @@ public class RPGMinibossesEntities {
                 FabricEntityTypeBuilder.<StormAnchorEntity>create(SpawnGroup.MISC, StormAnchorEntity::new)
                         .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
                         .trackRangeBlocks(128)
-                        .trackedUpdateRate(5)
-                        .build()
-        );
-        MAGUS_DOMINION_ORB = Registry.register(
-                ENTITY_TYPE,
-                Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "magus_dominion_orb"),
-                FabricEntityTypeBuilder.<MagusDominionOrbEntity>create(SpawnGroup.MISC, MagusDominionOrbEntity::new)
-                        .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
-                        .trackRangeBlocks(64)
                         .trackedUpdateRate(5)
                         .build()
         );

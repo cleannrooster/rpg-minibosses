@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "com.cleannrooster.rpg_minibosses.compat.spellengine.mixin",
+	"plugin": "com.cleannrooster.rpg_minibosses.compat.SpellEngineMixinPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"EntityRelationsMixin",
+		"PlayerMixin",
+		"SpellProjectileMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

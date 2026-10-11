@@ -22,8 +22,6 @@ import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.internals.SpellExecution;
 import net.spell_engine.internals.impact.SpellImpacts;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.internals.delivery.CloudPlacer;
 import net.minecraft.registry.entry.RegistryEntry;
 
 import java.util.List;

@@ -6,6 +6,9 @@ issueTrackerURL = "https://github.com/FabricMC/fabric-example-mod"
 [[mixins]]
 config = "rpg-minibosses.mixins.json"
 
+[[mixins]]
+config = "rpg-minibosses-spell_engine.mixins.json"
+
 [[mods]]
 modId = "${neoforge_mod_id}"
 version = "${version}"

@@ -29,24 +29,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.spell_engine.api.spell.ExternalSpellSchools;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineSounds;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.impact.SpellImpacts;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.internals.delivery.CloudPlacer;
-import net.spell_engine.utils.SoundHelper;
-import net.spell_engine.utils.WorldScheduler;
-import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellSchools;
 
 import java.util.List;
 import java.util.Optional;
 
-import static net.spell_engine.utils.VectorHelper.angleBetween;
 
 public class TricksterEntity extends MinibossEntity{
     List<Item> bonusList = List.of();

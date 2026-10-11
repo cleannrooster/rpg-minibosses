@@ -1,7 +1,7 @@
 package com.cleannrooster.rpg_minibosses.data;
 
-import com.cleannrooster.rpg_minibosses.item.Armors;
-import com.cleannrooster.rpg_minibosses.item.SetBonuses;
+import com.cleannrooster.rpg_minibosses.compat.spellengine.item.Armors;
+import com.cleannrooster.rpg_minibosses.compat.spellengine.item.SetBonuses;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;

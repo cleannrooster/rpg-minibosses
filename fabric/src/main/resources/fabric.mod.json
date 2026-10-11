@@ -26,7 +26,8 @@
 		]
 	},
 	"mixins": [
-		"rpg-minibosses.mixins.json"
+		"rpg-minibosses.mixins.json",
+		"rpg-minibosses-spell_engine.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",

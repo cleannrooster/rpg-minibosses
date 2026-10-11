@@ -2,7 +2,7 @@ package com.cleannrooster.rpg_minibosses.item;
 
 
 import com.cleannrooster.rpg_minibosses.entity.GeminiEntity;
-import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
+import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.MagusPrimeEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;

@@ -3,12 +3,8 @@
 	"package": "com.cleannrooster.rpg_minibosses.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"DefaultLootMixin",
 		"PatrolSpawnerMixin",
-		"PlayerMixin",
-		"EntityRelationsMixin",
-		"ServerPlayerEntityMixin",
-        "SpellProjectileMixin"
+		"ServerPlayerEntityMixin"
 	],
 	"client": [
 		"EndSkyMixin",

@@ -2,12 +2,9 @@ package com.cleannrooster.rpg_minibosses;
 
 import com.cleannrooster.rpg_minibosses.block.RPGMinibossesBlocks;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
+import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompat;
 import com.cleannrooster.rpg_minibosses.config.Default;
-import com.cleannrooster.rpg_minibosses.entity.MagusPrimeEntity;
-import com.cleannrooster.rpg_minibosses.entity.OrbEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
-import com.cleannrooster.rpg_minibosses.item.Armors;
-import com.cleannrooster.rpg_minibosses.item.SummonHorn;
 import com.cleannrooster.rpg_minibosses.item.SummonItem;
 import com.cleannrooster.rpg_minibosses.patrols.Patrol;
 import com.cleannrooster.rpg_minibosses.platform.Platform;
@@ -50,10 +47,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
-import net.spell_engine.rpg_series.config.ConfigFile;
 import net.spell_engine.api.render.CustomModels;
-import net.spell_engine.api.spell.event.SpellHandlers;
-import net.spell_engine.rpg_series.loot.LootConfig;
 import net.tiny_config.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 import static net.minecraft.registry.Registries.ENTITY_TYPE;
-import static net.spell_engine.rpg_series.config.LootDefaults.itemLootConfig;
 
 /**
  * Loader-independent core. Does NOT implement {@code ModInitializer} / NeoForge entrypoint types.
@@ -77,7 +70,6 @@ public final class RPGMinibosses {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(CONTENT_NAMESPACE);
 
-    public static Item LAVOSHORN;
     public static Item GEMINI;
     public static Item DEATOMIZED_FRAGMENT;
 
@@ -89,8 +81,6 @@ public final class RPGMinibosses {
     public static final SoundEvent ANTICIPATION_SOUND = SoundEvent.of(ANTICIPATION);
     public static final SoundEvent WARCRY_SOUND = SoundEvent.of(WARCRY);
 
-    public static EntityType<OrbEntity> ORBENTITY;
-
     public static final Identifier INFAMY = Identifier.of(CONTENT_NAMESPACE, "infamy");
     public static final Identifier BENEVOLENCE = Identifier.of(CONTENT_NAMESPACE, "benevolence");
 
@@ -99,12 +89,6 @@ public final class RPGMinibosses {
 
     public static ConfigManager<StructurePoolConfig> villageConfig = new ConfigManager<>
             ("villages", Default.villageConfig)
-            .builder()
-            .setDirectory(CONTENT_NAMESPACE)
-            .sanitize(true)
-            .build();
-    public static ConfigManager<ConfigFile.Equipment> itemConfig = new ConfigManager<ConfigFile.Equipment>
-            ("items_v2", Default.itemConfig)
             .builder()
             .setDirectory(CONTENT_NAMESPACE)
             .sanitize(true)
@@ -119,9 +103,9 @@ public final class RPGMinibosses {
     }
 
     // ── Non-registry initialization ─────────────────────────────────────────
-    /** Load configs. Must run before {@link #registerItems()} (Armors read {@link #itemConfig}). */
+    /** Load configs. Must run before {@link #registerItems()} (Spell Engine equipment reads its item config). */
     public static void initConfig() {
-        itemConfig.refresh();
+        SpellEngineCompat.hooks().initConfig();
         villageConfig.refresh();
     }
 
@@ -129,14 +113,13 @@ public final class RPGMinibosses {
     public static void init() {
         // Declared on both sides: the server needs the payload type to send, the client to receive.
         com.cleannrooster.rpg_minibosses.entity.combat.net.AttackNetwork.register();
-        registerSpellHandlers();
+        SpellEngineCompat.hooks().init();
         registerModelIds();
         registerEvents();
         registerWorldgenInjection();
 
         Patrol.patrolList.add(new Patrol());
 
-        itemConfig.save();
         LOGGER.info("[{}] common init complete", CONTENT_NAMESPACE);
     }
 
@@ -156,44 +139,9 @@ public final class RPGMinibosses {
 
     /** ENTITY_TYPE phase. */
     public static void registerEntities() {
+        SpellEngineCompat.hooks().declareEntities();
         RPGMinibossesEntities.registerEntityTypes();
-        ORBENTITY = Registry.register(
-                ENTITY_TYPE,
-                id("dark_matter"),
-                FabricEntityTypeBuilder.<OrbEntity>create(SpawnGroup.MONSTER, OrbEntity::new)
-                        .dimensions(EntityDimensions.fixed(4, 4))
-                        .trackRangeBlocks(128)
-                        .trackedUpdateRate(1)
-                        .build()
-        );
-        String W1 = "#rpg_series:loot_tier/tier_1_weapons";
-        String W2 = "#rpg_series:loot_tier/tier_2_weapons";
-        String W3 = "#rpg_series:loot_tier/tier_3_weapons";
-        String   A2 = "#rpg_series:loot_tier/tier_2_armors";
-        String   X2 = "#rpg_series:loot_tier/tier_2_accessories";
-        String   R2 = "#rpg_series:loot_tier/tier_2_relics";
-        for(RPGMinibossesEntities.Entry entry : RPGMinibossesEntities.entries) {
-            if(entry.shouldSpawn){
-                itemLootConfig.injectors.put("rpg-minibosses:entities/"+entry.id.getPath(),
-                        new LootConfig.Pool().bonus_rolls(0.2F).rolls(2)
-                                .add(W1, true,3)
-                                .add(W2, true,3)
-                                .add(A2, true,2)
-                                .add(X2)
-                                .add(R2))
-                ;
-            }
-            else{
-                itemLootConfig.injectors.put("rpg-minibosses:entities/"+entry.id.getPath(),
-                        new LootConfig.Pool().bonus_rolls(0.2F).rolls(2)
-                                .add(W2, true,3)
-                                .add(W3, true,3)
-
-                                .add(A2, true,2)
-                                .add(X2)
-                                .add(R2));
-            }
-        }
+        SpellEngineCompat.hooks().registerEntities();
     }
 
     /** BLOCK phase. */
@@ -203,6 +151,7 @@ public final class RPGMinibosses {
 
     /** MOB_EFFECT (status effect) phase. */
     public static void registerEffects() {
+        SpellEngineCompat.hooks().declareEffects();
         Effects.register();
     }
 
@@ -222,8 +171,7 @@ public final class RPGMinibosses {
         RPGMinibossesBlocks.registerBlockItems();
         RPGMinibossesEntities.registerSpawnEggs();
 
-        LAVOSHORN = new SummonHorn<MagusPrimeEntity>(new Item.Settings().maxCount(1).maxDamage(1),
-                RPGMinibossesEntities.MAGuS_PRIME.entityType, InstrumentTags.GOAT_HORNS);
+        SpellEngineCompat.hooks().registerSummonItems();
         GEMINI = new SummonItem<>(new Item.Settings().maxCount(1).maxDamage(1),
                 List.of(RPGMinibossesEntities.GEMINI_ALPHA.entityType, RPGMinibossesEntities.GEMINI_BETA.entityType),
                 InstrumentTags.GOAT_HORNS, "Gemini");
@@ -231,17 +179,14 @@ public final class RPGMinibosses {
                 List.of(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType, RPGMinibossesEntities.GEMINI_BETA_UBER.entityType),
                 InstrumentTags.GOAT_HORNS, "Eye of the Storm");
 
-        Registry.register(Registries.ITEM, id("lavos_horn"), LAVOSHORN);
         Registry.register(Registries.ITEM, id("gemini_fragment"), GEMINI);
         Registry.register(Registries.ITEM, id("deatomized_fragment"), DEATOMIZED_FRAGMENT);
 
-        Armors.register(itemConfig.value.weapons);
-        Armors.registerArmors(itemConfig.value.armor_sets);
+        SpellEngineCompat.hooks().registerEquipment();
 
         // Creative tab (ITEM_GROUP) registered in-phase, like artificers — icon needs items above.
         RPGMinibossesEntities.registerItemGroup();
         ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> {
-            content.add(LAVOSHORN);
             content.add(GEMINI);
             content.add(DEATOMIZED_FRAGMENT);
         });
@@ -249,26 +194,7 @@ public final class RPGMinibosses {
     }
 
     // ── Event / handler registration (no registry mutation; FFAPI-backed on NeoForge) ─────
-    private static void registerSpellHandlers() {
-        // Custom spell delivery: spawn a StormAnchorEntity that follows the caster for 30s.
-        SpellHandlers.registerCustomDelivery(
-                id("summon_storm"),
-                (world, spellRegistry, caster, targets, context, position) -> {
-                    com.cleannrooster.rpg_minibosses.entity.StormAnchorEntity storm =
-                            new com.cleannrooster.rpg_minibosses.entity.StormAnchorEntity(
-                                    RPGMinibossesEntities.STORM_ANCHOR, world);
-                    storm.setPosition(caster.getX(), caster.getY(), caster.getZ());
-                    storm.setOwnerEntity(caster);
-                    storm.setPlayerCentered(true);
-                    storm.setLifespan(30 * 20);
-                    world.spawnEntity(storm);
-                    return true;
-                }
-        );
-    }
-
     private static void registerModelIds() {
-        CustomModels.registerModelIds(List.of(id("projectile/feather")));
         CustomModels.registerModelIds(List.of(id("projectile/flamewaveprojectile")));
         CustomModels.registerModelIds(List.of(id("projectile/iron_dagger")));
     }
@@ -351,25 +277,5 @@ public final class RPGMinibosses {
                             }
                             return 1;
                         })));
-
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
-            if (entity instanceof ServerPlayerEntity) {
-                entity.getWorld().getEntitiesByType(
-                        TypeFilter.instanceOf(MagusPrimeEntity.class),
-                        entity.getBoundingBox().expand(64),
-                        magus -> true
-                ).forEach(magus -> {
-                    magus.contemptFulfilledStacks++;
-                    EntityAttributeInstance atkSpeed = magus.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_SPEED);
-                    if (atkSpeed != null) {
-                        atkSpeed.removeModifier(MagusPrimeEntity.CONTEMPT_ATKSPEED_ID);
-                        atkSpeed.addPersistentModifier(new EntityAttributeModifier(
-                                MagusPrimeEntity.CONTEMPT_ATKSPEED_ID,
-                                magus.contemptFulfilledStacks * 0.04,
-                                EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
-                    }
-                });
-            }
-        });
     }
 }

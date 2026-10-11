@@ -32,9 +32,6 @@ import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import net.spell_engine.api.effect.CustomModelStatusEffect;
-import net.spell_engine.api.effect.Synchronized;
-import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 

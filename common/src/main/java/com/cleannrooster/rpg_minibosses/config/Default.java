@@ -1,8 +1,6 @@
 package com.cleannrooster.rpg_minibosses.config;
 
 import net.fabric_extras.structure_pool.api.StructurePoolConfig;
-import net.spell_engine.rpg_series.config.ConfigFile;
-import net.spell_engine.rpg_series.item.Weapon;
 
 
 import java.util.*;
@@ -11,8 +9,6 @@ import java.util.stream.Collectors;
 public class Default {
     public Default() {
     }
-
-    public static final ConfigFile.Equipment itemConfig = new ConfigFile.Equipment();
 
     public final static StructurePoolConfig villageConfig;
     static {

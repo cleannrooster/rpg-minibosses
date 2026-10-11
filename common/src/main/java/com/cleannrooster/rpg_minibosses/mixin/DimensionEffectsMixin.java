@@ -4,7 +4,6 @@ import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.DimensionEffects;
 import net.minecraft.client.render.WorldRenderer;
-import net.spell_engine.api.effect.Synchronized;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

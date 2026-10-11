@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompat;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.GeminiAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.AI.*;
 import net.minecraft.block.BlockState;
@@ -38,7 +39,6 @@ import net.minecraft.world.event.GameEvent;
 import net.spell_engine.api.spell.Spell;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
 import net.spell_engine.internals.SpellExecution;
 import net.spell_engine.internals.impact.SpellImpacts;
 import net.spell_engine.internals.delivery.ProjectileLauncher;
@@ -47,7 +47,6 @@ import net.spell_engine.utils.SoundHelper;
 import net.spell_engine.utils.TargetHelper;
 import net.spell_engine.utils.WorldScheduler;
 import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellPowerMechanics;
 import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +55,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
-import net.spell_engine.item.ScrollItem;
 
 import java.awt.*;
 import java.util.List;
@@ -963,32 +961,7 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
         super.onDeath(damageSource);
         if (!this.uber || !(this.getWorld() instanceof ServerWorld serverWorld)) return;
 
-        Item scrollItemType = Registries.ITEM.get(ScrollItem.ID);
-        if (scrollItemType == Items.AIR) return; // spell_engine not loaded
-
-        // ── 3 random spell scrolls ───────────────────────────────────────────
-        var allSpells = SpellRegistry.stream(serverWorld).toList();
-        var streamSpells = allSpells.stream().filter(spellReference -> spellReference.isIn(TagKey.of(SpellRegistry.KEY,Identifier.tryParse("spell_engine:treasure"))));
-        allSpells = streamSpells.toList();
-        if (!allSpells.isEmpty()) {
-            for (int i = 0; i < 3; i++) {
-                var entry = allSpells.get(this.random.nextInt(allSpells.size()));
-                ItemStack scroll = new ItemStack(scrollItemType);
-                ScrollItem.applySpell(scroll, entry, ScrollItem.resolveSpellPool(serverWorld, entry));
-                this.dropStack(scroll);
-            }
-        }
-
-        // ── 25 % chance for a summon_deatomization_storm scroll ──────────────
-        if (this.random.nextFloat() < 0.25F) {
-            SpellRegistry.from(serverWorld)
-                .getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "summon_deatomization_storm"))
-                .ifPresent(entry -> {
-                    ItemStack stormScroll = new ItemStack(scrollItemType);
-                    ScrollItem.applySpell(stormScroll, entry, ScrollItem.resolveSpellPool(serverWorld, entry));
-                    this.dropStack(stormScroll);
-                });
-        }
+        SpellEngineCompat.hooks().onGeminiUberDeath(this, serverWorld);
     }
 
     @Override
