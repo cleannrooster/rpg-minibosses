@@ -44,6 +44,7 @@ public class BossProjectile extends Entity implements Ownable {
     private @Nullable ImpactContext context;
     private @Nullable Entity homingTarget;
     private boolean meteor;
+    private @Nullable Consumer<LivingEntity> onHit;
     private final Set<Entity> struck = new HashSet<>();
 
     private static final TrackedData<Byte> SCHOOL = DataTracker.registerData(BossProjectile.class, TrackedDataHandlerRegistry.BYTE);
@@ -74,6 +75,12 @@ public class BossProjectile extends Entity implements Ownable {
         ProjectileUtil.setRotationFromVelocity(projectile, 1.0f);
         world.spawnEntity(projectile);
         return projectile;
+    }
+
+    /** Called with each living thing it strikes, before its impacts land. */
+    public BossProjectile onHit(Consumer<LivingEntity> listener) {
+        this.onHit = listener;
+        return this;
     }
 
     @Override
@@ -135,7 +142,8 @@ public class BossProjectile extends Entity implements Ownable {
     /** Turn toward the homing target by at most the spec's degrees this tick, keeping speed. */
     private void steer() {
         var target = this.homingTarget;
-        if (target == null || !target.isAlive() || this.spec == null || this.age < this.spec.homingDelay()) {
+        if (target == null || !target.isAlive() || this.spec == null || this.age < this.spec.homingDelay()
+                || (this.spec.homingEnd() > 0 && this.age >= this.spec.homingEnd())) {
             return;
         }
         var velocity = this.getVelocity();
@@ -181,6 +189,9 @@ public class BossProjectile extends Entity implements Ownable {
             return;
         }
         this.struck.add(target);
+        if (this.onHit != null) {
+            this.onHit.accept(target);
+        }
         AbilityExecutor.applyAll(this.ability, this.context.withOrigin(this.getPos()).withDirect(this), target);
         if (this.struck.size() > this.spec.pierce()) {
             land(world, target);

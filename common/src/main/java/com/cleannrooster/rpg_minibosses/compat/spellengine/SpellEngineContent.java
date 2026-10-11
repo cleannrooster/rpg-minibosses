@@ -26,7 +26,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypeFilter;
-import net.spell_engine.api.render.CustomModels;
 import net.spell_engine.api.spell.event.SpellHandlers;
 import net.spell_engine.api.spell.registry.SpellRegistry;
 import net.spell_engine.item.ScrollItem;
@@ -75,7 +74,6 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
                     return true;
                 }
         );
-        CustomModels.registerModelIds(List.of(id("projectile/feather")));
 
         // Forsaken Magus grows faster with every player that dies near it.
         EntityEvent.LIVING_DEATH.register((entity, source) -> {

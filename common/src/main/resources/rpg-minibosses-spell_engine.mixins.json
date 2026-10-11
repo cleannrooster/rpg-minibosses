@@ -4,7 +4,6 @@
 	"plugin": "com.cleannrooster.rpg_minibosses.compat.SpellEngineMixinPlugin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"EntityRelationsMixin",
 		"PlayerMixin",
 		"SpellProjectileMixin"
 	],

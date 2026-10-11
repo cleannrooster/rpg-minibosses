@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
  * One thing that happens to one target when an ability lands. An ability lists several; they run in
  * order against each target its delivery reaches.
  */
-public sealed interface Impact permits Impact.Damage, Impact.Ignite, Impact.ApplyEffect, Impact.Knockback, Impact.Heal {
+public sealed interface Impact permits Impact.Damage, Impact.Ignite, Impact.ApplyEffect, Impact.ApplyToCaster, Impact.Knockback, Impact.Heal {
 
     void apply(ImpactContext context, LivingEntity target);
 
@@ -69,6 +69,18 @@ public sealed interface Impact permits Impact.Damage, Impact.Ignite, Impact.Appl
         public void apply(ImpactContext context, LivingEntity target) {
             target.addStatusEffect(new StatusEffectInstance(this.effect, this.durationTicks, this.amplifier),
                     context.caster());
+        }
+    }
+
+    /**
+     * The effect on the <em>caster</em>, once per target struck — Spell Engine's {@code apply_to_caster}
+     * (a nova that armours or hastes its caster when it connects). Reapplying sets the same instance.
+     */
+    record ApplyToCaster(RegistryEntry<StatusEffect> effect, int durationTicks, int amplifier) implements Impact {
+        @Override
+        public void apply(ImpactContext context, LivingEntity target) {
+            context.caster().addStatusEffect(new StatusEffectInstance(this.effect, this.durationTicks, this.amplifier,
+                    false, false));
         }
     }
 

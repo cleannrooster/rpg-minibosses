@@ -16,7 +16,7 @@ loaded when Spell Engine is installed.
 | 4 | Cue layer (`FxEmitter` / `CueHandlers`) + telegraphs | done — awaiting in-game check |
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | done — awaiting in-game check |
 | 6 | Swept-arc slashes → AtlasVFX trails | done — awaiting in-game check |
-| 7 | Replace `Synchronized` / `CustomModelStatusEffect` on core bosses (GeminiRenderer) | |
+| 7 | Core effect sync (petrification fixed); Forsaken Magus ported; boss spell JSONs deleted | done — awaiting in-game check |
 | 8 | Flip deps to optional, load conditions on SE-only data, bytecode scan, 4-way test | |
 
 ## How the gate works
@@ -154,6 +154,23 @@ speed curve, asymmetric arcs and inner radius included. Colour from the ribbon p
 is not carried over. Their server particle spray (`SlashVisual`) is skipped. Thrust lanes, charge paths
 and one-tick cones keep the custom ribbon/particles until AtlasVFX gains thrust/point trails.
 The Templar's out-of-action flourish is an `FxCues.SLASH` cue (an AtlasVFX slash trail).
+
+## Magus and spell JSONs (phase 7)
+
+Forsaken Magus stays Spell Engine-only (compat) but casts `compat/spellengine/magus/MagusAbilities`, built
+from its old spell JSONs; its barrier still reads Spell Power's damage types. The barrier "empower" scales
+power squared, as Spell Engine's impact context did. Every boss spell JSON is gone; only the item spells
+remain (`abberrath_nova`, `ice_storm`, `despot`, `foxshade`, `kintsugi`, `savant`,
+`summon_deatomization_storm`). `EntityRelationsMixin` is removed (its rules live in
+`MinibossEntity.canHarm`); `SpellProjectileMixin` no longer fires for any boss.
+
+Petrification works now: the petrified effect was never in Spell Engine's synced list, so the checks were
+dead. Bosses mirror it into a tracked `PETRIFIED` flag; petrified bosses take no damage and can be released.
+
+Deliberate differences: Magus's dark-matter orb now grows when its bolts hit players (the old hook compared
+against `rpg_minibosses:` and never matched); its shockwaves telegraph their 25-tick fuse; bounce /
+ricochet / chain-reaction / falloff perks are dropped; projectiles stop homing at tick 12 as
+`SpellProjectileMixin` made them (also restored for the Fire Mage volley).
 
 ## Loader API rule (phase 2a)
 

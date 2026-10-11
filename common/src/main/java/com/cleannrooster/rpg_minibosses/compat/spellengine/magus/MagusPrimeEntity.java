@@ -2,7 +2,20 @@ package com.cleannrooster.rpg_minibosses.compat.spellengine.magus;
 
 
 
-import com.cleannrooster.rpg_minibosses.entity.EntityTracking;import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
+import com.cleannrooster.rpg_minibosses.entity.EntityTracking;
+import net.minecraft.util.math.MathHelper;
+import java.util.OptionalDouble;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.ImpactContext;
+import com.cleannrooster.rpg_minibosses.magic.MagicBackends;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
+import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
+import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.entity.Entity;
 import java.util.Collection;
@@ -71,24 +84,6 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.event.GameEvent;
-import net.spell_engine.api.effect.Synchronized;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.fx.ParticleGroup;
-import net.spell_engine.api.spell.fx.ParticleGroupBuilder;
-import net.spell_engine.api.spell.fx.Sound;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.fx.SpellEngineSounds;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.impact.SpellImpacts;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.internals.delivery.CloudPlacer;
-import net.spell_engine.internals.target.SpellTarget;
-import net.spell_engine.utils.SoundHelper;
-import net.spell_engine.utils.TargetHelper;
-import net.spell_engine.utils.WorldScheduler;
-import net.spell_power.api.SpellPower;
 import net.spell_power.api.SpellSchool;
 import net.spell_power.api.SpellSchools;
 
@@ -101,7 +96,6 @@ import java.util.UUID;
 
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.raycastObstacleFree;
 import static java.lang.Math.max;
-import static net.spell_engine.internals.impact.SpellImpacts.lookupAndPerformAreaImpact;
 import static net.spell_power.api.SpellSchools.*;
 
 public class MagusPrimeEntity extends PathAwareEntity {
@@ -164,13 +158,10 @@ public class MagusPrimeEntity extends PathAwareEntity {
         return (red << 16) | (green << 8) | (blue) ;
     }
     static {
-        ARCTICARMORPARTICLES = shieldAura("spell_engine:area_effect_714", FROST.color);
-        SHIELDPARTICLES_BLUE = shieldAura(SpellEngineParticles.area_effect_658.id().toString(), FROST.color);
-        SHIELDPARTICLES_RED = shieldAura(SpellEngineParticles.area_effect_480.id().toString(), 4284889343L);
-        SHIELDPARTICLES_PURPLE = shieldAura(SpellEngineParticles.area_effect_293.id().toString(), 4284940287L);
 
         modes.addAll(List.of("PROJECTILE","NOVA"));
         CASTINGBOOL = DataTracker.registerData(MagusPrimeEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        PETRIFIED = DataTracker.registerData(MagusPrimeEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         NOVA.addAll(List.of(
                 Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"fire_nova"),
                 Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"arctic_armor")
@@ -213,6 +204,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
         builder.add(CASTINGBOOL, false);
+        builder.add(PETRIFIED, false);
         builder.add(INDICATOR, 40);
 
 
@@ -228,11 +220,8 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 if(!source.isOf(DamageTypes.THORNS) &&  this.hasStatusEffect(SpellEngineEffects.ARCTICARMOR.registryEntry) && this.distanceTo(player) < 4 && source.isDirect() && arctic >= 10){
                     arctic = 0;
 
-                    Spell spell = SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"ice_bolt"));
-                    Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"ice_bolt"));
-
-                    boolean bool = SpellImpacts.performImpacts(this.getWorld(),this,player,player,spellReference.get(),spell.impacts,
-                            new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(FROST, this)).position(this.getPos()));
+                    AbilityExecutor.applyAll(MagusAbilities.ICE_BOLT,
+                            ImpactContext.of(this, MagicSchool.FROST, this.getPos(), null), player);
                 }
             }
 
@@ -262,25 +251,10 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 this.consecutiveWrongHits++;
                 this.empowerMultiplier = Math.min(3.0f, 1.0f + 0.3f * this.consecutiveWrongHits);
                 if (!this.getWorld().isClient()) {
-                    String particleId;
-                    long color;
-                    if (this.spellSchool.equals(FIRE)) {
-                        particleId = SpellEngineParticles.area_effect_480.id().toString();
-                        color = 4284889343L;
-                    } else if (this.spellSchool.equals(FROST)) {
-                        particleId = SpellEngineParticles.area_effect_658.id().toString();
-                        color = FROST.color;
-                    } else {
-                        particleId = SpellEngineParticles.area_effect_293.id().toString();
-                        color = 4284940287L;
+                    if (this.getWorld() instanceof ServerWorld absorbWorld) {
+                        FxEmitter.emit(absorbWorld, FxCues.BURST, CueArgs.at(barrierSchool(), this.getPos().add(0.0, this.getHeight() * 0.5, 0.0),
+                                2.0f, 1, absorbWorld.random.nextLong()));
                     }
-                    var absorbBurst = ParticleGroupBuilder.of(particleId)
-                            .color(color)
-                            .scale(4)
-                            .attached()
-                            .playbackSpeed(1F / 2.5F)
-                            .batch(b -> b.shape(ParticleGroup.Shape.SPHERE).count(20).speed(0F, 0.5F));
-                    ParticleHelper.sendBatches(this, List.of(absorbBurst));
                     if (this.getWorld() instanceof ServerWorld sw) {
                         // Drawn inward, not blown outward: a ring of motes flying back into Magus is
                         // what tells the player their damage went the wrong way. Count 0 with an
@@ -350,6 +324,9 @@ public class MagusPrimeEntity extends PathAwareEntity {
     @Override
     public void tick() {
         if (!this.getWorld().isClient()) {
+            this.dataTracker.set(PETRIFIED, this.hasStatusEffect(this.getIntroEffect()));
+        }
+        if (!this.getWorld().isClient()) {
             // Only dispatch on a state change, plus a slow refresh so a player who starts tracking
             // mid-fight still gets the loop. This used to fire every tick, which both spammed the
             // network and hid the moment Magus actually stops moving to cast.
@@ -362,17 +339,13 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
         if(this.age % 10 == 0 && !this.getWorld().isClient()){
 
-            if(this.hasStatusEffect(SpellEngineEffects.ARCTICARMOR.registryEntry)){
-                ParticleHelper.sendBatches(this, List.of(ARCTICARMORPARTICLES));
-            }
-            if(this.hasStatusEffect(SpellEngineEffects.MAGUS_BARRIER.registryEntry)){
-                if(this.getSpellSchool().equals(FIRE)) {
-                    ParticleHelper.sendBatches(this, List.of(SHIELDPARTICLES_RED));
-                } else if (this.getSpellSchool().equals(FROST)) {
-                    ParticleHelper.sendBatches(this, List.of(SHIELDPARTICLES_BLUE));
+            if (this.getWorld() instanceof ServerWorld auraWorld) {
+                // School-tinted motes riding Magus's feet: frost for the armour, the barrier's school for the barrier.
+                if(this.hasStatusEffect(SpellEngineEffects.ARCTICARMOR.registryEntry)){
+                    FxEmitter.emit(auraWorld, FxCues.WISP, CueArgs.at(MagicSchool.FROST, this.getPos().add(0.0, 0.2, 0.0), 1.2f, 0, auraWorld.random.nextLong()));
                 }
-                else{
-                    ParticleHelper.sendBatches(this, List.of(SHIELDPARTICLES_PURPLE));
+                if(this.hasStatusEffect(SpellEngineEffects.MAGUS_BARRIER.registryEntry)){
+                    FxEmitter.emit(auraWorld, FxCues.WISP, CueArgs.at(barrierSchool(), this.getPos().add(0.0, 0.2, 0.0), 1.2f, 0, auraWorld.random.nextLong()));
                 }
             }
             // Phase ambience. Phase 1 is clean; phase 2 carries a steady arcane bleed; phase 3
@@ -395,7 +368,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
             if (!this.getWorld().isClient()) {
                 MagusPrimeAnimationProvider.INTRO_COMMAND.sendForEntity(this);
                 beginCast(30);
-                ((WorldScheduler) this.getWorld()).schedule(30, () ->
+                TickScheduler.schedule((ServerWorld) this.getWorld(), 30, () ->
                         this.addStatusEffect(new StatusEffectInstance(SpellEngineEffects.MAGUS_BARRIER.registryEntry,-1,0,false,false))
                 );
             }
@@ -500,12 +473,16 @@ public class MagusPrimeEntity extends PathAwareEntity {
     public String introTranslation(){
         return "text.rpg-minibosses.petrified";
     }
+    /** As in {@code MinibossEntity}: the effect itself on the server, the tracked flag on clients. */
     public boolean notPetrified(){
-        return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value());
+        if (this.getWorld().isClient()) {
+            return !this.dataTracker.get(PETRIFIED);
+        }
+        return !this.hasStatusEffect(this.getIntroEffect());
     }
     @Override
     public boolean isInvulnerable() {
-        return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.isInvulnerable();
+        return  notPetrified() && super.isInvulnerable();
     }
 
 
@@ -520,8 +497,13 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
     public void playReleaseParticlesAndSound(){
         if(!this.getWorld().isClient()) {
-            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.visuals.particles);
-            SoundHelper.playSound(this.getWorld(), this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.sound);
+            // What the old pound spell released: a golem's grunt and a puff of dust.
+            this.getWorld().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_IRON_GOLEM_HURT,
+                    this.getSoundCategory(), 1.0f, 1.0f);
+            if (this.getWorld() instanceof ServerWorld world) {
+                FxEmitter.emit(world, FxCues.SMOKE, CueArgs.at(MagicSchool.GENERIC, this.getPos().add(0.0, 0.5, 0.0),
+                        1.5f, 0, world.random.nextLong()));
+            }
         }
     }
     public int delay(){
@@ -538,115 +520,48 @@ public class MagusPrimeEntity extends PathAwareEntity {
     protected void dropLoot(DamageSource damageSource, boolean causedByPlayer) {
         super.dropLoot(damageSource, causedByPlayer);
     }
- /*   public void performCustomSpell(Identifier id) {
-        if(id.equals(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"arctic_armor"))){
-            this.addStatusEffect(new StatusEffectInstance(SpellEngineEffects.ARCTICARMOR.registryEntry,160,0));
-            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-            for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
-                        spell.impacts, new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE, this)).position(this.getPos()));
-
-            }
-            Spell spell = SpellRegistry.from(this.getWorld()).get(id);
-            Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
-            ParticleHelper.sendBatches(this, spell.release.visuals.particles);
-        }
-
-
-    }*/
 
     @Override
     protected float getJumpVelocity(float strength) {
         return 1.5F*super.getJumpVelocity(strength);
     }
 
+    /**
+     * Cast one of the kit's families. Timing, animations and the empower rule are as they were; the spells
+     * are {@link MagusAbilities}. Empower scales power squared, as Spell Engine's impact context multiplied
+     * its channel and distance factors, which this passed it for both.
+     */
     public void performSpell(String string, String string2){
-        Spell spell = null;
+        if (!(this.getWorld() instanceof ServerWorld world)) return;
         if(string.equals("short")) {
             final float shortEmpower = this.empowerMultiplier;
             this.empowerMultiplier = 1.0f;
             if(string2.equals("projectile")) {
                 if(this.getTarget() != null) {
-
-                    Identifier id = SHORTCASTPROJECTILE.get(this.getRandom().nextInt(SHORTCASTPROJECTILE.size()));
-
-                    SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-                    Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
-
-                    spell = SpellRegistry.from(this.getWorld()).get(id);
-                    ProjectileLauncher.shootProjectile(this.getWorld(), this, this.getTarget(), spellReference.get(),
-                            new SpellExecution.ImpactContext(shortEmpower, shortEmpower, this.getPos(), SpellPower.getSpellPower(spellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
-
-                    ParticleHelper.sendBatches(this, spell.release.visuals.particles);
+                    var spec = pick(MagusAbilities.SHORT_PROJECTILES);
+                    fireVolley(world, spec, shortEmpower);
                 }
             }
             if(string2.equals("nova")) {
-                Identifier id = NOVA.get(this.getRandom().nextInt(NOVA.size()));
-                 spell = SpellRegistry.from(this.getWorld()).get(id);
-                SoundHelper.playSound(this.getWorld(),this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-                Optional<RegistryEntry.Reference<Spell>> spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
-
-                for(Entity entity : TargetHelper.targetsFromArea(this,6,new Spell.Target.Area(), null)) {
-                    boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, spellReference.get(),
-                            spell.impacts, new SpellExecution.ImpactContext(shortEmpower, shortEmpower, this.getPos(), SpellPower.getSpellPower(spellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
-
-                }
-                ParticleHelper.sendBatches(this,spell.release.visuals.particles);
+                var spec = pick(MagusAbilities.SHORT_NOVAS);
+                castNova(world, spec, shortEmpower);
             }
 
         }
         if(string.equals("long")) {
-            Optional<RegistryEntry.Reference<Spell>> spellReference = null;
-            Identifier id = null;
-            if (string2.equals("projectile")) {
-                 id = LONGCASTPROJECTILE.get(this.getRandom().nextInt(LONGCASTPROJECTILE.size()));
-
-                spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
-
-                SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                spell = SpellRegistry.from(this.getWorld()).get(id);
-            }
-            if (string2.equals("nova")) {
-                 id = LONG_NOVA.get(this.getRandom().nextInt(LONG_NOVA.size()));
-
-                spell = SpellRegistry.from(this.getWorld()).get(id);
-                spellReference = SpellRegistry.from(this.getWorld()).getEntry(id);
-            }
-
-            Identifier idShockWave = SHOCKWAVES.get(this.getRandom().nextInt(SHOCKWAVES.size()));
-
-            Spell spellShockwave = SpellRegistry.from(this.getWorld()).get(idShockWave);
-            Optional<RegistryEntry.Reference<Spell>> spellReferenceShockwave = SpellRegistry.from(this.getWorld()).getEntry(idShockWave);
-
-            final Spell finalSpell = spell;
-            final Optional<RegistryEntry.Reference<Spell>> finalSpellReference = spellReference;
+            final AbilitySpec spec = string2.equals("projectile") ? pick(MagusAbilities.LONG_PROJECTILES)
+                    : string2.equals("nova") ? pick(MagusAbilities.LONG_NOVAS) : null;
+            final AbilitySpec shockwave = pick(MagusAbilities.SHOCKWAVES);
             final float capturedEmpower = this.empowerMultiplier;
             this.empowerMultiplier = 1.0f;
-            ((WorldScheduler) this.getWorld()).schedule(40, () -> {
-                if (this.getTarget() != null) {
+            TickScheduler.schedule(world, 40, () -> {
+                if (this.getTarget() != null && spec != null) {
 
                     if (string2.equals("projectile")) {
-
-                        SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                        ProjectileLauncher.shootProjectile(this.getWorld(), this, this.getTarget(), finalSpellReference.get(),
-                                new SpellExecution.ImpactContext(capturedEmpower, capturedEmpower, this.getPos(), SpellPower.getSpellPower(finalSpellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
-
-                        ParticleHelper.sendBatches(this, finalSpell.release.visuals.particles);
+                        fireVolley(world, spec, capturedEmpower);
                     }
                     if (string2.equals("nova")) {
-
-                        SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_FIRE_RELEASE.id()));
-
-                        for (Entity entity : TargetHelper.targetsFromArea(this, 6, new Spell.Target.Area(), null)) {
-                            boolean bool = SpellImpacts.performImpacts(this.getWorld(), this, entity, this, finalSpellReference.get(),
-                                    finalSpell.impacts, new SpellExecution.ImpactContext(capturedEmpower, capturedEmpower, this.getPos(), SpellPower.getSpellPower(finalSpellReference.get().value().school, this), SpellTarget.FocusMode.DIRECT, 0));
-
-                        }
-                        ParticleHelper.sendBatches(this, finalSpell.release.visuals.particles);
-
+                        castNova(world, spec, capturedEmpower);
                     }
                     if (this.getRandom().nextFloat() < 0.3F) {
                         // Ground-directed follow-up gets its own shape: the staff is driven down
@@ -655,26 +570,18 @@ public class MagusPrimeEntity extends PathAwareEntity {
                         MagusPrimeAnimationProvider.SHOCKWAVE_COMMAND.sendForEntity(this);
 
                         for (int i = 0; i < 5; i++) {
-                            ((WorldScheduler) this.getWorld()).schedule(4 * (i + 1), () -> {
+                            TickScheduler.schedule(world, 4 * (i + 1), () -> {
+                                if (this.getTarget() != null) {
+                                    // Marked now, landing under where the target stood: the telegraph is the warning.
+                                    var mark = CastTarget.at(this, this.getTarget().getPos());
+                                    AbilityExecutor.windup(world, this, shockwave, mark, MagusAbilities.SHOCKWAVE_DELAY);
+                                    TickScheduler.schedule(world, MagusAbilities.SHOCKWAVE_DELAY, () -> {
                                         if (this.getTarget() != null) {
-
-                                            SpellExecution.ImpactContext context = new SpellExecution.ImpactContext(1.0F, 1.0F, this.getTarget().getPos(), SpellPower.getSpellPower(SpellSchools.HEALING, this), SpellTarget.FocusMode.DIRECT, 0).position(this.getTarget().getPos());
-                                            SoundHelper.playSound(this.getWorld(), this, new Sound(SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
-                                            Vec3d pos = this.getTarget().getBoundingBox().getCenter();
-                                            ((WorldScheduler) this.getWorld()).schedule(25, () -> {
-
-                                                        if(this.getTarget() != null) {
-                                                            boolean bool = lookupAndPerformAreaImpact(spellReferenceShockwave.get().value().area_impact, spellReferenceShockwave.get(), this, this, this, spellReferenceShockwave.get().value().impacts, context, false);
-
-                                                        }
-
-                                                    }
-
-                                            );
+                                            AbilityExecutor.cast(world, this, shockwave, mark);
                                         }
-                                    }
-                            );
-
+                                    });
+                                }
+                            });
                         }
                     }
                 }
@@ -682,6 +589,50 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
 
     }
+
+    private AbilitySpec pick(List<AbilitySpec> specs) {
+        return specs.get(this.getRandom().nextInt(specs.size()));
+    }
+
+    /** A nova around Magus at {@code empower}² × its power in the nova's school. */
+    private void castNova(ServerWorld world, AbilitySpec spec, float empower) {
+        double power = MagicBackends.basePower(this, spec.school()) * empower * empower;
+        AbilityExecutor.cast(world, this, spec, CastTarget.at(this, this.getPos()), OptionalDouble.of(power));
+    }
+
+    /**
+     * A projectile spell's launches: each along the line to the target turned by the spell's direction
+     * offset for that launch, two ticks apart, as Spell Engine's extra launches were.
+     */
+    private void fireVolley(ServerWorld world, AbilitySpec spec, float empower) {
+        var volley = MagusAbilities.volleyOf(spec);
+        double power = MagicBackends.basePower(this, spec.school()) * empower * empower;
+        for (int i = 0; i < volley.count(); i++) {
+            float[] offset = volley.offsets()[i % volley.offsets().length];
+            Runnable launch = () -> {
+                var target = this.getTarget();
+                if (target == null || !this.isAlive()) return;
+                var aim = CastTarget.at(this, target);
+                var toTarget = target.getBoundingBox().getCenter().subtract(this.getEyePos());
+                float pitch = (float) -Math.toDegrees(Math.atan2(toTarget.y, toTarget.horizontalLength()));
+                var direction = Vec3d.fromPolar(MathHelper.clamp(pitch + offset[1], -90.0f, 90.0f), aim.yaw() + offset[0]);
+                AbilityExecutor.castProjectileFrom(world, this, spec, aim, this.getEyePos(), direction, power);
+            };
+            if (i == 0) {
+                launch.run();
+            } else {
+                TickScheduler.schedule(world, i * 2, launch);
+            }
+        }
+    }
+
+    /** The barrier's current school, as the mod's own school (for colours). */
+    private MagicSchool barrierSchool() {
+        if (this.spellSchool.equals(FIRE)) return MagicSchool.FIRE;
+        if (this.spellSchool.equals(FROST)) return MagicSchool.FROST;
+        return MagicSchool.ARCANE;
+    }
+
     /** True while the boss is mid-action; gates every ability so only one runs at a time. */
     public boolean isPerforming() {
         return this.age < this.performingUntil;
@@ -698,7 +649,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
         this.performingUntil = this.age + lockTicks;
         // Clear the client-side casting animation flag when the lock ends, unless a newer cast
         // has already taken over. Unconditional (no target guard) so it can never be stranded.
-        ((WorldScheduler) this.getWorld()).schedule(lockTicks, () -> {
+        TickScheduler.schedule((ServerWorld) this.getWorld(), lockTicks, () -> {
             if (!this.isPerforming()) {
                 this.getDataTracker().set(CASTINGBOOL, false);
             }
@@ -718,18 +669,18 @@ public class MagusPrimeEntity extends PathAwareEntity {
             // Anticipation pulls inward for the first 36 ticks, then breaks outward on the open.
             for (int i = 0; i < 3; i++) {
                 final int delay = i * 12;
-                ((WorldScheduler) this.getWorld()).schedule(delay, () ->
+                TickScheduler.schedule((ServerWorld) this.getWorld(), delay, () ->
                         transitionWorld.spawnParticles(ParticleTypes.ENCHANT,
                                 this.getX(), this.getBodyY(0.6), this.getZ(), 30, 1.6, 1.2, 1.6, -0.6));
             }
-            ((WorldScheduler) this.getWorld()).schedule(37, () -> {
+            TickScheduler.schedule((ServerWorld) this.getWorld(), 37, () -> {
                 transitionWorld.spawnParticles(ParticleTypes.FLASH,
                         this.getX(), this.getBodyY(0.6), this.getZ(), 1, 0, 0, 0, 0);
                 transitionWorld.spawnParticles(newPhase >= 3 ? ParticleTypes.SOUL_FIRE_FLAME : ParticleTypes.END_ROD,
                         this.getX(), this.getBodyY(0.5), this.getZ(), 60, 0.6, 0.9, 0.6, 0.45);
             });
         }
-        ((WorldScheduler) this.getWorld()).schedule(60, () -> {
+        TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
             this.transitioning = false;
             clearDominion();
             this.barrierCycleTimer = 0;
@@ -804,21 +755,8 @@ public class MagusPrimeEntity extends PathAwareEntity {
     }
 
     public static final TrackedData<Integer> INDICATOR ;
-
-    public static ParticleGroup ARCTICARMORPARTICLES;
-    public static ParticleGroup SHIELDPARTICLES_PURPLE;
-    public static ParticleGroup SHIELDPARTICLES_BLUE;
-    public static ParticleGroup SHIELDPARTICLES_RED;
-
-    /** A school-tinted ground ring riding the entity — the shared barrier/armor aura layout. */
-    private static ParticleGroup shieldAura(String particleId, long color) {
-        return ParticleGroupBuilder.of(particleId)
-                .color(color)
-                .scale(2)
-                .attached()
-                .batch(b -> b.shape(ParticleGroup.Shape.SPHERE).count(1)
-                        .verticalOrigin(ParticleGroupBuilder.Batches.FEET));
-    }
+    /** Mirrors the intro (petrified) effect to clients, which vanilla does not send it to. */
+    public static final TrackedData<Boolean> PETRIFIED;
 
     public class MinibossMoveConrol extends MoveControl {
 
@@ -1050,14 +988,14 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 teleportRandomly(TeleportIntent.CHANNEL);
             }
 
-            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
+            TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
                 if (this.getTarget() != null) {
                     MagusPrimeAnimationProvider.CHANNEL_COMMAND.sendForEntity(this);
                     this.getDataTracker().set(CASTINGBOOL, true);
                     this.playSound(SoundEvents.ENTITY_EVOKER_PREPARE_ATTACK);
                     ((ServerWorld) this.getWorld()).playSound(this, this.getBlockPos(), SoundEvents.ENTITY_PLAYER_ATTACK_SWEEP, SoundCategory.HOSTILE, 0.8F, 1F);
 
-                    ((WorldScheduler) this.getWorld()).schedule(40, () -> {
+                    TickScheduler.schedule((ServerWorld) this.getWorld(), 40, () -> {
                         if (this.getTarget() != null) {
                             for (ServerPlayerEntity player : EntityTracking.playersTracking(this)) {
                                 player.addStatusEffect(new StatusEffectInstance(SpellEngineEffects.DARK_MATTER.registryEntry, 200, 0));
@@ -1082,7 +1020,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
             // runs to 58 (10 lead-in + 48 of clip). Recovery is visual continuity, not downtime.
             beginCast(58);
 
-            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
+            TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
                 if(this.getTarget() != null) {
                     String delivery = this.getTarget().distanceTo(this) < 4 ? "nova" : "projectile";
                     (delivery.equals("nova") ? MagusPrimeAnimationProvider.NOVA_LONG_COMMAND
@@ -1105,10 +1043,10 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
             // The quick clips release on tick 5. Firing on tick 0 meant the bolt left before the
             // arm moved; holding it for those 5 ticks puts the spell on the pose that throws it.
-            ((WorldScheduler) this.getWorld()).schedule(5, () -> this.performSpell("short", delivery));
+            TickScheduler.schedule((ServerWorld) this.getWorld(), 5, () -> this.performSpell("short", delivery));
             // A tiny phase-aware settle keeps the release from snapping directly to locomotion.
             beginCast(phase == 1 ? 14 : phase == 2 ? 12 : 10);
-            ((WorldScheduler) this.getWorld()).schedule(10, () -> {
+            TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
                         this.casting_timer -= 20;
                     }
             );
@@ -1312,29 +1250,22 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 int fireInterval = Math.max(80, 200 - disdainStacks * 5);
                 if (fireDominionTimer >= fireInterval) {
                     fireDominionTimer = 0;
-                    Optional<RegistryEntry.Reference<Spell>> fireDominionSpell =
-                            SpellRegistry.from(this.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "magus_fire_dominion"));
-                    if (fireDominionSpell.isPresent()) {
+                    if (this.getWorld() instanceof ServerWorld dominionWorld) {
                         List<PlayerEntity> nearFire = this.getWorld().getPlayers(
                                 TargetPredicate.createNonAttackable(), this, this.getBoundingBox().expand(32));
                         int patchCount = Math.min(12, 2 + disdainStacks);
-                        SpellExecution.ImpactContext fireCtx = new SpellExecution.ImpactContext()
-                                .power(SpellPower.getSpellPower(FIRE, this));
                         // Player-targeted patches
                         int playerPatches = Math.min(patchCount, nearFire.size());
                         for (int i = 0; i < playerPatches; i++) {
                             Vec3d pos = nearFire.get(i).getPos();
-                            CloudPlacer.placeCloud(this.getWorld(), this, nearFire.get(i), pos,
-                                    fireDominionSpell.get(), fireCtx.position(pos));
+                            AbilityExecutor.cast(dominionWorld, this, MagusAbilities.FIRE_DOMINION, CastTarget.at(this, pos));
                         }
                         // Random fill for remaining patches
                         for (int i = playerPatches; i < patchCount; i++) {
                             double ang = this.getRandom().nextDouble() * 2 * Math.PI;
                             double dist = 4 + this.getRandom().nextDouble() * 12;
                             Vec3d pos = this.getPos().add(Math.cos(ang) * dist, 0, Math.sin(ang) * dist);
-                            PlayerEntity anchor = nearFire.isEmpty() ? null : nearFire.get(0);
-                            CloudPlacer.placeCloud(this.getWorld(), this, anchor != null ? anchor : this, pos,
-                                    fireDominionSpell.get(), fireCtx.position(pos));
+                            AbilityExecutor.cast(dominionWorld, this, MagusAbilities.FIRE_DOMINION, CastTarget.at(this, pos));
                         }
                     }
                 }
@@ -1354,7 +1285,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
                             sw.spawnParticles(ParticleTypes.END_ROD,
                                     strikePos.x, strikePos.y + 0.5, strikePos.z, 20, 0.3, 1.0, 0.3, 0.05);
                         }
-                        ((WorldScheduler) this.getWorld()).schedule(25, () -> {
+                        TickScheduler.schedule((ServerWorld) this.getWorld(), 25, () -> {
                             if (this.getWorld() instanceof ServerWorld sw) {
                                 sw.spawnParticles(ParticleTypes.FLASH,
                                         strikePos.x, strikePos.y, strikePos.z, 1, 0, 0, 0, 0);
@@ -1508,7 +1439,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
                 MagusPrimeAnimationProvider.BARRIER_COMMAND.sendForEntity(this);
                 serverWorld.spawnParticles(ParticleTypes.ENCHANT,
                         this.getX(), this.getBodyY(0.55), this.getZ(), 16, 0.65, 1.0, 0.65, 0.05);
-                ParticleHelper.sendBatches(this, List.of(barrierParticles()));
+                FxEmitter.emit(serverWorld, FxCues.NOVA, CueArgs.at(barrierSchool(), this.getPos().add(0.0, 0.1, 0.0), 2.5f, 1, serverWorld.random.nextLong()));
                 this.playSound(SoundEvents.BLOCK_AMETHYST_BLOCK_RESONATE, 1.2F, 0.8F + cycleElementIndex * 0.15F);
             }
             case CORRECT_HIT -> {
@@ -1533,12 +1464,6 @@ public class MagusPrimeEntity extends PathAwareEntity {
         }
     }
 
-    /** The aura batch for whichever school the barrier is currently locked to. */
-    private ParticleGroup barrierParticles() {
-        if (this.spellSchool.equals(FIRE)) return SHIELDPARTICLES_RED;
-        if (this.spellSchool.equals(FROST)) return SHIELDPARTICLES_BLUE;
-        return SHIELDPARTICLES_PURPLE;
-    }
     public boolean isSwimming() {
         return this.isTouchingWater() && this.getFluidHeight(FluidTags.WATER) > this.getSwimHeight() || this.isInLava();
     }
@@ -1600,10 +1525,5 @@ public class MagusPrimeEntity extends PathAwareEntity {
         return false;
     }
 
-    private static void sendBatches(Vec3d target, Entity trackedEntity, List<ParticleGroup> batches, float countMultiplier,
-                                    Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
-        if (batches != null && !batches.isEmpty()) {
-            ParticleHelper.sendBatches(trackedEntity, target, batches, countMultiplier, trackers, includeSourceEntity);
-        }
-    }
+
 }

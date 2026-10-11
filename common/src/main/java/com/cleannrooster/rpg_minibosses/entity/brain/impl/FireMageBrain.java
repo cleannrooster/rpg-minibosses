@@ -69,7 +69,7 @@ public class FireMageBrain extends MobBrain {
      * and bounce indefinitely; here each bursts once, on first contact.)
      */
     static final AbilitySpec VOLLEY_BOLT = AbilitySpec.builder(RPGMinibosses.id("fire_mage/volley_bolt"), MagicSchool.FIRE)
-            .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(1.0).homing(20.0f, 4).withLifetime(100)
+            .delivery(new Delivery.Projectile(Delivery.ProjectileSpec.straight(1.0).homing(20.0f, 4).homingUntil(12).withLifetime(100)
                     .bursting(new TelegraphArea.Circle(Vec3d.ZERO, 4.0f), 3.0)))
             .impact(new Impact.Damage(0.2f, 2.0f, true))
             .build();

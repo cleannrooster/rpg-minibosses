@@ -1,6 +1,10 @@
 package com.cleannrooster.rpg_minibosses.compat.spellengine.magus;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.MagicBackends;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import mod.azure.azurelib.common.animation.dispatch.command.AzCommand;
 import mod.azure.azurelib.common.animation.play_behavior.AzPlayBehaviors;
 import net.minecraft.entity.Entity;
@@ -21,13 +25,6 @@ import net.minecraft.util.TypeFilter;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.spell_engine.api.spell.Spell;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.internals.target.SpellTarget;
-import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellSchools;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -40,7 +37,6 @@ public class OrbEntity extends Entity implements Ownable {
     private Entity owner;
     @Nullable
     private int ownerUuid;
-    public SpellExecution.ImpactContext context;
     public int castCount = 0;
     public int deathStacks = 0;
     private float size = 0.0f;
@@ -112,19 +108,24 @@ public class OrbEntity extends Entity implements Ownable {
                 int projInterval = Math.max(20, 40 - deathStacks * 3);
                 if (projTimer >= projInterval) {
                     projTimer = 0;
-                    Identifier projId = Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "magus_dark_matter_proj");
-                    Optional<RegistryEntry.Reference<Spell>> projSpell = SpellRegistry.from(this.getWorld()).getEntry(projId);
-                    if (projSpell.isPresent()) {
+                    if (this.getWorld() instanceof ServerWorld world) {
                         List<PlayerEntity> targets = this.getWorld().getEntitiesByType(
                                 TypeFilter.instanceOf(PlayerEntity.class),
                                 this.getBoundingBox().expand(48), e -> true);
                         int count = 1 + deathStacks / 2;
                         for (int i = 0; i < count && i < targets.size(); i++) {
-                            ProjectileLauncher.shootProjectile(this.getWorld(), livingEntity, targets.get(i),
-                                    projSpell.get(), new SpellExecution.ImpactContext(1.0f, 1.0f,
-                                            this.getPos(),
-                                            SpellPower.getSpellPower(SpellSchools.SOUL, livingEntity),
-                                            SpellTarget.FocusMode.DIRECT, 0));
+                            // Out of the orb itself, and every player it strikes feeds the orb.
+                            var target = targets.get(i);
+                            var from = this.getPos().add(0.0, 0.5, 0.0);
+                            var direction = target.getBoundingBox().getCenter().subtract(from);
+                            AbilityExecutor.castProjectileFrom(world, livingEntity, MagusAbilities.DARK_MATTER_BOLT,
+                                            CastTarget.at(livingEntity, target), from, direction,
+                                            MagicBackends.basePower(livingEntity, MagicSchool.SOUL))
+                                    .onHit(struck -> {
+                                        if (struck instanceof PlayerEntity && !this.isRemoved()) {
+                                            this.onProjectileHit();
+                                        }
+                                    });
                         }
                     }
                 }

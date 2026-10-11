@@ -61,14 +61,15 @@ public sealed interface Delivery permits Delivery.Direct, Delivery.Area, Deliver
      * @param gravity       blocks per tick² pulled down; 0 for a straight shot
      * @param homingDegrees how far per tick it may turn toward its target; 0 for none
      * @param homingDelay   ticks it flies straight before it starts homing (a volley that fans out first)
+     * @param homingEnd     tick from which it stops homing and flies on; 0 to home for its whole life
      * @param lifetimeTicks discarded after this many ticks if it has hit nothing
      * @param pierce        extra entities it may pass through after the first
      * @param burst         an area applied where it lands, or null for single-target
      */
-    record ProjectileSpec(double speed, double gravity, float homingDegrees, int homingDelay, int lifetimeTicks,
-                          int pierce, @Nullable Area burst) {
+    record ProjectileSpec(double speed, double gravity, float homingDegrees, int homingDelay, int homingEnd,
+                          int lifetimeTicks, int pierce, @Nullable Area burst) {
         public static ProjectileSpec straight(double speed) {
-            return new ProjectileSpec(speed, 0.0, 0.0f, 0, 100, 0, null);
+            return new ProjectileSpec(speed, 0.0, 0.0f, 0, 0, 100, 0, null);
         }
 
         public ProjectileSpec homing(float degreesPerTick) {
@@ -76,25 +77,30 @@ public sealed interface Delivery permits Delivery.Direct, Delivery.Area, Deliver
         }
 
         public ProjectileSpec homing(float degreesPerTick, int afterTicks) {
-            return new ProjectileSpec(this.speed, this.gravity, degreesPerTick, afterTicks, this.lifetimeTicks, this.pierce, this.burst);
+            return new ProjectileSpec(this.speed, this.gravity, degreesPerTick, afterTicks, this.homingEnd, this.lifetimeTicks, this.pierce, this.burst);
+        }
+
+        /** Stop homing at {@code tick} — Spell Engine bosses' projectiles gave up their target at tick 12. */
+        public ProjectileSpec homingUntil(int tick) {
+            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, tick, this.lifetimeTicks, this.pierce, this.burst);
         }
 
         public ProjectileSpec withGravity(double gravity) {
-            return new ProjectileSpec(this.speed, gravity, this.homingDegrees, this.homingDelay, this.lifetimeTicks, this.pierce, this.burst);
+            return new ProjectileSpec(this.speed, gravity, this.homingDegrees, this.homingDelay, this.homingEnd, this.lifetimeTicks, this.pierce, this.burst);
         }
 
         public ProjectileSpec withLifetime(int ticks) {
-            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, ticks, this.pierce, this.burst);
+            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, this.homingEnd, ticks, this.pierce, this.burst);
         }
 
         public ProjectileSpec piercing(int extraTargets) {
-            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, this.lifetimeTicks, extraTargets, this.burst);
+            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, this.homingEnd, this.lifetimeTicks, extraTargets, this.burst);
         }
 
         /** Applies {@code shape} where it lands. The anchor of {@code shape} is ignored: it is the landing point. */
         public ProjectileSpec bursting(TelegraphArea shape, double height) {
-            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, this.lifetimeTicks,
-                    this.pierce, new Area(shape, Anchor.TARGET, height));
+            return new ProjectileSpec(this.speed, this.gravity, this.homingDegrees, this.homingDelay, this.homingEnd,
+                    this.lifetimeTicks, this.pierce, new Area(shape, Anchor.TARGET, height));
         }
     }
 

@@ -3,6 +3,11 @@ package com.cleannrooster.rpg_minibosses.compat.spellengine.effect;
 
 
 import com.cleannrooster.rpg_minibosses.client.entity.effect.CustomEffect;
+import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.MagusAbilities;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import net.minecraft.entity.projectile.ProjectileUtil;
+import net.minecraft.server.world.ServerWorld;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import net.minecraft.entity.Entity;
@@ -11,15 +16,11 @@ import net.minecraft.entity.effect.StatusEffectCategory;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.util.Identifier;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.utils.TargetHelper;
-import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellSchools;
 
 
 public class Feather extends CustomEffect{
+    private static final double RANGE = 64.0;
+
     public Feather(StatusEffectCategory category, int color) {
         super(category, color);
     }
@@ -34,18 +35,24 @@ public class Feather extends CustomEffect{
 
     @Override
     public boolean applyUpdateEffect(LivingEntity entity, int amplifier) {
-        Entity target;
-        if(entity instanceof HostileEntity hostile && hostile.getTarget() != null && entity.getRandom().nextInt(3)==0){
-            target = hostile.getTarget();
-
+        if (entity.getWorld() instanceof ServerWorld world) {
+            // A third of the time at the bearer's target; otherwise at whatever it is looking at, out to 64.
+            LivingEntity target = null;
+            if (entity instanceof HostileEntity hostile && hostile.getTarget() != null && entity.getRandom().nextInt(3) == 0) {
+                target = hostile.getTarget();
+            } else {
+                var eye = entity.getEyePos();
+                var reach = entity.getRotationVector().multiply(RANGE);
+                var hit = ProjectileUtil.raycast(entity, eye, eye.add(reach), entity.getBoundingBox().stretch(reach).expand(1.0),
+                        candidate -> candidate instanceof LivingEntity && !candidate.isSpectator(), RANGE * RANGE);
+                if (hit != null && hit.getEntity() instanceof LivingEntity living) {
+                    target = living;
+                }
+            }
+            var aim = target != null ? CastTarget.at(entity, target)
+                    : CastTarget.at(entity, entity.getEyePos().add(entity.getRotationVector().multiply(RANGE)));
+            AbilityExecutor.cast(world, entity, MagusAbilities.FEATHER_SHOT, aim);
         }
-        else{
-           target = TargetHelper.targetFromRaycast(entity,SpellRegistry.from(entity.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"firefeather2")).range, entity1 -> true);
-
-        }
-        ProjectileLauncher.shootProjectile(entity.getWorld(),entity,target
-                        , SpellRegistry.from(entity.getWorld()).getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"firefeather2")).get(),
-                new SpellExecution.ImpactContext().power(SpellPower.getSpellPower(SpellSchools.FIRE,entity)).channeled(1.0F).distance(1.0F));
         entity.removeStatusEffect(SpellEngineEffects.FEATHER.registryEntry);
         if(amplifier >  0) {
             entity.addStatusEffect(new StatusEffectInstance(SpellEngineEffects.FEATHER.registryEntry, 3, amplifier-1, false, false));

@@ -109,6 +109,20 @@ public final class AbilityExecutor {
         BossProjectile.launch(world, caster, spec, projectile.spec(), context, caster.getEyePos(), direction, target.entity(), false);
     }
 
+    /**
+     * Fire one projectile of {@code spec} from {@code from} along {@code direction}, scaled to
+     * {@code basePower}. Returns it, for a caller that wants to listen for its hits.
+     */
+    public static BossProjectile castProjectileFrom(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target,
+                                                    Vec3d from, Vec3d direction, double basePower) {
+        if (!(spec.delivery() instanceof Delivery.Projectile projectile)) {
+            throw new IllegalArgumentException(spec.id() + " does not deliver a projectile");
+        }
+        AbilityPresentation.release(world, caster, spec, target);
+        var context = ImpactContext.of(caster, spec.school(), from, null).withBasePower(basePower);
+        return BossProjectile.launch(world, caster, spec, projectile.spec(), context, from, direction, target.entity(), false);
+    }
+
     /** Whether {@code spec} may reach {@code entity} at all, by its intent. */
     public static boolean reaches(AbilitySpec spec, LivingEntity caster, Entity entity) {
         return spec.intent() == AbilitySpec.Intent.HELPFUL
