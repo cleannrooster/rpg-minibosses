@@ -31,12 +31,14 @@ public final class RPGMinibossesClient {
      */
     public static void earlyInit() {
         com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.registerReceiver();
+        com.cleannrooster.rpg_minibosses.client.fx.CueHandlers.registerReceivers();
     }
 
     public static void init() {
         // Attack ribbons: receives one swing packet per attack and rebuilds the arc locally from the same
         // geometry the server damaged with.
         com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.init();
+        com.cleannrooster.rpg_minibosses.client.fx.CueHandlers.init();
 
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));

@@ -98,6 +98,12 @@ public final class ActionRunner {
             this.locomotion.claimAttackMotion();
         }
         playAnimation(action);
+        // A cast announces itself for the whole wind-up: its gathering sound and, for anything with an
+        // area, the telegraph that lands on the tick the active window opens.
+        var ability = action.cast();
+        if (ability != null && this.entity.getWorld() instanceof ServerWorld world) {
+            AbilityExecutor.windup(world, this.entity, ability, CastTarget.of(this.context), action.windupTicks());
+        }
         action.fireStart(this.context);
 
         // A zero-length windup commits on the same tick it started, so a definition can state 0/n/m and

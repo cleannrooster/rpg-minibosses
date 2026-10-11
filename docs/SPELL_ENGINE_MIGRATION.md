@@ -13,7 +13,7 @@ loaded when Spell Engine is installed.
 | 2a | Architectury API replaces Forgified Fabric API; AtlasVFX added (jar-in-jar) | done — awaiting in-game check |
 | 2b | Core mechanics in `magic/` (see below) | done — awaiting in-game check |
 | 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | done — awaiting in-game check |
-| 4 | Cue layer (`FxEmitter` / `FxCueHandler`) + telegraphs | |
+| 4 | Cue layer (`FxEmitter` / `CueHandlers`) + telegraphs | done — awaiting in-game check |
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | |
 | 6 | `SlashVisual` → AtlasVFX `ArcSweep` trails | |
 | 7 | Replace `Synchronized` / `CustomModelStatusEffect` on core bosses (GeminiRenderer) | |
@@ -107,6 +107,26 @@ explosion. `BossSounds.of(school)` gives a school's set; physical schools map to
 `sounds.json` directly. Licences: `THIRD_PARTY_NOTICES.md` (also shipped in the jars).
 
 Audition in-game: `/playsound rpg-minibosses:boss.fire.release master @s`.
+
+## Cues and telegraphs (phase 4)
+
+Server: `magic/fx/FxEmitter` sends `FxCuePayload` (cue id + `CueArgs`: school, points, size, angle,
+tier, seed) and `TelegraphPayload` (a placed `TelegraphArea` + world-tick `TelegraphTiming`) to players
+within 96 blocks, and plays sounds. Only AtlasVFX's server-safe telegraph geometry is touched here.
+Client: `client/fx/CueHandlers` maps cue ids to AtlasVFX shapes (`FxCues`: pulse, nova, explosion,
+blast, falling blast, beam, arc, cone, burst, wisp, rain), tinted by `client/fx/SchoolStyles`; it also
+draws `BossProjectile` / `BossCloud` in flight. Bespoke boss cues: `CueHandlers.register(id, handler)`
+on the client, `FxEmitter.emit(world, id, args)` on the server. Kept behind these two classes so the
+layer can move into AtlasVFX later.
+
+`magic/AbilityPresentation` gives every ability defaults: wind-up = school sound + telegraph of its
+area (areas, clouds, bursting meteors), landing on the tick the active window opens; release = school
+sound + a shape from the delivery (nova / explosion / cone / beam, muzzle pulse for projectiles);
+impact = school sound + pulse, explosion (bursts) or falling blast (meteors). `AbilitySpec.Builder`
+overrides: `sounds(...)`, `releaseCue`, `impactCue`, `noTelegraph()`. `ActionRunner` runs the wind-up
+when an action with `cast(...)` starts.
+
+Test: `/rpgminibosses ability rpg-minibosses:debug/nova 10 40` (2-second telegraph, then the cast).
 
 ## Loader API rule (phase 2a)
 

@@ -1,6 +1,8 @@
 package com.cleannrooster.rpg_minibosses.magic;
 
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -9,9 +11,24 @@ import java.util.List;
  * shared, like {@link com.cleannrooster.rpg_minibosses.entity.combat.CombatAction}; attach one to an
  * action with {@code CombatAction.Builder#cast}, or fire it directly with {@link AbilityExecutor}.
  *
- * <p>Replaces a boss spell JSON. Effect and sound cues join it in later phases.</p>
+ * <p>Replaces a boss spell JSON. How it looks and sounds is its {@link Presentation}; left at the
+ * default, an ability gets its school's sounds, a telegraph for anything with an area, and shapes chosen
+ * from its delivery ({@link AbilityPresentation}).</p>
  */
-public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Delivery delivery, List<Impact> impacts) {
+public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Delivery delivery, List<Impact> impacts,
+                          Presentation presentation) {
+
+    /**
+     * Overrides for how an ability presents itself. Every null means "the default for this school and
+     * delivery".
+     *
+     * @param telegraph whether an action casting this warns of its area during the wind-up
+     */
+    public record Presentation(@Nullable SoundEvent windupSound, @Nullable SoundEvent releaseSound,
+                               @Nullable SoundEvent impactSound, @Nullable Identifier releaseCue,
+                               @Nullable Identifier impactCue, boolean telegraph) {
+        public static final Presentation DEFAULT = new Presentation(null, null, null, null, null, true);
+    }
 
     public enum Intent {
         /** Reaches only what the caster may harm ({@link Relations#canHarm}). */
@@ -34,6 +51,12 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
         private Intent intent = Intent.HARMFUL;
         private Delivery delivery = new Delivery.Direct();
         private final java.util.ArrayList<Impact> impacts = new java.util.ArrayList<>();
+        private @Nullable SoundEvent windupSound;
+        private @Nullable SoundEvent releaseSound;
+        private @Nullable SoundEvent impactSound;
+        private @Nullable Identifier releaseCue;
+        private @Nullable Identifier impactCue;
+        private boolean telegraph = true;
 
         private Builder(Identifier id, MagicSchool school) {
             this.id = id;
@@ -60,8 +83,36 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
             return impact(Impact.Damage.of(coefficient));
         }
 
+        /** Replace the school's sounds; null keeps the default for that slot. */
+        public Builder sounds(@Nullable SoundEvent windup, @Nullable SoundEvent release, @Nullable SoundEvent impact) {
+            this.windupSound = windup;
+            this.releaseSound = release;
+            this.impactSound = impact;
+            return this;
+        }
+
+        /** Replace the shape drawn as it goes off (a {@code FxCues} id, or one of a boss's own). */
+        public Builder releaseCue(Identifier cue) {
+            this.releaseCue = cue;
+            return this;
+        }
+
+        /** Replace the shape drawn where it lands. */
+        public Builder impactCue(Identifier cue) {
+            this.impactCue = cue;
+            return this;
+        }
+
+        /** No wind-up warning, for areas that should land unannounced. */
+        public Builder noTelegraph() {
+            this.telegraph = false;
+            return this;
+        }
+
         public AbilitySpec build() {
-            var spec = new AbilitySpec(this.id, this.school, this.intent, this.delivery, this.impacts);
+            var presentation = new Presentation(this.windupSound, this.releaseSound, this.impactSound,
+                    this.releaseCue, this.impactCue, this.telegraph);
+            var spec = new AbilitySpec(this.id, this.school, this.intent, this.delivery, this.impacts, presentation);
             AbilityRegistry.register(spec);
             return spec;
         }

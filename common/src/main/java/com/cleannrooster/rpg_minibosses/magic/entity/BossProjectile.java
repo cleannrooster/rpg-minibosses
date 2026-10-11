@@ -1,6 +1,10 @@
 package com.cleannrooster.rpg_minibosses.magic.entity;
 
 import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilityPresentation;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import net.minecraft.entity.data.TrackedData;
+import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
 import com.cleannrooster.rpg_minibosses.magic.CastTarget;
 import com.cleannrooster.rpg_minibosses.magic.Delivery;
@@ -23,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * The carrier for {@link Delivery.Projectile} and {@link Delivery.Meteor}: flies, optionally homes and
@@ -38,7 +43,14 @@ public class BossProjectile extends Entity implements Ownable {
     private @Nullable Delivery.ProjectileSpec spec;
     private @Nullable ImpactContext context;
     private @Nullable Entity homingTarget;
+    private boolean meteor;
     private final Set<Entity> struck = new HashSet<>();
+
+    private static final TrackedData<Byte> SCHOOL = DataTracker.registerData(BossProjectile.class, TrackedDataHandlerRegistry.BYTE);
+
+    /** Client-side flight visual, installed by the client; does nothing on a server. */
+    public static Consumer<BossProjectile> clientTick = projectile -> {
+    };
 
     public BossProjectile(EntityType<? extends BossProjectile> type, World world) {
         super(type, world);
@@ -48,12 +60,14 @@ public class BossProjectile extends Entity implements Ownable {
     /** Spawn one flying from {@code from} along {@code direction}. */
     public static BossProjectile launch(ServerWorld world, LivingEntity caster, AbilitySpec ability,
                                         Delivery.ProjectileSpec spec, ImpactContext context, Vec3d from,
-                                        Vec3d direction, @Nullable Entity homingTarget) {
+                                        Vec3d direction, @Nullable Entity homingTarget, boolean meteor) {
         var projectile = new BossProjectile(MagicEntities.PROJECTILE, world);
         projectile.ability = ability;
         projectile.spec = spec;
         projectile.context = context;
         projectile.homingTarget = spec.homingDegrees() > 0.0f ? homingTarget : null;
+        projectile.meteor = meteor;
+        projectile.getDataTracker().set(SCHOOL, (byte) context.school().ordinal());
         projectile.setPosition(from);
         var heading = direction.lengthSquared() < 1.0e-8 ? caster.getRotationVector() : direction.normalize();
         projectile.setVelocity(heading.multiply(spec.speed()));
@@ -69,6 +83,12 @@ public class BossProjectile extends Entity implements Ownable {
 
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
+        builder.add(SCHOOL, (byte) 0);
+    }
+
+    public MagicSchool school() {
+        var schools = MagicSchool.values();
+        return schools[Math.floorMod(this.getDataTracker().get(SCHOOL), schools.length)];
     }
 
     @Override
@@ -80,6 +100,9 @@ public class BossProjectile extends Entity implements Ownable {
     public void tick() {
         super.tick();
         boolean server = !this.getWorld().isClient();
+        if (!server) {
+            clientTick.accept(this);
+        }
         if (server) {
             if (this.ability == null || this.spec == null || this.context == null || this.age > this.spec.lifetimeTicks()) {
                 this.discard();
@@ -160,17 +183,27 @@ public class BossProjectile extends Entity implements Ownable {
         this.struck.add(target);
         AbilityExecutor.applyAll(this.ability, this.context.withOrigin(this.getPos()).withDirect(this), target);
         if (this.struck.size() > this.spec.pierce()) {
-            burst(world, target);
-            this.discard();
+            land(world, target);
+        } else {
+            AbilityPresentation.impact(world, this.ability, this.getPos(), 0.0f, false);
         }
     }
 
     private void onBlockHit(BlockHitResult hitResult) {
         if (this.getWorld() instanceof ServerWorld world) {
             this.setPosition(hitResult.getPos());
-            burst(world, null);
-            this.discard();
+            land(world, null);
         }
+    }
+
+    /** It stops here: show the landing, burst if it bursts, and go. */
+    private void land(ServerWorld world, @Nullable Entity alreadyStruck) {
+        if (this.ability != null && this.spec != null) {
+            float radius = this.spec.burst() == null ? 0.0f : (float) this.spec.burst().shape().extent();
+            AbilityPresentation.impact(world, this.ability, this.getPos(), radius, this.meteor);
+        }
+        burst(world, alreadyStruck);
+        this.discard();
     }
 
     private void burst(ServerWorld world, @Nullable Entity alreadyStruck) {

@@ -2,6 +2,7 @@ package com.cleannrooster.rpg_minibosses.magic;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.eann.atlasvfx.telegraph.TelegraphArea;
@@ -20,8 +21,9 @@ import net.minecraft.util.math.Vec3d;
 import java.util.OptionalDouble;
 
 /**
- * {@code /rpgminibosses ability <id> [power]} — cast any registered ability from yourself at what you are
- * looking at, with an explicit base power (default 10). {@code /rpgminibosses backend} names the active
+ * {@code /rpgminibosses ability <id> [power] [windupTicks]} — cast any registered ability from yourself at
+ * what you are looking at, with an explicit base power (default 10). With a wind-up it first plays the
+ * ability's wind-up (sound and telegraph) and lands that many ticks later, as a boss's action would. {@code /rpgminibosses backend} names the active
  * damage backend. Operators only. Also defines a handful of {@code debug/*} abilities that exercise every
  * delivery, so the mechanics can be checked before any boss uses them.
  */
@@ -45,12 +47,15 @@ public final class MagicDebugCommand {
                                 .then(CommandManager.argument("id", IdentifierArgumentType.identifier())
                                         .suggests((context, builder) -> CommandSource.suggestIdentifiers(
                                                 AbilityRegistry.all().stream().map(AbilitySpec::id), builder))
-                                        .executes(context -> cast(context, 10.0))
+                                        .executes(context -> cast(context, 10.0, 0))
                                         .then(CommandManager.argument("power", DoubleArgumentType.doubleArg(0.0))
-                                                .executes(context -> cast(context, DoubleArgumentType.getDouble(context, "power"))))))));
+                                                .executes(context -> cast(context, DoubleArgumentType.getDouble(context, "power"), 0))
+                                                .then(CommandManager.argument("windup", IntegerArgumentType.integer(0, 200))
+                                                        .executes(context -> cast(context, DoubleArgumentType.getDouble(context, "power"),
+                                                                IntegerArgumentType.getInteger(context, "windup")))))))));
     }
 
-    private static int cast(CommandContext<ServerCommandSource> context, double power) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+    private static int cast(CommandContext<ServerCommandSource> context, double power, int windup) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
         Identifier id = IdentifierArgumentType.getIdentifier(context, "id");
         var spec = AbilityRegistry.get(id);
@@ -59,8 +64,15 @@ public final class MagicDebugCommand {
             return 0;
         }
         var target = aim(player);
-        boolean cast = AbilityExecutor.cast(player.getServerWorld(), player, spec, target, OptionalDouble.of(power));
+        var world = player.getServerWorld();
         var aimedAt = target.entity() != null ? target.entity().getName().getString() : target.position().toString();
+        if (windup > 0) {
+            AbilityExecutor.windup(world, player, spec, target, windup);
+            TickScheduler.schedule(world, windup, () -> AbilityExecutor.cast(world, player, spec, target, OptionalDouble.of(power)));
+            context.getSource().sendFeedback(() -> Text.literal("Winding up " + id + " at " + aimedAt + " for " + windup + " ticks"), false);
+            return 1;
+        }
+        boolean cast = AbilityExecutor.cast(world, player, spec, target, OptionalDouble.of(power));
         context.getSource().sendFeedback(() -> Text.literal((cast ? "Cast " : "Nothing to aim ") + id + " at " + aimedAt), false);
         return cast ? 1 : 0;
     }

@@ -34,13 +34,16 @@ public final class AbilityExecutor {
         if (powerOverride.isPresent()) {
             context = context.withBasePower(powerOverride.getAsDouble());
         }
+        if (spec.delivery() instanceof Delivery.Direct
+                && (target.entity() == null || !reaches(spec, caster, target.entity()))) {
+            return false;
+        }
+        AbilityPresentation.release(world, caster, spec, target);
         return switch (spec.delivery()) {
             case Delivery.Direct direct -> {
                 var entity = target.entity();
-                if (entity == null || !reaches(spec, caster, entity)) {
-                    yield false;
-                }
                 applyAll(spec, context, entity);
+                AbilityPresentation.impact(world, spec, entity.getBoundingBox().getCenter(), 0.0f, false);
                 yield true;
             }
             case Delivery.Area area -> {
@@ -50,12 +53,12 @@ public final class AbilityExecutor {
             case Delivery.Projectile projectile -> {
                 var from = caster.getEyePos();
                 var aim = target.entity() != null ? target.entity().getBoundingBox().getCenter() : target.position();
-                BossProjectile.launch(world, caster, spec, projectile.spec(), context, from, aim.subtract(from), target.entity());
+                BossProjectile.launch(world, caster, spec, projectile.spec(), context, from, aim.subtract(from), target.entity(), false);
                 yield true;
             }
             case Delivery.Meteor meteor -> {
                 var from = target.position().add(0.0, meteor.height(), 0.0);
-                BossProjectile.launch(world, caster, spec, meteor.spec(), context, from, new Vec3d(0.0, -1.0, 0.0), null);
+                BossProjectile.launch(world, caster, spec, meteor.spec(), context, from, new Vec3d(0.0, -1.0, 0.0), null, true);
                 yield true;
             }
             case Delivery.Cloud cloud -> {
@@ -63,6 +66,14 @@ public final class AbilityExecutor {
                 yield true;
             }
         };
+    }
+
+    /**
+     * The wind-up of a cast that lands {@code windupTicks} from now: its sound, and a telegraph of its area.
+     * {@code CombatAction} does this itself as an action starts; call it before a delayed {@link #cast}.
+     */
+    public static void windup(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target, int windupTicks) {
+        AbilityPresentation.windup(world, caster, spec, target, windupTicks);
     }
 
     /** Whether {@code spec} may reach {@code entity} at all, by its intent. */
