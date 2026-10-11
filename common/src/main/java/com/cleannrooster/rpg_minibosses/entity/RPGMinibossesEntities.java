@@ -17,7 +17,6 @@ import dev.architectury.registry.level.entity.SpawnPlacementsRegistry;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.autoconfig.serializer.PartitioningSerializer;
-import net.fabric_extras.structure_pool.api.StructurePoolAPI;
 import net.minecraft.block.entity.Spawner;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.*;

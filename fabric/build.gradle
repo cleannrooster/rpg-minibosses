@@ -71,7 +71,9 @@ dependencies {
 
     // Content / library deps
     modImplementation "mod.azure.azurelib:azurelib-${platform}-${rootProject.minecraft_version}:${rootProject.azure_lib_version}"
-    modImplementation "maven.modrinth:structure-pool-api:${rootProject.structure_pool_api_version_fabric}-${platform}"
+    // Optional (compat/StructurePoolCompat): compile against it, keep it in dev runs.
+    modCompileOnly "maven.modrinth:structure-pool-api:${rootProject.structure_pool_api_version_fabric}-${platform}"
+    modLocalRuntime "maven.modrinth:structure-pool-api:${rootProject.structure_pool_api_version_fabric}-${platform}"
     modImplementation "maven.modrinth:runes:${rootProject.runes_version}-${platform}"
 
     // Fabric-only deps

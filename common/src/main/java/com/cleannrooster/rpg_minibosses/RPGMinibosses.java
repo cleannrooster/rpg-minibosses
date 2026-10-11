@@ -3,13 +3,11 @@ package com.cleannrooster.rpg_minibosses;
 import com.cleannrooster.rpg_minibosses.block.RPGMinibossesBlocks;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompat;
-import com.cleannrooster.rpg_minibosses.config.Default;
+import com.cleannrooster.rpg_minibosses.compat.StructurePoolCompat;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import com.cleannrooster.rpg_minibosses.item.SummonItem;
 import com.cleannrooster.rpg_minibosses.patrols.Patrol;
 import com.cleannrooster.rpg_minibosses.platform.Platform;
-import net.fabric_extras.structure_pool.api.StructurePoolAPI;
-import net.fabric_extras.structure_pool.api.StructurePoolConfig;
 import dev.architectury.event.CompoundEventResult;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.BlockEvent;
@@ -83,12 +81,6 @@ public final class RPGMinibosses {
     public static final RegistryKey<World> DIMENSIONKEY =
             RegistryKey.of(RegistryKeys.WORLD, Identifier.of(CONTENT_NAMESPACE, "guild_hall"));
 
-    public static ConfigManager<StructurePoolConfig> villageConfig = new ConfigManager<>
-            ("villages", Default.villageConfig)
-            .builder()
-            .setDirectory(CONTENT_NAMESPACE)
-            .sanitize(true)
-            .build();
 
     private RPGMinibosses() {
     }
@@ -102,7 +94,7 @@ public final class RPGMinibosses {
     /** Load configs. Must run before {@link #registerItems()} (Spell Engine equipment reads its item config). */
     public static void initConfig() {
         SpellEngineCompat.hooks().initConfig();
-        villageConfig.refresh();
+        StructurePoolCompat.hooks().initConfig();
     }
 
     /** Spell handlers, gameplay events, world-gen injection, model ids. No registry mutation. */
@@ -194,7 +186,7 @@ public final class RPGMinibosses {
     private static void registerWorldgenInjection() {
         if (!Platform.isModLoaded("lithostitched")) {
             // Only inject the village if Lithostitched is not present.
-            StructurePoolAPI.injectAll(villageConfig.value);
+            StructurePoolCompat.hooks().injectVillages();
         }
         // Add the miniboss encounter placed features to their preferred biomes (loader-agnostic via Architectury).
         com.cleannrooster.rpg_minibosses.worldgen.MinibossEncounters.injectBiomes();

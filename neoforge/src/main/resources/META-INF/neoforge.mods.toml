@@ -63,7 +63,7 @@ side = "BOTH"
 
 [[dependencies.${neoforge_mod_id}]]
 modId = "structure_pool_api"
-type = "required"
+type = "optional"
 versionRange = "[1.2.0,)"
 ordering = "AFTER"
 side = "BOTH"
@@ -75,9 +75,3 @@ versionRange = "*"
 ordering = "AFTER"
 side = "BOTH"
 
-[[dependencies.${neoforge_mod_id}]]
-modId = "accessories"
-type = "required"
-versionRange = "*"
-ordering = "AFTER"
-side = "BOTH"

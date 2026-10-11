@@ -37,8 +37,7 @@
 		"fabric-api": "*",
 		"architectury": ">=13.0.8",
 		"azurelib": "~3.1.0",
-		"cloth-config": ">=15.0.0",
-		"structure_pool_api": ">=1.2.0"
+		"cloth-config": ">=15.0.0"
 	},
 	"breaks": {
 		"spell_engine": "<1.10.0",
@@ -47,6 +46,7 @@
 	"suggests": {
 		"spell_engine": ">=1.10.0+1.21.1",
 		"spell_power": ">=1.6.0+1.21.1",
-		"extraspellattributes": ">=1.0.6+1.21.1"
+		"extraspellattributes": ">=1.0.6+1.21.1",
+		"structure_pool_api": ">=1.2.0"
 	}
 }

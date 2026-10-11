@@ -187,6 +187,15 @@ ricochet / chain-reaction / falloff perks are dropped; projectiles stop homing a
   with no errors from this mod; no core class references Spell Engine, Spell Power or the compat package
   except the two reflective class names. World load and play still to be tested.
 
+## Other optional dependencies
+
+- Structure Pool API (village wanted-poster house) is optional on both loaders, gated like Spell Engine:
+  `compat/StructurePoolCompat` probes for it by class resource and reflectively loads
+  `compat/structurepool/VillagePosters`, which owns the `villages` config and the injection. Without it,
+  villages have no poster house and no `villages` config file is written.
+- Accessories was declared required on NeoForge but nothing in the mod uses it; the dependency is gone
+  (it and owo stay as dev-run-only libraries).
+
 ## Loader API rule (phase 2a)
 
 Common code uses Architectury API, never Fabric API: `common/build.gradle` excludes the
