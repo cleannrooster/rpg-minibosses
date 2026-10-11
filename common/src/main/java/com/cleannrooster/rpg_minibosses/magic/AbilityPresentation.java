@@ -61,9 +61,9 @@ public final class AbilityPresentation {
             case Delivery.Beam beam -> {
                 var eye = caster.getEyePos();
                 var direction = AbilityExecutor.beamDirection(caster, target);
-                double length = beamLength(caster, beam, target);
+                double length = beam.range();
                 FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(direction.multiply(length)), 0.6f, 1, seed));
-                // The core is only the middle of it: the cone shows how wide it really hits.
+                // The core is only the middle of it: the cone shows how wide and how far it really hits.
                 FxEmitter.emit(world, FxCues.CONE, CueArgs.cone(school, eye, direction, beam.halfAngle(), (float) length, 2, seed));
             }
             case Delivery.Direct direct -> {
@@ -76,10 +76,11 @@ public final class AbilityPresentation {
     }
 
     /**
-     * The warning for a beam that is about to fire along {@code target}: a thin line down its middle, four
-     * lines along the edges of the cone it actually hits, and motes in a ring as wide as it is where it
-     * reaches the aim. Meant to be repeated every few ticks of the wind-up, so it pulses; {@code strength}
-     * (0 to 1) grows it toward the release.
+     * The warning for a beam that is about to fire along {@code target}, true to what it hits: a thin line
+     * down its middle and four along the edges of its cone, each ending at its range (which is measured from
+     * the eye, so the edges are as long as the middle); a ring of motes where the cone ends, and another as
+     * wide as it is at the aim, if the aim is within reach. Meant to be repeated every few ticks of the
+     * wind-up, so it pulses; {@code strength} (0 to 1) grows it toward the release.
      */
     public static void beamGuide(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target, float strength) {
         if (!(spec.delivery() instanceof Delivery.Beam beam)) {
@@ -89,7 +90,7 @@ public final class AbilityPresentation {
         long seed = world.random.nextLong();
         var eye = caster.getEyePos();
         var direction = AbilityExecutor.beamDirection(caster, target);
-        double length = beamLength(caster, beam, target);
+        double length = beam.range();
         FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(direction.multiply(length)),
                 0.08f + 0.12f * strength, 0, seed));
 
@@ -100,21 +101,19 @@ public final class AbilityPresentation {
         double sin = Math.sin(Math.toRadians(beam.halfAngle()));
         for (var side : new Vec3d[]{right, right.negate(), up, up.negate()}) {
             var edge = direction.multiply(cos).add(side.multiply(sin));
-            FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(edge.multiply(length / cos)),
+            FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(edge.multiply(length)),
                     0.05f + 0.05f * strength, 0, seed));
         }
-        // Its width where it reaches the aim, in motes.
-        double reach = target.entity() != null ? eye.distanceTo(target.entity().getBoundingBox().getCenter()) : eye.distanceTo(target.position());
-        reach = Math.min(reach, beam.range());
-        FxEmitter.emit(world, FxCues.WISP, CueArgs.at(school, eye.add(direction.multiply(reach)),
-                (float) (reach * Math.tan(Math.toRadians(beam.halfAngle()))), 0, seed));
-    }
-
-    /** How far a beam's visuals run: a little past what it is aimed at, never past its range. */
-    private static double beamLength(LivingEntity caster, Delivery.Beam beam, CastTarget target) {
-        var eye = caster.getEyePos();
+        // Where the cone ends: the rim of its cap, range * sin across, range * cos out along the middle.
+        FxEmitter.emit(world, FxCues.WISP, CueArgs.at(school, eye.add(direction.multiply(length * cos)),
+                (float) (length * sin), 0, seed));
+        // Its width at the aim, if the aim is within reach.
         var aim = target.entity() != null ? target.entity().getBoundingBox().getCenter() : target.position();
-        return Math.min(beam.range(), eye.distanceTo(aim) + 4.0);
+        double reach = eye.distanceTo(aim);
+        if (reach < length * cos) {
+            FxEmitter.emit(world, FxCues.WISP, CueArgs.at(school, eye.add(direction.multiply(reach)),
+                    (float) (reach * Math.tan(Math.toRadians(beam.halfAngle()))), 0, seed));
+        }
     }
 
     /**
