@@ -60,11 +60,11 @@ public final class AbilityPresentation {
                     FxEmitter.emit(world, FxCues.PULSE, CueArgs.at(school, caster.getEyePos(), 0.8f, 0, seed));
             case Delivery.Beam beam -> {
                 var eye = caster.getEyePos();
-                double length = target.entity() != null
-                        ? Math.min(beam.range(), eye.distanceTo(target.entity().getBoundingBox().getCenter()) + 2.0)
-                        : beam.range();
-                var end = eye.add(AbilityExecutor.beamDirection(caster, target).multiply(length));
-                FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, end, 0.6f, 1, seed));
+                var direction = AbilityExecutor.beamDirection(caster, target);
+                double length = beamLength(caster, beam, target);
+                FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(direction.multiply(length)), 0.6f, 1, seed));
+                // The core is only the middle of it: the cone shows how wide it really hits.
+                FxEmitter.emit(world, FxCues.CONE, CueArgs.cone(school, eye, direction, beam.halfAngle(), (float) length, 2, seed));
             }
             case Delivery.Direct direct -> {
             }
@@ -73,6 +73,48 @@ public final class AbilityPresentation {
             case Delivery.Cloud cloud -> {
             }
         }
+    }
+
+    /**
+     * The warning for a beam that is about to fire along {@code target}: a thin line down its middle, four
+     * lines along the edges of the cone it actually hits, and motes in a ring as wide as it is where it
+     * reaches the aim. Meant to be repeated every few ticks of the wind-up, so it pulses; {@code strength}
+     * (0 to 1) grows it toward the release.
+     */
+    public static void beamGuide(ServerWorld world, LivingEntity caster, AbilitySpec spec, CastTarget target, float strength) {
+        if (!(spec.delivery() instanceof Delivery.Beam beam)) {
+            throw new IllegalArgumentException(spec.id() + " does not deliver a beam");
+        }
+        var school = spec.lookSchool();
+        long seed = world.random.nextLong();
+        var eye = caster.getEyePos();
+        var direction = AbilityExecutor.beamDirection(caster, target);
+        double length = beamLength(caster, beam, target);
+        FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(direction.multiply(length)),
+                0.08f + 0.12f * strength, 0, seed));
+
+        var right = direction.crossProduct(new Vec3d(0.0, 1.0, 0.0));
+        right = right.lengthSquared() < 1.0e-6 ? new Vec3d(1.0, 0.0, 0.0) : right.normalize();
+        var up = right.crossProduct(direction).normalize();
+        double cos = Math.cos(Math.toRadians(beam.halfAngle()));
+        double sin = Math.sin(Math.toRadians(beam.halfAngle()));
+        for (var side : new Vec3d[]{right, right.negate(), up, up.negate()}) {
+            var edge = direction.multiply(cos).add(side.multiply(sin));
+            FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(edge.multiply(length / cos)),
+                    0.05f + 0.05f * strength, 0, seed));
+        }
+        // Its width where it reaches the aim, in motes.
+        double reach = target.entity() != null ? eye.distanceTo(target.entity().getBoundingBox().getCenter()) : eye.distanceTo(target.position());
+        reach = Math.min(reach, beam.range());
+        FxEmitter.emit(world, FxCues.WISP, CueArgs.at(school, eye.add(direction.multiply(reach)),
+                (float) (reach * Math.tan(Math.toRadians(beam.halfAngle()))), 0, seed));
+    }
+
+    /** How far a beam's visuals run: a little past what it is aimed at, never past its range. */
+    private static double beamLength(LivingEntity caster, Delivery.Beam beam, CastTarget target) {
+        var eye = caster.getEyePos();
+        var aim = target.entity() != null ? target.entity().getBoundingBox().getCenter() : target.position();
+        return Math.min(beam.range(), eye.distanceTo(aim) + 4.0);
     }
 
     /**

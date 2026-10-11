@@ -6,6 +6,7 @@ import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
 import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
 import com.cleannrooster.rpg_minibosses.magic.CastTarget;
 import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import com.cleannrooster.rpg_minibosses.magic.AbilityPresentation;
 import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
 import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompat;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.GeminiAnimationProvider;
@@ -596,15 +597,7 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
                     if (bool) break;
                 }
                 GeminiAnimationProvider.beamChannel(isFrost()).sendForEntity(this);
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 20, () -> {
-                    beamPulse();
-                });
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 28, () -> {
-                    beamPulse();
-                });
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 36, () -> {
-                    beamPulse();
-                });
+                beamVolley(20, 28, 36);
                 this.getDataTracker().set(IS_CLONES, true);
 
                 TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
@@ -617,16 +610,7 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
             }
             if (this.getTarget() != null && !acting && strongAttackTimer <= 0) {
                 acting = true;
-
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 20, () -> {
-                    beamPulse();
-                });
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 28, () -> {
-                    beamPulse();
-                });
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 36, () -> {
-                    beamPulse();
-                });
+                beamVolley(20, 28, 36);
                 GeminiAnimationProvider.beamChannel(isFrost()).sendForEntity(this);
                 failSafe = 0;
                 TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
@@ -638,10 +622,7 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
                 acting = true;
                 GeminiAnimationProvider.beamSnap(isFrost()).sendForEntity(this);
                 failSafe = 0;
-
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
-                    beamPulse();
-                });
+                beamVolley(10);
                 TickScheduler.schedule((ServerWorld) this.getWorld(), 30, () -> {
                     acting = false;
                 });
@@ -742,16 +723,7 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
             // Aerial beam attacks — uber only (normal SECONDARY djinn uses meteors/clouds only)
             if (this.uber && this.getTarget() != null && !acting && strongAttackTimer <= 0) {
                 acting = true;
-
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 20, () -> {
-                    beamPulse();
-                });
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 28, () -> {
-                    beamPulse();
-                });
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 36, () -> {
-                    beamPulse();
-                });
+                beamVolley(20, 28, 36);
                 GeminiAnimationProvider.beamChannel(isFrost()).sendForEntity(this);
                 failSafe = 0;
                 TickScheduler.schedule((ServerWorld) this.getWorld(), 60, () -> {
@@ -764,10 +736,7 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
                 acting = true;
                 GeminiAnimationProvider.beamSnap(isFrost()).sendForEntity(this);
                 failSafe = 0;
-
-                TickScheduler.schedule((ServerWorld) this.getWorld(), 10, () -> {
-                    beamPulse();
-                });
+                beamVolley(10);
                 TickScheduler.schedule((ServerWorld) this.getWorld(), 30, () -> {
                     acting = false;
                 });
@@ -805,13 +774,36 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
 
     // ── Casts ─────────────────────────────────────────────────────────────────
 
-    /** One pulse of this twin's beam, along the line to its target (or its gaze, without one). */
-    private void beamPulse() {
+    /** Ticks between flashes of the beam's warning guide, so it pulses through the wind-up. */
+    private static final int GUIDE_INTERVAL = 4;
+
+    /**
+     * Fires this twin's beam at each of {@code pulseTicks}, all along the line it is aimed at <em>now</em>:
+     * where its target stands as the wind-up starts. As under Spell Engine, where its gaze froze while it
+     * acted, the wind-up is the window to step out of the line. The guide marks that line and its width
+     * until the last pulse.
+     */
+    private void beamVolley(int... pulseTicks) {
         if (!(this.getWorld() instanceof ServerWorld world)) return;
         var target = this.getTarget();
-        var aim = target != null ? CastTarget.at(this, target)
-                : CastTarget.at(this, this.getEyePos().add(this.getRotationVector().multiply(16.0)));
-        AbilityExecutor.cast(world, this, GeminiAbilities.beam(isFrost()), aim);
+        var point = target != null ? target.getBoundingBox().getCenter()
+                : this.getEyePos().add(this.getRotationVector().multiply(16.0));
+        var aim = CastTarget.at(this, point);
+        this.getLookControl().lookAt(point);
+        var spec = GeminiAbilities.beam(isFrost());
+        int first = pulseTicks[0];
+        int last = pulseTicks[pulseTicks.length - 1];
+        for (int tick = 0; tick < last; tick += GUIDE_INTERVAL) {
+            float strength = Math.min(1.0f, tick / (float) Math.max(1, first));
+            TickScheduler.schedule(world, tick, () -> {
+                if (this.isAlive()) AbilityPresentation.beamGuide(world, this, spec, aim, strength);
+            });
+        }
+        for (int tick : pulseTicks) {
+            TickScheduler.schedule(world, tick, () -> {
+                if (this.isAlive()) AbilityExecutor.cast(world, this, spec, aim);
+            });
+        }
     }
 
     /** Mark the target's spot now; the cloud rises there after the spell's delivery delay. */
