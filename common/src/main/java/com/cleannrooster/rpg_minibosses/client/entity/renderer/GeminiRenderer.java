@@ -11,8 +11,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
-import net.spell_engine.api.effect.CustomModelStatusEffect;
-import net.spell_engine.api.effect.Synchronized;
 
 public class GeminiRenderer extends AzEntityRenderer<GeminiEntity> {
 
@@ -42,12 +40,5 @@ public class GeminiRenderer extends AzEntityRenderer<GeminiEntity> {
         poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(MathHelper.clamp(entity.bodyYaw - entity.getYaw(partialTick), -180, 180)));
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         poseStack.pop();
-        try {
-            for (Synchronized.Effect effect : Synchronized.effectsOf(entity)) {
-                if (effect != null && effect.effect() != null && CustomModelStatusEffect.rendererOf(effect.effect()) != null) {
-                    CustomModelStatusEffect.rendererOf(effect.effect()).renderEffect(entity.getWorld().getTime(), effect.amplifier(), entity, partialTick, poseStack, bufferSource, packedLight);
-                }
-            }
-        } catch (Exception ignored) {}
     }
 }

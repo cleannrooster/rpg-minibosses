@@ -89,7 +89,6 @@ import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.village.*;
 import net.minecraft.world.*;
-import net.spell_engine.api.effect.Synchronized;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -145,6 +144,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     @Override
     protected void initDataTracker(DataTracker.Builder builder) {
         super.initDataTracker(builder);
+        builder.add(PETRIFIED, false);
         builder.add(HAS_ROLLED, false);
         builder.add(LESSER, false);
         builder.add(NAME, -1);
@@ -238,6 +238,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     public static final TrackedData<Integer> INDICATOR ;
     public static final TrackedData<Optional<UUID>> OWNER_UUID ;
     public static final TrackedData<Boolean> CANTHIRE ;
+    /** Mirrors the intro (petrified) effect to clients, which vanilla does not send it to. */
+    public static final TrackedData<Boolean> PETRIFIED;
 
     static{
         HAS_ROLLED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -247,6 +249,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         INDICATOR = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
         OWNER_UUID = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
         CANTHIRE = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        PETRIFIED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     }
 
@@ -455,6 +458,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         // build the brain before the subclass's own fields exist.
         if (this.getWorld().isClient()) {
             com.cleannrooster.rpg_minibosses.entity.combat.AttackRegistry.ensureClientPrototypes(this);
+        } else {
+            this.dataTracker.set(PETRIFIED, this.hasStatusEffect(this.getIntroEffect()));
         }
         if(this.getTarget() != null){
             if(this.getTarget() instanceof MinibossEntity entity && entity.getDataTracker().get(DOWN) && this.isTamed()){
@@ -758,12 +763,20 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     public String introTranslation(){
         return "text.rpg-minibosses.petrified";
     }
+    /**
+     * Whether this boss is free of its intro (petrified) effect. The server reads the effect itself; clients
+     * read {@link #PETRIFIED}, which the server keeps in step every tick, since vanilla does not send mobs'
+     * effects to clients.
+     */
     public boolean notPetrified(){
-       return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value());
+        if (this.getWorld().isClient()) {
+            return !this.dataTracker.get(PETRIFIED);
+        }
+        return !this.hasStatusEffect(this.getIntroEffect());
     }
     @Override
     public boolean isInvulnerable() {
-        return  Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.isInvulnerable();
+        return  notPetrified() && super.isInvulnerable();
     }
 
     @Override
@@ -801,7 +814,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             }
             return false;
         }
-        boolean result = Synchronized.effectsOf(this).stream().noneMatch(effect -> effect.effect() == this.getIntroEffect().value()) && super.damage(source, amount);
+        boolean result = notPetrified() && super.damage(source, amount);
         if (result && brain != null) brain.onDamageTaken(amount);
         return result;
     }
