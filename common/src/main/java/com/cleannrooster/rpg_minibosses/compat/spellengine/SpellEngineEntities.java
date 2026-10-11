@@ -5,7 +5,6 @@ import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.MagusDominionOr
 import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.MagusPrimeEntity;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.OrbEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -53,20 +52,20 @@ public final class SpellEngineEntities {
         ORB = Registry.register(
                 ENTITY_TYPE,
                 RPGMinibosses.id("dark_matter"),
-                FabricEntityTypeBuilder.<OrbEntity>create(SpawnGroup.MONSTER, OrbEntity::new)
-                        .dimensions(EntityDimensions.fixed(4, 4))
-                        .trackRangeBlocks(128)
-                        .trackedUpdateRate(1)
-                        .build()
+                EntityType.Builder.<OrbEntity>create(OrbEntity::new, SpawnGroup.MONSTER)
+                        .dimensions(4, 4)
+                        .maxTrackingRange(8)
+                        .trackingTickInterval(1)
+                        .build("dark_matter")
         );
         MAGUS_DOMINION_ORB = Registry.register(
                 ENTITY_TYPE,
                 RPGMinibosses.id("magus_dominion_orb"),
-                FabricEntityTypeBuilder.<MagusDominionOrbEntity>create(SpawnGroup.MISC, MagusDominionOrbEntity::new)
-                        .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
-                        .trackRangeBlocks(64)
-                        .trackedUpdateRate(5)
-                        .build()
+                EntityType.Builder.<MagusDominionOrbEntity>create(MagusDominionOrbEntity::new, SpawnGroup.MISC)
+                        .dimensions(0.5F, 0.5F)
+                        .maxTrackingRange(4)
+                        .trackingTickInterval(5)
+                        .build("magus_dominion_orb")
         );
     }
 }

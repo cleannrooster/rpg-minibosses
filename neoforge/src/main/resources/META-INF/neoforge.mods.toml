@@ -48,6 +48,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${neoforge_mod_id}]]
+modId = "architectury"
+type = "required"
+versionRange = "[13.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
 modId = "azurelib"
 type = "required"
 versionRange = "*"

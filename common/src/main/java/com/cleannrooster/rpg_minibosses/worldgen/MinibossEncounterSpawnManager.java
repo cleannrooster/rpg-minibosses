@@ -1,8 +1,8 @@
 package com.cleannrooster.rpg_minibosses.worldgen;
 
-import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
+
+import dev.architectury.event.events.common.TickEvent;import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
@@ -45,9 +45,9 @@ public final class MinibossEncounterSpawnManager {
         PENDING.put(new ChunkPos(marker).toLong(), new Pending(world.getRegistryKey(), marker, type, yaw));
     }
 
-    /** Wire the per-world tick drain once (loader-agnostic via FFAPI). */
+    /** Wire the per-world tick drain once (loader-agnostic via Architectury). */
     public static void register() {
-        ServerTickEvents.END_WORLD_TICK.register(MinibossEncounterSpawnManager::drain);
+        TickEvent.SERVER_LEVEL_POST.register(MinibossEncounterSpawnManager::drain);
     }
 
     private static void drain(ServerWorld world) {

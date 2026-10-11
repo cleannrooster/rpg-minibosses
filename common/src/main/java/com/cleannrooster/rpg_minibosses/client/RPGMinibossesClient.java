@@ -7,8 +7,8 @@ import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompatClient;
 import com.cleannrooster.rpg_minibosses.entity.MinibossEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import com.cleannrooster.rpg_minibosses.entity.TrapRenderer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.EntityHitResult;
@@ -23,29 +23,37 @@ public final class RPGMinibossesClient {
     private RPGMinibossesClient() {
     }
 
+    /**
+     * Work that must happen during mod construction rather than client setup: payload receivers have to be
+     * declared before the loader closes network registration.
+     */
+    public static void earlyInit() {
+        com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.registerReceiver();
+    }
+
     public static void init() {
         // Attack ribbons: receives one swing packet per attack and rebuilds the arc locally from the same
         // geometry the server damaged with.
         com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.init();
 
-        EntityRendererRegistry.register(RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL, MinibossRenderer.FIREMAGE_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.TEMPLAR_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL, MinibossRenderer.TEMPLAR_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.M_ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.M_TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL, MinibossRenderer.TEMPLAR_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL, MinibossRenderer.FIREMAGE_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_ALPHA.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FIRE_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_BETA.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FROST_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FIRE_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.GEMINI_BETA_UBER.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FROST_TEXTURE));
-        EntityRendererRegistry.register(RPGMinibossesEntities.STORM_ANCHOR, (context) -> new net.minecraft.client.render.entity.EmptyEntityRenderer<>(context));
-        EntityRendererRegistry.register(RPGMinibossesEntities.TRAP, TrapRenderer::new);
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL, MinibossRenderer.FIREMAGE_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.TEMPLAR_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL, MinibossRenderer.TEMPLAR_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL, MinibossRenderer.TEMPLAR_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL, MinibossRenderer.FIREMAGE_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_ALPHA.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FIRE_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_BETA.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FROST_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FIRE_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_BETA_UBER.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FROST_TEXTURE));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.STORM_ANCHOR, (context) -> new net.minecraft.client.render.entity.EmptyEntityRenderer<>(context));
+        EntityRendererRegistry.register(() -> RPGMinibossesEntities.TRAP, TrapRenderer::new);
 
-        ClientTickEvents.START_CLIENT_TICK.register((client) -> {
+        ClientTickEvent.CLIENT_PRE.register((client) -> {
             if (client.crosshairTarget instanceof EntityHitResult hitResult
                     && hitResult.getEntity() instanceof MinibossEntity entity
                     && entity.getDataTracker().get(MinibossEntity.DOWN)) {

@@ -1,14 +1,11 @@
 package com.cleannrooster.rpg_minibosses.compat.spellengine.item;
 
 
-import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+
+
+import dev.architectury.registry.CreativeTabRegistry;import com.cleannrooster.rpg_minibosses.platform.Platform;import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.armor.ThiefArmorRenderer;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.impl.FabricLoaderImpl;
-import net.fabricmc.loader.impl.launch.FabricLauncher;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.AttributeModifierSlot;
 import net.minecraft.component.type.AttributeModifiersComponent;
@@ -307,10 +304,8 @@ public class Armors {
 
     public static void register(Map<String, WeaponConfig> configs){
         if ( RPGARMOR == null){
-            RPGARMOR = FabricItemGroup.builder()
-                    .icon(() -> new ItemStack(ABBERRATH))
-                    .displayName(Text.translatable("itemGroup.rpg-minibosses.armors"))
-                    .build();
+            RPGARMOR = CreativeTabRegistry.create(Text.translatable("itemGroup.rpg-minibosses.armors"),
+                    () -> new ItemStack(ABBERRATH));
             Registry.register(Registries.ITEM_GROUP, KEY, RPGARMOR);
         }
 
@@ -321,13 +316,10 @@ public class Armors {
                         new EntityAttributeModifier(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"armor_boots"),2, EntityAttributeModifier.Operation.ADD_VALUE), AttributeModifierSlot.FEET)),true)),SpellSchools.FIRE);
         Weapon.register(configs, entries, RPGMinibossesEntities.KEY);
         Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberraths_hooves"),ABBERRATH);
-        ItemGroupEvents.modifyEntriesEvent(KEY).register((content) -> {
-            content.add(ABBERRATH);
-
-        });
+        CreativeTabRegistry.append(CreativeTabRegistry.defer(KEY), ABBERRATH);
     }
     public static void registerArmors(Map<String, ArmorSetConfig> configs) {
-        if(FabricLoader.getInstance().isModLoaded("extraspellattributes")){
+        if(Platform.isModLoaded("extraspellattributes")){
             CompatArmors.register();
         }
         Armors.register(configs, armorentries, KEY);
@@ -397,17 +389,15 @@ public class Armors {
             }
         }
 
-        ItemGroupEvents.modifyEntriesEvent(itemGroupKey).register((ItemGroupEvents.ModifyEntries)(content) -> {
-            for(Object piece : set.pieces()) {
-                if(piece instanceof ArmorItem armorItem) {
-                    if ( !(piece instanceof UniqueArmor uniqueArmor && (uniqueArmor.getSlotType().equals(EquipmentSlot.HEAD) || uniqueArmor.getSlotType().equals(EquipmentSlot.FEET)))) {
+        var tab = CreativeTabRegistry.defer(itemGroupKey);
+        for(Object piece : set.pieces()) {
+            if(piece instanceof ArmorItem armorItem) {
+                if ( !(piece instanceof UniqueArmor uniqueArmor && (uniqueArmor.getSlotType().equals(EquipmentSlot.HEAD) || uniqueArmor.getSlotType().equals(EquipmentSlot.FEET)))) {
 
-                        content.add(armorItem);
-                    }
+                    CreativeTabRegistry.append(tab, armorItem);
                 }
             }
-
-        });
+        }
     }
 
 }

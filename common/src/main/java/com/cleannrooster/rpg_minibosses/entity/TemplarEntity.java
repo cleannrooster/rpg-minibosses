@@ -4,8 +4,6 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.TemplarBrain;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.MeleeAttackGoal;
@@ -199,7 +197,7 @@ public class TemplarEntity extends MinibossEntity{
 
 
 
-                        for(ServerPlayerEntity player : PlayerLookup.tracking(entity)) {
+                        for(ServerPlayerEntity player : EntityTracking.playersTracking(entity)) {
                             if ((2*range - player.getRandom().nextInt(2*Math.max(0,(int)(range - (-x2))) + 1))  == 2*range){
 
 

@@ -49,8 +49,8 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements')) { transitive = false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
 
-    // Fabric API on NeoForge, provided by Sinytra's Forgified Fabric API.
-    modImplementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${rootProject.forgified_fabric_api_version}"
+    modImplementation "dev.architectury:architectury-neoforge:${rootProject.architectury_api_version}"
+    include(modImplementation("dev.eann:atlasvfx-neoforge:${rootProject.atlasvfx_version}"))
 
     // Spell Engine ecosystem
     modImplementation "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"

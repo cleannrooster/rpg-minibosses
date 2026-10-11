@@ -9,8 +9,9 @@ loaded when Spell Engine is installed.
 | Phase | Content | Status |
 |---|---|---|
 | 0 | Dead-import sweep, spell classification | done |
-| 1 | Isolate Spell Engine content behind `compat.SpellEngineCompat` (SE still required) | done — awaiting in-game check |
-| 2 | Core mechanics (`CombatAction.cast`, `Impact`, `MagicDamage`, `CasterPower`, `Relations`, `TickScheduler`) | |
+| 1 | Isolate Spell Engine content behind `compat.SpellEngineCompat` (SE still required) | done, checked in-game |
+| 2a | Architectury API replaces Forgified Fabric API; AtlasVFX added (jar-in-jar) | done — awaiting in-game check |
+| 2b | Core mechanics (`CombatAction.cast`, `Impact`, `MagicDamage`, `CasterPower`, `Relations`, `TickScheduler`) | |
 | 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | |
 | 4 | Cue layer (`FxEmitter` / `FxCueHandler`) + telegraphs | |
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | |
@@ -71,12 +72,16 @@ pound, fire_nova, deatomization_storm.
 
 beartrap, holy_burst, dark_matter (the spell; the `dark_matter` effect and entity are separate and live).
 
+## Loader API rule (phase 2a)
+
+Common code uses Architectury API, never Fabric API: `common/build.gradle` excludes the
+`net.fabricmc.fabric-api` group from every configuration, so a Fabric API import is a compile error.
+Fabric-only code (datagen, `fabric/mixin/EndSkyMixin`, the `WorldRenderEvents` adapter) lives in the
+`fabric` module. Things Architectury lacks are bridged in core: `client/WorldRenderHook` (each loader
+feeds its after-entities render event) and `entity/EntityTracking` (stand-in for `PlayerLookup.tracking`).
+Payload receivers are declared in `RPGMinibossesClient.earlyInit()`, called during mod construction.
+
 ## Known issues found along the way
 
-- `compat/spellengine/mixin/SpellProjectileMixin` compares the spell id against
-  `"rpg_minibosses:magus_dark_matter_proj"` but the namespace is `rpg-minibosses`, so the dark-matter
-  orb redirect likely never fires.
-- `./gradlew :fabric:runClient` fails resolution: Spell Engine 1.10 requires `playeranimator`, whose
-  dependency line is commented out in `fabric/build.gradle`. Pre-existing.
 - Magus's spawn egg now registers after the Gemini eggs (it is appended by the compat layer), so it moved
   to the end of the creative tab's egg list.

@@ -2,8 +2,10 @@ package com.cleannrooster.rpg_minibosses.neoforge;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import net.minecraft.registry.RegistryKeys;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 /**
@@ -28,6 +30,10 @@ public final class RPGMinibossesNeoForge {
 
         // Non-registry: spell handlers, gameplay events, world-gen injection, model ids.
         RPGMinibosses.init();
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RPGMinibossesNeoForgeClient.construct();
+        }
     }
 
     private static void onRegister(RegisterEvent event) {

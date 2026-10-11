@@ -1,9 +1,10 @@
 package com.cleannrooster.rpg_minibosses.entity.combat.net;
 
-import com.cleannrooster.rpg_minibosses.entity.combat.CombatAction;
+
+import dev.architectury.networking.NetworkManager;
+import dev.architectury.platform.Platform;
+import dev.architectury.utils.Env;import com.cleannrooster.rpg_minibosses.entity.combat.CombatAction;
 import com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackFrame;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -26,9 +27,15 @@ public final class AttackNetwork {
     private AttackNetwork() {
     }
 
-    /** Declare the payload type. Called from common init on both sides. */
+    /**
+     * Declare the payload type on a dedicated server. Called from common init on both sides; a client
+     * declares it instead by registering its receiver ({@code SlashEffectManager.registerReceiver}), and
+     * declaring it twice is an error.
+     */
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(SwingPayload.ID, SwingPayload.CODEC);
+        if (Platform.getEnvironment() == Env.SERVER) {
+            NetworkManager.registerS2CPayloadType(SwingPayload.ID, SwingPayload.CODEC);
+        }
     }
 
     /** Tell every nearby client to draw this swing. */
@@ -40,8 +47,8 @@ public final class AttackNetwork {
         var rangeSq = BROADCAST_RANGE * BROADCAST_RANGE;
         for (ServerPlayerEntity player : world.getPlayers()) {
             if (player.squaredDistanceTo(attacker) <= rangeSq
-                    && ServerPlayNetworking.canSend(player, SwingPayload.ID)) {
-                ServerPlayNetworking.send(player, payload);
+                    && NetworkManager.canPlayerReceive(player, SwingPayload.ID)) {
+                NetworkManager.sendToPlayer(player, payload);
             }
         }
     }

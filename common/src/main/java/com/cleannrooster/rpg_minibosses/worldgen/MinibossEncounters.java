@@ -1,8 +1,7 @@
 package com.cleannrooster.rpg_minibosses.worldgen;
 
-import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
+
+import dev.architectury.registry.level.biome.BiomeModifications;import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
@@ -40,7 +39,8 @@ public final class MinibossEncounters {
             RegistryKey<PlacedFeature> placedKey = RegistryKey.of(RegistryKeys.PLACED_FEATURE, RPGMinibosses.id(type.id()));
             TagKey<net.minecraft.world.biome.Biome> biomeTag =
                     TagKey.of(RegistryKeys.BIOME, RPGMinibosses.id("has_encounter/" + type.id()));
-            BiomeModifications.addFeature(BiomeSelectors.tag(biomeTag), GenerationStep.Feature.SURFACE_STRUCTURES, placedKey);
+            BiomeModifications.addProperties(context -> context.hasTag(biomeTag), (context, properties) ->
+                    properties.getGenerationProperties().addFeature(GenerationStep.Feature.SURFACE_STRUCTURES, placedKey));
         }
     }
 }

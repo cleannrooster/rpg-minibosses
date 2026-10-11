@@ -40,11 +40,19 @@ repositories {
     mavenLocal()
 }
 
+// Common code must not use Fabric API: NeoForge has no Fabric API at runtime. Keeping it off the
+// classpath (it arrives transitively through the Fabric builds of AzureLib, Cloth Config, ...) makes
+// any use a compile error, and stops its injected interfaces leaking onto vanilla classes.
+configurations.configureEach {
+    exclude group: 'net.fabricmc.fabric-api'
+}
+
 dependencies {
-    // Fabric Loader is used only for @Environment annotations (remapped per-platform) and the
-    // Fabric API interfaces that are mirrored by Forgified Fabric API on NeoForge.
+    // Fabric Loader is used only for @Environment annotations (remapped per-platform). Cross-loader
+    // hooks come from Architectury API; common code must not use Fabric API (absent on NeoForge).
     modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
+    modImplementation "dev.architectury:architectury:${rootProject.architectury_api_version}"
+    modImplementation "dev.eann:atlasvfx-common:${rootProject.atlasvfx_version}"
 
     // Spell Engine ecosystem (Modrinth, loader-suffixed)
     modImplementation "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"

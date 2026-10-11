@@ -1,8 +1,8 @@
 package com.cleannrooster.rpg_minibosses.mixin;
 
-import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+
+import com.cleannrooster.rpg_minibosses.platform.Platform;import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.DarkMatterView;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.enums.CameraSubmersionType;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
@@ -26,7 +26,7 @@ public abstract class WorldRendererMixin {
     public abstract boolean hasBlindnessOrDarkness(Camera camera);
         @Inject(at = @At("HEAD"), method = "renderLayer", cancellable = true)
     private void renderLayer_RPGMINI(RenderLayer renderLayer, double x, double y, double z, Matrix4f matrix4f, Matrix4f positionMatrix, CallbackInfo info) {
-        if (!FabricLoader.getInstance().isModLoaded("distanthorizons") &&  DarkMatterView.isActive()){
+        if (!Platform.isModLoaded("distanthorizons") &&  DarkMatterView.isActive()){
             MatrixStack matrixStack = new MatrixStack();
             matrixStack.multiplyPositionMatrix(matrix4f);
 

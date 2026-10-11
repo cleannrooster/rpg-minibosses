@@ -7,7 +7,6 @@
 		"ServerPlayerEntityMixin"
 	],
 	"client": [
-		"EndSkyMixin",
 		"WorldRendererMixin",
 		"DimensionEffectsMixin",
 		"ClientWorldMixin",

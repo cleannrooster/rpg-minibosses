@@ -1,4 +1,4 @@
-package com.cleannrooster.rpg_minibosses.mixin;
+package com.cleannrooster.rpg_minibosses.fabric.mixin;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.DarkMatterView;

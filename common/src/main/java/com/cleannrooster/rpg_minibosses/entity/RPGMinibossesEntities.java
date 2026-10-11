@@ -7,17 +7,14 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses.*;
 import com.cleannrooster.rpg_minibosses.config.ServerConfig;
 import com.cleannrooster.rpg_minibosses.config.ServerConfigWrapper;
 import com.google.common.base.Predicates;
+import dev.architectury.registry.CreativeTabRegistry;
+import dev.architectury.registry.level.biome.BiomeModifications;
+import dev.architectury.registry.level.entity.EntityAttributeRegistry;
+import dev.architectury.registry.level.entity.SpawnPlacementsRegistry;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import me.shedaniel.autoconfig.serializer.PartitioningSerializer;
 import net.fabric_extras.structure_pool.api.StructurePoolAPI;
-import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.block.entity.Spawner;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.*;
@@ -50,6 +47,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.village.raid.Raid;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.StructureSpawns;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.SpawnSettings;
 import net.minecraft.world.gen.structure.BasicTempleStructure;
 import net.minecraft.world.gen.structure.OceanMonumentStructure;
@@ -370,53 +368,69 @@ public class RPGMinibossesEntities {
         registerItemGroup();
     }
 
-    /** ENTITY_TYPE registry phase. Spawn rules / attributes / biome spawns are Fabric-API (FFAPI on NeoForge). */
+    /** ENTITY_TYPE registry phase. Spawn rules / attributes / biome spawns go through Architectury. */
     public static void registerEntityTypes() {
         for (var entry: entries) {
             entry.entityType  = Registry.register(
                     ENTITY_TYPE,
                     Identifier.of(CONTENT_NAMESPACE, entry.id().getPath()),
-                    FabricEntityTypeBuilder.<MinibossEntity>create(SpawnGroup.MONSTER, entry.entityFactory())
-                            .dimensions(EntityDimensions.changing(0.6F, 1.8F).withEyeHeight(1.62F)) // dimensions in Minecraft units of the render
-                            .trackRangeBlocks(128)
-                            .trackedUpdateRate(1)
-                            .build()
+                    EntityType.Builder.create(entry.entityFactory(), SpawnGroup.MONSTER)
+                            .dimensions(0.6F, 1.8F).eyeHeight(1.62F) // dimensions in Minecraft units of the render
+                            .maxTrackingRange(8) // chunks: 128 blocks
+                            .trackingTickInterval(1)
+                            .build(entry.id().toString())
             );
+            EntityType<?> type = entry.entityType;
             if(entry.shouldSpawn) {
-                BiomeModifications.addSpawn(BiomeSelectors.spawnsOneOf(EntityType.WITCH), SpawnGroup.MONSTER, entry.entityType, config.mult, 1, 1);
-                BiomeModifications.addSpawn(BiomeSelectors.tag(TagKey.of(RegistryKeys.BIOME,Identifier.of(CONTENT_NAMESPACE,"has_structure/guild_hall"))), SpawnGroup.MONSTER, entry.entityType, 25, 1, 1);
+                addSpawn(context -> spawnsOneOf(context, EntityType.WITCH), type, config.mult);
+                TagKey<Biome> guildHall = TagKey.of(RegistryKeys.BIOME,Identifier.of(CONTENT_NAMESPACE,"has_structure/guild_hall"));
+                addSpawn(context -> context.hasTag(guildHall), type, 25);
 
                 if(config.hell){
-                    BiomeModifications.addSpawn(BiomeSelectors.spawnsOneOf(EntityType.PIGLIN,EntityType.ZOMBIFIED_PIGLIN), SpawnGroup.MONSTER, entry.entityType, config.mult, 1, 1);
+                    addSpawn(context -> spawnsOneOf(context, EntityType.PIGLIN, EntityType.ZOMBIFIED_PIGLIN), type, config.mult);
 
                 }
                 minibosses.add(entry);
 
             }
 
-            SpawnRestriction.register((EntityType<? extends PathAwareEntity>)entry.entityType, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MinibossEntity::canSpawn);
+            SpawnPlacementsRegistry.register(() -> (EntityType<PathAwareEntity>) entry.entityType, SpawnLocationTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MinibossEntity::canSpawn);
 
-            FabricDefaultAttributeRegistry.register(entry.entityType, entry.attributes);
+            DefaultAttributeContainer.Builder attributes = entry.attributes;
+            EntityAttributeRegistry.register(() -> (EntityType<? extends LivingEntity>) type, () -> attributes);
 
         }
         TRAP = Registry.register(
                 ENTITY_TYPE,
                 Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "trap"),
-                FabricEntityTypeBuilder.<TrapCleann>create(SpawnGroup.MISC, TrapCleann::new)
-                        .dimensions(EntityDimensions.fixed(1F, 1F)) // dimensions in Minecraft units of the render
-                        .trackRangeBlocks(128)
-                        .trackedUpdateRate(1)
-                        .build()
+                EntityType.Builder.<TrapCleann>create(TrapCleann::new, SpawnGroup.MISC)
+                        .dimensions(1F, 1F) // dimensions in Minecraft units of the render
+                        .maxTrackingRange(8)
+                        .trackingTickInterval(1)
+                        .build("trap")
         );
         STORM_ANCHOR = Registry.register(
                 ENTITY_TYPE,
                 Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "storm_anchor"),
-                FabricEntityTypeBuilder.<StormAnchorEntity>create(SpawnGroup.MISC, StormAnchorEntity::new)
-                        .dimensions(EntityDimensions.fixed(0.5F, 0.5F))
-                        .trackRangeBlocks(128)
-                        .trackedUpdateRate(5)
-                        .build()
+                EntityType.Builder.<StormAnchorEntity>create(StormAnchorEntity::new, SpawnGroup.MISC)
+                        .dimensions(0.5F, 0.5F)
+                        .maxTrackingRange(8)
+                        .trackingTickInterval(5)
+                        .build("storm_anchor")
         );
+    }
+
+    private static void addSpawn(java.util.function.Predicate<BiomeModifications.BiomeContext> where, EntityType<?> type, int weight) {
+        BiomeModifications.addProperties(where, (context, properties) ->
+                properties.getSpawnProperties().addSpawn(SpawnGroup.MONSTER, new SpawnSettings.SpawnEntry(type, weight, 1, 1)));
+    }
+
+    /** Same test as Fabric's {@code BiomeSelectors.spawnsOneOf}: the biome already spawns one of these. */
+    private static boolean spawnsOneOf(BiomeModifications.BiomeContext context, EntityType<?>... types) {
+        var wanted = Set.of(types);
+        return context.getProperties().getSpawnProperties().getSpawners().values().stream()
+                .flatMap(List::stream)
+                .anyMatch(spawn -> wanted.contains(spawn.type));
     }
 
     /** ITEM registry phase: spawn eggs. Requires {@link #registerEntityTypes()} to have run. */
@@ -432,16 +446,14 @@ public class RPGMinibossesEntities {
             if (iconEgg == null) {
                 iconEgg = EGG;
             }
-            ItemGroupEvents.modifyEntriesEvent(KEY).register((content) -> content.add(EGG));
+            CreativeTabRegistry.append(CreativeTabRegistry.defer(KEY), EGG);
         }
     }
 
     /** ITEM_GROUP registry phase. Icon requires a spawn egg from {@link #registerSpawnEggs()}. */
     public static void registerItemGroup() {
-        RPGENTITIES = FabricItemGroup.builder()
-                .icon(() -> new ItemStack(iconEgg))
-                .displayName(Text.translatable("itemGroup.rpg-minibosses.eggs"))
-                .build();
+        RPGENTITIES = CreativeTabRegistry.create(Text.translatable("itemGroup.rpg-minibosses.eggs"),
+                () -> new ItemStack(iconEgg));
         Registry.register(Registries.ITEM_GROUP, KEY, RPGENTITIES);
     }
 

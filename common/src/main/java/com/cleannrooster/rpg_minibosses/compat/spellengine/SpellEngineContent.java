@@ -7,8 +7,9 @@ import com.cleannrooster.rpg_minibosses.compat.spellengine.item.SummonHorn;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.magus.MagusPrimeEntity;
 import com.cleannrooster.rpg_minibosses.entity.RPGMinibossesEntities;
 import com.cleannrooster.rpg_minibosses.entity.StormAnchorEntity;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.EntityEvent;
+import dev.architectury.registry.CreativeTabRegistry;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;
 import net.minecraft.entity.attribute.EntityAttributeModifier;
@@ -76,7 +77,7 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
         CustomModels.registerModelIds(List.of(id("projectile/feather")));
 
         // Forsaken Magus grows faster with every player that dies near it.
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, source) -> {
+        EntityEvent.LIVING_DEATH.register((entity, source) -> {
             if (entity instanceof ServerPlayerEntity) {
                 entity.getWorld().getEntitiesByType(
                         TypeFilter.instanceOf(MagusPrimeEntity.class),
@@ -94,6 +95,7 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
                     }
                 });
             }
+            return EventResult.pass();
         });
 
         itemConfig.save();
@@ -148,7 +150,7 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
         LAVOSHORN = new SummonHorn<MagusPrimeEntity>(new Item.Settings().maxCount(1).maxDamage(1),
                 SpellEngineEntities.MAGUS_PRIME.entityType, InstrumentTags.GOAT_HORNS);
         Registry.register(Registries.ITEM, id("lavos_horn"), LAVOSHORN);
-        ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> content.add(LAVOSHORN));
+        CreativeTabRegistry.append(CreativeTabRegistry.defer(RPGMinibossesEntities.KEY), LAVOSHORN);
     }
 
     @Override

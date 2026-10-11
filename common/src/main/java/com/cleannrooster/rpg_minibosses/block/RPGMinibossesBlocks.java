@@ -1,7 +1,7 @@
 package com.cleannrooster.rpg_minibosses.block;
 
-import com.cleannrooster.rpg_minibosses.RPGMinibosses;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+
+import dev.architectury.registry.CreativeTabRegistry;import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
@@ -52,12 +52,7 @@ public class RPGMinibossesBlocks {
 
     /** Event-callback registration; safe outside registry events. */
     public static void addToItemGroup(){
-        ItemGroupEvents.modifyEntriesEvent(KEY).register((content) -> {
-            content.add(MERCPOSTERBLOCKITEM);
-            content.add(JUGGPOSTERBLOCKITEM);
-            content.add(MAGEPOSTERBLOCKITEM);
-            content.add(TEMPLARPOSTERBLOCKITEM);
-            content.add(ROGUEPOSTERBLOCKITEM);
-        });
+        CreativeTabRegistry.append(CreativeTabRegistry.defer(KEY), MERCPOSTERBLOCKITEM, JUGGPOSTERBLOCKITEM,
+                MAGEPOSTERBLOCKITEM, TEMPLARPOSTERBLOCKITEM, ROGUEPOSTERBLOCKITEM);
     }
 }

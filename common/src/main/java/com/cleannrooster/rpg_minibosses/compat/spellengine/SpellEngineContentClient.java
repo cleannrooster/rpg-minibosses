@@ -18,8 +18,8 @@ import com.cleannrooster.rpg_minibosses.platform.Platform;
 import mod.azure.azurelib.common.render.armor.AzArmorRenderer;
 import mod.azure.azurelib.common.render.armor.AzArmorRendererRegistry;
 import mod.azure.azurelib.common.render.item.AzItemRendererRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
+import dev.architectury.registry.item.ItemPropertiesRegistry;
 import net.minecraft.client.render.entity.EmptyEntityRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -32,12 +32,12 @@ import java.util.function.Supplier;
 public final class SpellEngineContentClient implements Runnable {
     @Override
     public void run() {
-        EntityRendererRegistry.register(SpellEngineEntities.ORB, OrbRenderer::new);
+        EntityRendererRegistry.register(() -> SpellEngineEntities.ORB, OrbRenderer::new);
         CustomModelStatusEffect.register(SpellEngineEffects.FEATHER.effect, new FeatherRenderer());
-        EntityRendererRegistry.register(SpellEngineEntities.MAGUS_PRIME.entityType, MagusRenderer::new);
-        EntityRendererRegistry.register(SpellEngineEntities.MAGUS_DOMINION_ORB, (context) -> new EmptyEntityRenderer<>(context));
+        EntityRendererRegistry.register(() -> SpellEngineEntities.MAGUS_PRIME.entityType, MagusRenderer::new);
+        EntityRendererRegistry.register(() -> SpellEngineEntities.MAGUS_DOMINION_ORB, (context) -> new EmptyEntityRenderer<>(context));
 
-        ModelPredicateProviderRegistry.register(SpellEngineContent.LAVOSHORN, RPGMinibosses.id("tooting"), (stack, world, entity, seed) ->
+        ItemPropertiesRegistry.register(SpellEngineContent.LAVOSHORN, RPGMinibosses.id("tooting"), (stack, world, entity, seed) ->
                 entity != null && entity.isUsingItem() && entity.getActiveItem() == stack ? 1.0F : 0.0F);
 
         DarkMatterView.install(new DarkMatterView.Source() {

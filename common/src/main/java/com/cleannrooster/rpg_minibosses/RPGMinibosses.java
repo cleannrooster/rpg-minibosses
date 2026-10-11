@@ -10,16 +10,13 @@ import com.cleannrooster.rpg_minibosses.patrols.Patrol;
 import com.cleannrooster.rpg_minibosses.platform.Platform;
 import net.fabric_extras.structure_pool.api.StructurePoolAPI;
 import net.fabric_extras.structure_pool.api.StructurePoolConfig;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
-import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
-import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
+import dev.architectury.event.CompoundEventResult;
+import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.BlockEvent;
+import dev.architectury.event.events.common.CommandRegistrationEvent;
+import dev.architectury.event.events.common.InteractionEvent;
+import dev.architectury.event.events.common.PlayerEvent;
+import dev.architectury.registry.CreativeTabRegistry;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnGroup;
@@ -186,14 +183,11 @@ public final class RPGMinibosses {
 
         // Creative tab (ITEM_GROUP) registered in-phase, like artificers — icon needs items above.
         RPGMinibossesEntities.registerItemGroup();
-        ItemGroupEvents.modifyEntriesEvent(RPGMinibossesEntities.KEY).register((content) -> {
-            content.add(GEMINI);
-            content.add(DEATOMIZED_FRAGMENT);
-        });
+        CreativeTabRegistry.append(CreativeTabRegistry.defer(RPGMinibossesEntities.KEY), GEMINI, DEATOMIZED_FRAGMENT);
         RPGMinibossesBlocks.addToItemGroup();
     }
 
-    // ── Event / handler registration (no registry mutation; FFAPI-backed on NeoForge) ─────
+    // ── Event / handler registration (no registry mutation; Architectury-backed on both loaders) ─────
     private static void registerModelIds() {
         CustomModels.registerModelIds(List.of(id("projectile/flamewaveprojectile")));
         CustomModels.registerModelIds(List.of(id("projectile/iron_dagger")));
@@ -204,7 +198,7 @@ public final class RPGMinibosses {
             // Only inject the village if Lithostitched is not present.
             StructurePoolAPI.injectAll(villageConfig.value);
         }
-        // Add the miniboss encounter placed features to their preferred biomes (loader-agnostic via FFAPI).
+        // Add the miniboss encounter placed features to their preferred biomes (loader-agnostic via Architectury).
         com.cleannrooster.rpg_minibosses.worldgen.MinibossEncounters.injectBiomes();
     }
 
@@ -215,7 +209,7 @@ public final class RPGMinibosses {
         // Creative-tab additions for the summon items (callback re-reads the static fields at fire time).
 
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+        CommandRegistrationEvent.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("spawnAnarchyPatrol")
                         .requires(src -> src.hasPermissionLevel(2))
                         .executes((ctx) -> {
@@ -226,34 +220,25 @@ public final class RPGMinibosses {
                             return 1;
                         })));
 
-        PlayerBlockBreakEvents.BEFORE.register(((world, player, pos, state, blockEntity) ->
-                !player.getWorld().getRegistryKey().equals(DIMENSIONKEY) || player.isCreative()));
+        // The guild hall is look-only for anyone not in creative.
+        BlockEvent.BREAK.register((world, pos, state, player, xp) ->
+                isLockedInGuildHall(player) ? EventResult.interruptFalse() : EventResult.pass());
+        InteractionEvent.RIGHT_CLICK_ITEM.register((player, hand) ->
+                isLockedInGuildHall(player) ? CompoundEventResult.interruptFalse(player.getStackInHand(hand)) : CompoundEventResult.pass());
+        InteractionEvent.RIGHT_CLICK_BLOCK.register((player, hand, pos, face) ->
+                isLockedInGuildHall(player) ? EventResult.interruptFalse() : EventResult.pass());
+        PlayerEvent.ATTACK_ENTITY.register((player, world, target, hand, hitResult) ->
+                isLockedInGuildHall(player) ? EventResult.interruptFalse() : EventResult.pass());
+        InteractionEvent.LEFT_CLICK_BLOCK.register((player, hand, pos, face) ->
+                isLockedInGuildHall(player) ? EventResult.interruptFalse() : EventResult.pass());
 
-        UseItemCallback.EVENT.register(((player, world, hand) -> {
-            if (world.getRegistryKey().equals(DIMENSIONKEY) && !player.isCreative()) {
-                return TypedActionResult.fail(player.getStackInHand(hand));
-            }
-            return TypedActionResult.pass(player.getStackInHand(hand));
-        }));
-        UseBlockCallback.EVENT.register(((player, world, hand, blockHitResult) ->
-                world.getRegistryKey().equals(DIMENSIONKEY) && !player.isCreative() ? ActionResult.FAIL : ActionResult.PASS));
-        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) ->
-                player.getWorld().getRegistryKey().equals(DIMENSIONKEY) && !player.isCreative() ? ActionResult.FAIL : ActionResult.PASS);
-        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) ->
-                player.getWorld().getRegistryKey().equals(DIMENSIONKEY) && !player.isCreative() ? ActionResult.FAIL : ActionResult.PASS);
+        // A player arriving in the guild hall by any route — joining, changing dimension, respawning —
+        // lands on the hall's floor, building the hall first if this world has never had one.
+        PlayerEvent.PLAYER_JOIN.register(RPGMinibosses::placeInGuildHall);
+        PlayerEvent.CHANGE_DIMENSION.register((player, from, to) -> placeInGuildHall(player));
+        PlayerEvent.PLAYER_RESPAWN.register((player, conqueredEnd, reason) -> placeInGuildHall(player));
 
-        ServerEntityEvents.ENTITY_LOAD.register(((entity, world) -> {
-            if (world.getRegistryKey().equals(DIMENSIONKEY) && entity instanceof PlayerEntity) {
-                BlockPos pos = BlockPos.ofFloored(new Vec3d(74.5, 74, 19.5)).down();
-                if (world.getBlockState(pos).isAir()) {
-                    Platform.placeGuildHall(world, BlockPos.ofFloored(0, 64, 0));
-                }
-                entity.teleportTo(new TeleportTarget(world, new Vec3d(74.5, 74, 19.5), Vec3d.ZERO,
-                        entity.getYaw(), entity.getPitch(), TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
-            }
-        }));
-
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+        CommandRegistrationEvent.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("guildHideout")
                         .executes((ctx) -> {
                             ServerPlayerEntity p = ctx.getSource().getPlayer();
@@ -266,7 +251,7 @@ public final class RPGMinibosses {
                             }
                             return 1;
                         })));
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+        CommandRegistrationEvent.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("leaveGuildHideout")
                         .executes((ctx) -> {
                             ServerPlayerEntity p = ctx.getSource().getPlayer();
@@ -277,5 +262,21 @@ public final class RPGMinibosses {
                             }
                             return 1;
                         })));
+    }
+
+    private static boolean isLockedInGuildHall(PlayerEntity player) {
+        return player.getWorld().getRegistryKey().equals(DIMENSIONKEY) && !player.isCreative();
+    }
+
+    private static void placeInGuildHall(ServerPlayerEntity player) {
+        if (!(player.getWorld() instanceof ServerWorld world) || !world.getRegistryKey().equals(DIMENSIONKEY)) {
+            return;
+        }
+        BlockPos pos = BlockPos.ofFloored(new Vec3d(74.5, 74, 19.5)).down();
+        if (world.getBlockState(pos).isAir()) {
+            Platform.placeGuildHall(world, BlockPos.ofFloored(0, 64, 0));
+        }
+        player.teleportTo(new TeleportTarget(world, new Vec3d(74.5, 74, 19.5), Vec3d.ZERO,
+                player.getYaw(), player.getPitch(), TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET));
     }
 }

@@ -1,7 +1,8 @@
 package com.cleannrooster.rpg_minibosses.compat.spellengine.magus;
 
 
-import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
+
+import com.cleannrooster.rpg_minibosses.entity.EntityTracking;import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEntities;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
@@ -12,7 +13,6 @@ import com.google.common.base.Predicates;
 import me.shedaniel.math.Color;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.SnowBlock;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
@@ -1057,7 +1057,7 @@ public class MagusPrimeEntity extends PathAwareEntity {
 
                     ((WorldScheduler) this.getWorld()).schedule(40, () -> {
                         if (this.getTarget() != null) {
-                            for (ServerPlayerEntity player : PlayerLookup.tracking(this)) {
+                            for (ServerPlayerEntity player : EntityTracking.playersTracking(this)) {
                                 player.addStatusEffect(new StatusEffectInstance(SpellEngineEffects.DARK_MATTER.registryEntry, 200, 0));
                             }
                             OrbEntity orb = new OrbEntity(SpellEngineEntities.ORB, this.getWorld());

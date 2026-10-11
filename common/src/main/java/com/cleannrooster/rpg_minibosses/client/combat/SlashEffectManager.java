@@ -1,10 +1,10 @@
 package com.cleannrooster.rpg_minibosses.client.combat;
 
+import com.cleannrooster.rpg_minibosses.client.WorldRenderHook;
 import com.cleannrooster.rpg_minibosses.entity.combat.AttackRegistry;
 import com.cleannrooster.rpg_minibosses.entity.combat.net.SwingPayload;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
 
@@ -26,21 +26,26 @@ public final class SlashEffectManager {
     private SlashEffectManager() {
     }
 
-    /** Wire up the packet receiver, the tick hook and the world-render hook. Called from client init. */
+    /**
+     * Declare the swing payload and its receiver. Must run before the loader closes payload registration,
+     * so it is called from each loader's client entrypoint during mod construction, not from client setup.
+     */
+    public static void registerReceiver() {
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, SwingPayload.ID, SwingPayload.CODEC,
+                (payload, context) -> context.queue(() -> spawn(payload)));
+    }
+
+    /** Wire up the tick hook and the world-render hook. Called from client init. */
     public static void init() {
-        ClientPlayNetworking.registerGlobalReceiver(SwingPayload.ID, (payload, context) ->
-                context.client().execute(() -> spawn(payload)));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> tick());
-        WorldRenderEvents.AFTER_ENTITIES.register(context -> {
-            if (ACTIVE.isEmpty() || context.consumers() == null) {
+        ClientTickEvent.CLIENT_POST.register(client -> tick());
+        WorldRenderHook.register((matrices, camera, consumers, partialTick) -> {
+            if (ACTIVE.isEmpty() || consumers == null) {
                 return;
             }
-            var partialTick = context.tickCounter().getTickDelta(false);
             for (var effect : ACTIVE) {
-                SlashRenderer.render(effect, context.matrixStack(), context.camera(),
-                        context.consumers(), partialTick);
+                SlashRenderer.render(effect, matrices, camera, consumers, partialTick);
             }
-            if (context.consumers() instanceof VertexConsumerProvider.Immediate immediate) {
+            if (consumers instanceof VertexConsumerProvider.Immediate immediate) {
                 immediate.draw();
             }
         });

@@ -6,8 +6,6 @@ import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.FireMageBrain;
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.tag.FabricTagKey;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.CrossbowUser;
 import net.minecraft.entity.Entity;
