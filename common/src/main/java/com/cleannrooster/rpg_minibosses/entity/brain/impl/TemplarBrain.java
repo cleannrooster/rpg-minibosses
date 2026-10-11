@@ -1,6 +1,14 @@
 package com.cleannrooster.rpg_minibosses.entity.brain.impl;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.world.ServerWorld;
+import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
+import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
+import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.Delivery;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import dev.eann.atlasvfx.telegraph.TelegraphArea;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.TemplarEntity;
 import com.cleannrooster.rpg_minibosses.entity.brain.*;
@@ -21,12 +29,6 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.internals.SpellExecution;
-import net.spell_engine.internals.delivery.ProjectileLauncher;
-import net.spell_engine.internals.target.SpellTarget;
-import net.spell_power.api.SpellPower;
-import net.spell_power.api.SpellSchools;
 
 import java.util.List;
 
@@ -44,6 +46,16 @@ import java.util.List;
  * and Condemning expresses itself through steering authority rather than a navigation speed multiplier.
  */
 public class TemplarBrain extends MobBrain {
+
+    /**
+     * The old {@code divine_fall} spell: holy light dropped from four blocks above the target, falling
+     * slowly enough to step out from under, bursting over four blocks for 0.8 × healing power as damage.
+     */
+    static final AbilitySpec DIVINE_FALL = AbilitySpec.builder(RPGMinibosses.id("templar/divine_fall"), MagicSchool.HEALING)
+            .delivery(new Delivery.Meteor(Delivery.ProjectileSpec.straight(0.1).withLifetime(80)
+                    .bursting(new TelegraphArea.Circle(Vec3d.ZERO, 4.0f), 3.0), 4.0))
+            .damage(0.8f)
+            .build();
 
     public enum Stance implements BrainState {
         CRUSHING, CONDEMNING;
@@ -338,17 +350,7 @@ public class TemplarBrain extends MobBrain {
         if (target == null || !entity.canSee(target) || entity.getWorld().isClient()) {
             return;
         }
-        var spell = SpellRegistry.from(entity.getWorld())
-                .getEntry(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "divine_fall"));
-        var context = new SpellExecution.ImpactContext(
-                1.0F, 1.0F, target.getPos(),
-                SpellPower.getSpellPower(SpellSchools.HEALING, entity),
-                SpellTarget.FocusMode.DIRECT, 0);
-        net.spell_engine.utils.SoundHelper.playSound(entity.getWorld(), entity,
-                new net.spell_engine.api.spell.fx.Sound(
-                        net.spell_engine.fx.SpellEngineSounds.GENERIC_HEALING_RELEASE.id()));
-        ProjectileLauncher.fallProjectile(entity.getWorld(), entity, target, target.getPos(),
-                spell.get(), context);
+        AbilityExecutor.cast((ServerWorld) entity.getWorld(), entity, DIVINE_FALL, CastTarget.at(entity, target));
     }
 
     /**

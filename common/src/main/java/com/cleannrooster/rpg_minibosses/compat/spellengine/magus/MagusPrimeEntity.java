@@ -3,6 +3,9 @@ package com.cleannrooster.rpg_minibosses.compat.spellengine.magus;
 
 
 import com.cleannrooster.rpg_minibosses.entity.EntityTracking;import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.entity.Entity;
+import java.util.Collection;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEntities;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
@@ -97,7 +100,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.raycastObstacleFree;
-import static com.cleannrooster.rpg_minibosses.entity.TemplarEntity.sendBatches;
 import static java.lang.Math.max;
 import static net.spell_engine.internals.impact.SpellImpacts.lookupAndPerformAreaImpact;
 import static net.spell_power.api.SpellSchools.*;
@@ -1598,7 +1600,10 @@ public class MagusPrimeEntity extends PathAwareEntity {
         return false;
     }
 
-
-
-
+    private static void sendBatches(Vec3d target, Entity trackedEntity, List<ParticleGroup> batches, float countMultiplier,
+                                    Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
+        if (batches != null && !batches.isEmpty()) {
+            ParticleHelper.sendBatches(trackedEntity, target, batches, countMultiplier, trackers, includeSourceEntity);
+        }
+    }
 }

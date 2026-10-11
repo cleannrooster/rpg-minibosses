@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.RogueBrain;
 import com.cleannrooster.rpg_minibosses.entity.brain.impl.TemplarBrain;
@@ -35,12 +36,6 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
-import net.spell_engine.api.spell.fx.ParticleGroup;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.fx.SpellEngineParticles;
-import net.spell_engine.utils.SoundHelper;
-import net.spell_engine.utils.VectorHelper;
-import net.spell_engine.utils.WorldScheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -173,7 +168,7 @@ public class TemplarEntity extends MinibossEntity{
                 int finalIii = iii;
                 int finalI = i;
                 int finalIi = ii;
-                ((WorldScheduler)world).schedule(i+1,() ->{
+                TickScheduler.schedule(world, i+1, () ->{
                     if(world != null) {
                         double x = 0;
                         double x2 = 0;
@@ -188,7 +183,7 @@ public class TemplarEntity extends MinibossEntity{
                         //Vec3d vec3d = rotate(x,0,z,Math.toRadians(-f7),Math.toRadians(f),0);
                         Vec3d vec3d2 = rotate(x2,0,z,Math.toRadians(-f7),Math.toRadians(f),0/*( > 0 ? 1 : -1) *  Math.clamp(180/entity.getYaw(),1,180)*Math.toRadians((entity.getPitch())/2)*/);
                         // vec3d2 = rotate(vec3d2.x,vec3d2.y,vec3d2.z,0,0,Math.toRadians(entity.getPitch()*((Math.atan( Math.toRadians(entity.getYaw()))))));
-                        vec3d2 =  VectorHelper.rotateTowards(vec3d2,new Vec3d(0,-1,0),entity.getPitch());
+                        vec3d2 =  rotateTowards(vec3d2,new Vec3d(0,-1,0),entity.getPitch());
                         //Vec3d vec3d3 = vec3d.add(entity.getEyePos().getX(),entity.getEyeY(),entity.getEyePos().getZ());
                         Vec3d vec3d4 = vec3d2.add(entity.getEyePos().getX(),entity.getEyeY(),entity.getEyePos().getZ());
 
@@ -203,12 +198,12 @@ public class TemplarEntity extends MinibossEntity{
 
                                 if (finalIi % 4 == 1) {
                                     //serverWorld.spawnParticles(player, Particles.snowflake.particleType,true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                    world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
                                     world.spawnParticles(player, ParticleTypes.ELECTRIC_SPARK, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
 
                                 }
                                 //serverWorld.spawnParticles(player,Particles.frost_shard.particleType, true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
                             }
                         }
                         if(entity instanceof ServerPlayerEntity player) {
@@ -216,12 +211,12 @@ public class TemplarEntity extends MinibossEntity{
 
                                 if (finalIi % 4 == 1) {
                                     //serverWorld.spawnParticles(player, Particles.snowflake.particleType,true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                    world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                    world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
                                     world.spawnParticles(player, ParticleTypes.ELECTRIC_SPARK, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
 
                                 }
                                 //serverWorld.spawnParticles(player,Particles.frost_shard.particleType, true, vec3d3.getX(), vec3d3.getY(), vec3d3.getZ(), 1, 0, 0, 0, 0);
-                                world.spawnParticles(player, SpellEngineParticles.magic_spark.type(), true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
+                                world.spawnParticles(player, ParticleTypes.ENCHANTED_HIT, true, vec3d4.getX(), vec3d4.getY(), vec3d4.getZ(), 1, 0, 0, 0, 0);
 
                             }
                         }
@@ -306,11 +301,6 @@ public class TemplarEntity extends MinibossEntity{
         return super.getMovementSpeed();
     }
 
-    public static void sendBatches(Vec3d target, Entity trackedEntity, List<ParticleGroup> batches, float countMultiplier, Collection<ServerPlayerEntity> trackers, boolean includeSourceEntity) {
-        if (batches != null && !batches.isEmpty()) {
-            ParticleHelper.sendBatches(trackedEntity, target, batches, countMultiplier, trackers, includeSourceEntity);
-        }
-    }
     private static BlockHitResult raycastObstacle(Entity entity, Vec3d start, Vec3d end) {
         return entity.getWorld().raycast(new RaycastContext(start, end, RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, entity));
     }
@@ -370,7 +360,7 @@ public class TemplarEntity extends MinibossEntity{
                 && templarbrain.tryParry()) {
             this.tryAttack(source.getAttacker());
             amount *= 0.5F;
-            SoundHelper.playSoundEvent(this.getWorld(), this, SoundEvents.BLOCK_ANVIL_PLACE);
+            this.getWorld().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.BLOCK_ANVIL_PLACE, this.getSoundCategory(), 1.0f, 1.0f);
         }
         return super.damage(source, amount);
     }
@@ -401,4 +391,34 @@ public class TemplarEntity extends MinibossEntity{
         return super.tryAttack(target);
     }
 
+    /**
+     * Turn {@code vector} toward {@code towards} by at most {@code degrees}, keeping its length. Same maths
+     * as Spell Engine's {@code VectorHelper.rotateTowards}, which the slash flourish was tuned against.
+     */
+    private static Vec3d rotateTowards(Vec3d vector, Vec3d towards, double degrees) {
+        if (degrees == 0.0) {
+            return vector;
+        }
+        var original = vector;
+        var from = vector.normalize();
+        var to = towards.normalize();
+        double angle = angleWithSignBetween(from, to, from.crossProduct(to));
+        if (angle == 0.0) {
+            return original;
+        }
+        Vec3d rotated;
+        if (angle <= degrees) {
+            rotated = to;
+        } else {
+            double scale = Math.sin(Math.toRadians(degrees)) / Math.cos(Math.toRadians(90.0 - angle + degrees));
+            rotated = from.add(to.multiply(scale)).normalize();
+        }
+        return rotated.multiply(original.length());
+    }
+
+    private static double angleWithSignBetween(Vec3d a, Vec3d b, Vec3d normal) {
+        double degrees = Math.toDegrees(Math.acos(a.dotProduct(b) / (a.length() * b.length())));
+        degrees *= Math.signum(a.crossProduct(b).dotProduct(normal));
+        return Double.isNaN(degrees) ? 0.0 : degrees;
+    }
 }
