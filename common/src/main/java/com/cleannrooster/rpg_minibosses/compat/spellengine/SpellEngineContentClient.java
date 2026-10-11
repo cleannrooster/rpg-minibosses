@@ -6,7 +6,6 @@ import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompatClient;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.FeatherRenderer;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.MagusRenderer;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.OrbRenderer;
-import com.cleannrooster.rpg_minibosses.compat.spellengine.client.armor.AbberrathRenderer;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.armor.JuggernautArmorRenderer;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.armor.ThiefArmorRenderer;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.client.armor.UniqueArmorRenderer;
@@ -52,7 +51,6 @@ public final class SpellEngineContentClient implements Runnable {
             }
         });
 
-        AzArmorRendererRegistry.register(AbberrathRenderer::new, Armors.ABBERRATH);
         AzItemRendererRegistry.register(Armors.whispering_ice.item(), WhisperingIceRenderer::new);
         if (Platform.isModLoaded("extraspellattributes")) {
             registerArmorRenderer(CompatArmors.juggernautArmor, JuggernautArmorRenderer::new);

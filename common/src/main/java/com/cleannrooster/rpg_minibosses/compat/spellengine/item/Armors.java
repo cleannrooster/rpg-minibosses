@@ -47,7 +47,6 @@ import java.util.function.Supplier;
 
 public class Armors {
 
-    public static Item ABBERRATH ;
 
     public static RegistryEntry<ArmorMaterial> material(String name,
 
@@ -67,11 +66,6 @@ public class Armors {
     }
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"armor"));
 
-    public static RegistryEntry<ArmorMaterial> abberrath = material(
-            "abberrath_armor",
-            3, 8, 6, 3,
-            30,
-            SoundEvents.ITEM_ARMOR_EQUIP_DIAMOND, () -> Ingredient.ofItems(Items.BLAZE_ROD));
     public static RegistryEntry<ArmorMaterial> despot = material(
             "despot_armor",
             3, 8, 6, 3,
@@ -305,18 +299,11 @@ public class Armors {
     public static void register(Map<String, WeaponConfig> configs){
         if ( RPGARMOR == null){
             RPGARMOR = CreativeTabRegistry.create(Text.translatable("itemGroup.rpg-minibosses.armors"),
-                    () -> new ItemStack(ABBERRATH));
+                    () -> new ItemStack(despotArmor.chest));
             Registry.register(Registries.ITEM_GROUP, KEY, RPGARMOR);
         }
 
-        ABBERRATH = new AbberrathArmor(abberrath, ArmorItem.Type.BOOTS,new Item.Settings().maxDamage(ArmorItem.Type.BOOTS.getMaxDamage(30)).attributeModifiers(new AttributeModifiersComponent(List.of(
-                new AttributeModifiersComponent.Entry(SpellSchools.FIRE.getAttributeEntry(),
-                new EntityAttributeModifier(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberraths_hooves"),2, EntityAttributeModifier.Operation.ADD_VALUE), AttributeModifierSlot.FEET),
-                new AttributeModifiersComponent.Entry(EntityAttributes.GENERIC_ARMOR,
-                        new EntityAttributeModifier(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"armor_boots"),2, EntityAttributeModifier.Operation.ADD_VALUE), AttributeModifierSlot.FEET)),true)),SpellSchools.FIRE);
         Weapon.register(configs, entries, RPGMinibossesEntities.KEY);
-        Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"abberraths_hooves"),ABBERRATH);
-        CreativeTabRegistry.append(CreativeTabRegistry.defer(KEY), ABBERRATH);
     }
     public static void registerArmors(Map<String, ArmorSetConfig> configs) {
         if(Platform.isModLoaded("extraspellattributes")){

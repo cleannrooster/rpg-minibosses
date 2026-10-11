@@ -130,7 +130,6 @@
   "block.rpg-minibosses.poster_mage": "Wanted Poster (Fire Mage)",
   "block.rpg-minibosses.poster_rogue": "Wanted Poster (Rogue)",
   "block.rpg-minibosses.poster_templar": "Wanted Poster (Templar)",
-  "item.rpg-minibosses.abberraths_hooves": "Abberath's Hooves",
   "item.rpg-minibosses.whispering_ice": "Whispering Ice",
   "spell.rpg-minibosses.kintsugi.name": "Aureate Flow",
   "spell.rpg-minibosses.kintsugi.description": "Upon taking damage, gain absorption based on your armor for 8 seconds.",
@@ -145,11 +144,8 @@
   "spell.rpg-minibosses.summon_deatomization_storm.description": "Summon a Deatomization Storm at your location, dealing {damage_1} arcane damage and {damage_2} lightning damage per half second.",
   "item.rpg-minibosses.spell_scroll/deatomization": "Scroll of Annihilation",
 
-  "spell.rpg-minibosses.abberrath_nova.name": "Abberath's Fury",
-  "spell.rpg-minibosses.abberrath_nova.description": "Release a Fire Nova every time you sprint 4 meters, dealing {damage} fire damage.",
   "spell.rpg-minibosses.ice_storm.name": "Ice Storm",
   "spell.rpg-minibosses.ice_storm.description": "Conjure an Ice Storm over a target location, lasting 2 seconds. Each projectile deals {damage} Frost Damage.",
-  "text.rpg-minibosses.abberraths_hooves": "The Goat King's stampede turned all into ash.",
   "text.rpg-minibosses.whispering_ice": "Your darkest thoughts are the cracks through which The Nightmare crawls.",
 
   "itemGroup.rpg-minibosses.eggs": "ANARCHY",

@@ -19,8 +19,7 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:abberraths_hooves"
+          "type": "minecraft:empty"
         },
         {
           "type": "minecraft:item",

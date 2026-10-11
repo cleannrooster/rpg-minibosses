@@ -59,7 +59,6 @@ effect, applied by phoenix_nova), plus its uses of pound and fire_nova.
 
 | Spell | Item |
 |---|---|
-| abberrath_nova | Abberrath's Hooves (`PlayerMixin`) |
 | ice_storm | Whispering Ice |
 | despot, foxshade, kintsugi, savant | unique armor set bonuses |
 | summon_deatomization_storm | Gemini uber scroll drop (`summon_storm` custom delivery) |
@@ -160,7 +159,7 @@ The Templar's out-of-action flourish is an `FxCues.SLASH` cue (an AtlasVFX slash
 Forsaken Magus stays Spell Engine-only (compat) but casts `compat/spellengine/magus/MagusAbilities`, built
 from its old spell JSONs; its barrier still reads Spell Power's damage types. The barrier "empower" scales
 power squared, as Spell Engine's impact context did. Every boss spell JSON is gone; only the item spells
-remain (`abberrath_nova`, `ice_storm`, `despot`, `foxshade`, `kintsugi`, `savant`,
+remain (`ice_storm`, `despot`, `foxshade`, `kintsugi`, `savant`,
 `summon_deatomization_storm`). `EntityRelationsMixin` is removed (its rules live in
 `MinibossEntity.canHarm`); `SpellProjectileMixin` no longer fires for any boss.
 
@@ -201,3 +200,5 @@ Payload receivers are declared in `RPGMinibossesClient.earlyInit()`, called duri
 
 - Magus's spawn egg now registers after the Gemini eggs (it is appended by the compat layer), so it moved
   to the end of the creative tab's egg list.
+- Abberath's Hooves (and its `abberrath_nova` spell and `PlayerMixin`) were removed outright; its
+  50/50 loot slot against Whispering Ice is now an empty entry, so Ice keeps its drop rate.
