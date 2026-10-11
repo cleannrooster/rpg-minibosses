@@ -32,14 +32,18 @@ public final class RPGMinibossesClient {
     public static void earlyInit() {
         com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.registerReceiver();
         com.cleannrooster.rpg_minibosses.client.fx.CueHandlers.registerReceivers();
+        registerEntityRenderers();
+        SpellEngineCompatClient.earlyInit();
     }
 
-    public static void init() {
-        // Attack ribbons: receives one swing packet per attack and rebuilds the arc locally from the same
-        // geometry the server damaged with.
-        com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.init();
-        com.cleannrooster.rpg_minibosses.client.fx.CueHandlers.init();
-
+    /**
+     * Must run during mod construction. On NeoForge, Architectury only queues these and hands them over when
+     * {@code EntityRenderersEvent.RegisterRenderers} fires - which happens during the first resource load,
+     * before client setup - so anything registered from {@link #init()} was silently dropped, leaving every
+     * mob of this mod without a renderer and crashing the client the moment one came into view. The types
+     * are suppliers, so they need not be registered yet.
+     */
+    private static void registerEntityRenderers() {
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
@@ -59,6 +63,14 @@ public final class RPGMinibossesClient {
         // Ability carriers draw nothing themselves yet; their visuals arrive with the effect cues.
         EntityRendererRegistry.register(() -> MagicEntities.PROJECTILE, EmptyEntityRenderer::new);
         EntityRendererRegistry.register(() -> MagicEntities.CLOUD, EmptyEntityRenderer::new);
+    }
+
+    public static void init() {
+        // Attack ribbons: receives one swing packet per attack and rebuilds the arc locally from the same
+        // geometry the server damaged with.
+        com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.init();
+        com.cleannrooster.rpg_minibosses.client.fx.CueHandlers.init();
+
 
         ClientTickEvent.CLIENT_PRE.register((client) -> {
             if (client.crosshairTarget instanceof EntityHitResult hitResult
