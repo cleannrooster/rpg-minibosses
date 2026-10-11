@@ -72,3 +72,8 @@ dependencies {
     //   - Fabric impl uses Trinkets / StructurePlacerAPI (declared in :fabric)
     //   - NeoForge impl uses Accessories / a vanilla-template stub (declared in :neoforge)
 }
+
+// Ship the sound licences inside the jars as well (CC-BY / CC-BY-SA attribution travels with the files).
+processResources {
+    from(rootProject.file("THIRD_PARTY_NOTICES.md"))
+}

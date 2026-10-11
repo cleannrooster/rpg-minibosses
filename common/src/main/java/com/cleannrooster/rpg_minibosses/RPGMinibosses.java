@@ -134,6 +134,7 @@ public final class RPGMinibosses {
         Registry.register(Registries.SOUND_EVENT, EXPLOSION, EXPLOSION_SOUND);
         Registry.register(Registries.SOUND_EVENT, WARCRY, WARCRY_SOUND);
         Registry.register(Registries.SOUND_EVENT, ANTICIPATION, ANTICIPATION_SOUND);
+        com.cleannrooster.rpg_minibosses.magic.BossSounds.register();
     }
 
     /** ENTITY_TYPE phase. */

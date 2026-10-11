@@ -12,7 +12,7 @@ loaded when Spell Engine is installed.
 | 1 | Isolate Spell Engine content behind `compat.SpellEngineCompat` (SE still required) | done, checked in-game |
 | 2a | Architectury API replaces Forgified Fabric API; AtlasVFX added (jar-in-jar) | done — awaiting in-game check |
 | 2b | Core mechanics in `magic/` (see below) | done — awaiting in-game check |
-| 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | |
+| 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | done — awaiting in-game check |
 | 4 | Cue layer (`FxEmitter` / `FxCueHandler`) + telegraphs | |
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | |
 | 6 | `SlashVisual` → AtlasVFX `ArcSweep` trails | |
@@ -94,6 +94,19 @@ Engine's `EntityRelations` until phase 5 ports it.
 
 Test from in-game with `/rpgminibosses ability rpg-minibosses:debug/<bolt|fireball|nova|ring|cone|line|meteor|cloud|heal> [power]`
 (aims at the entity or block under the crosshair) and `/rpgminibosses backend`.
+
+## Sounds (phase 3)
+
+`magic/BossSounds` registers `rpg-minibosses:boss.<key>` events: per school `windup` / `release` /
+`impact` (+ `loop` for fire, frost, lightning, soul), physical weapon sounds, teleport, shield,
+explosion. `BossSounds.of(school)` gives a school's set; physical schools map to sword / bow sounds.
+
+`tools/convert_sounds.py` holds the key → source-file table, converts to mono trimmed Ogg into
+`assets/rpg-minibosses/sounds/boss/`, and adds missing `sounds.json` keys. It never overwrites
+(`--force` backs up first) and never edits an existing `sounds.json` key, so swap a sound by editing
+`sounds.json` directly. Licences: `THIRD_PARTY_NOTICES.md` (also shipped in the jars).
+
+Audition in-game: `/playsound rpg-minibosses:boss.fire.release master @s`.
 
 ## Loader API rule (phase 2a)
 
