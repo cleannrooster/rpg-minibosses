@@ -1,10 +1,28 @@
 {
   "values": [
-    "rpg-minibosses:despot_chest",
-    "rpg-minibosses:foxshade_chest",
-    "rpg-minibosses:kintsugi_chest",
-    "rpg-minibosses:sanguine_fire_chest",
-    "rpg-minibosses:sanguine_frost_chest",
-    "rpg-minibosses:sanguine_arcane_chest"
+    {
+      "id": "rpg-minibosses:despot_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:foxshade_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:kintsugi_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_fire_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_frost_chest",
+      "required": false
+    },
+    {
+      "id": "rpg-minibosses:sanguine_arcane_chest",
+      "required": false
+    }
   ]
 }

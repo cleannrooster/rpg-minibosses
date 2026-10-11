@@ -35,15 +35,15 @@ side = "BOTH"
 
 [[dependencies.${neoforge_mod_id}]]
 modId = "spell_engine"
-type = "required"
-versionRange = "*"
+type = "optional"
+versionRange = "[1.10.0,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${neoforge_mod_id}]]
 modId = "spell_power"
-type = "required"
-versionRange = "*"
+type = "optional"
+versionRange = "[1.6.0,)"
 ordering = "AFTER"
 side = "BOTH"
 
@@ -51,6 +51,20 @@ side = "BOTH"
 modId = "architectury"
 type = "required"
 versionRange = "[13.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "cloth_config"
+type = "required"
+versionRange = "[15.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${neoforge_mod_id}]]
+modId = "structure_pool_api"
+type = "required"
+versionRange = "[1.2.0,)"
 ordering = "AFTER"
 side = "BOTH"
 

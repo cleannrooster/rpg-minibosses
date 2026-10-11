@@ -17,7 +17,7 @@ loaded when Spell Engine is installed.
 | 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | done — awaiting in-game check |
 | 6 | Swept-arc slashes → AtlasVFX trails | done — awaiting in-game check |
 | 7 | Core effect sync (petrification fixed); Forsaken Magus ported; boss spell JSONs deleted | done — awaiting in-game check |
-| 8 | Flip deps to optional, load conditions on SE-only data, bytecode scan, 4-way test | |
+| 8 | Spell Engine / Spell Power optional; load conditions; 4-way boot test | done — boots verified, world test pending |
 
 ## How the gate works
 
@@ -171,6 +171,22 @@ Deliberate differences: Magus's dark-matter orb now grows when its bolts hit pla
 against `rpg_minibosses:` and never matched); its shockwaves telegraph their 25-tick fuse; bounce /
 ricochet / chain-reaction / falloff perks are dropped; projectiles stop homing at tick 12 as
 `SpellProjectileMixin` made them (also restored for the Fire Mage volley).
+
+## Optional dependency (phase 8)
+
+- Metadata: Spell Engine / Spell Power are `suggests` (Fabric, with `breaks` below 1.10.0 / 1.6.0) and
+  `optional` with those floors (NeoForge). Cloth Config and Structure Pool API are now declared — the core
+  always used them but got them through Spell Engine.
+- Build: Spell Engine / Spell Power are compile-only; the dev client gets them via `modLocalRuntime`
+  unless run with `-PnoSpellEngine`. `-PrunDir=<dir>` (and `-PnoSpellEngine` by default) uses a separate
+  game directory, so jars kept in `run/mods` don't block a test.
+- Data: bosses' Spell Engine-only drops live in `loot_table/compat/entities/<boss>.json` (and
+  `compat_esa/` for the ESA-only Juggernaut/Trickster sets), loaded only with those mods and rolled as one
+  extra pool by `SpellEngineContent` (Architectury `LootEvent`). `magus.json` is gated whole. Tags naming
+  Spell Engine items use `required: false` (datagen now emits that too).
+- Verified 2026-10-11: all four (Fabric / NeoForge × with / without Spell Engine) boot to the title screen
+  with no errors from this mod; no core class references Spell Engine, Spell Power or the compat package
+  except the two reflective class names. World load and play still to be tested.
 
 ## Loader API rule (phase 2a)
 

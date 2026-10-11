@@ -1,6 +1,12 @@
 package com.cleannrooster.rpg_minibosses.compat.spellengine;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.platform.Platform;
+import dev.architectury.event.events.common.LootEvent;
+import net.minecraft.loot.LootPool;
+import net.minecraft.loot.entry.LootTableEntry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
 import com.cleannrooster.rpg_minibosses.compat.SpellEngineCompat;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.item.Armors;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.item.SummonHorn;
@@ -97,7 +103,39 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
             return EventResult.pass();
         });
 
+        // The bosses' Spell Engine drops (unique armour, Lavos horn, staves...) live in sibling loot tables
+        // that only load with Spell Engine; roll them as one extra pool of the boss's own table.
+        LootEvent.MODIFY_LOOT_TABLE.register((key, context, builtin) -> {
+            if (!key.getValue().getNamespace().equals(RPGMinibosses.CONTENT_NAMESPACE)) {
+                return;
+            }
+            var path = key.getValue().getPath();
+            if (!path.startsWith("entities/")) {
+                return;
+            }
+            var boss = path.substring("entities/".length());
+            if (COMPAT_DROPS.contains(boss)) {
+                context.addPool(compatPool("compat/entities/" + boss));
+            }
+            if (ESA_DROPS.contains(boss) && Platform.isModLoaded("extraspellattributes")) {
+                context.addPool(compatPool("compat_esa/entities/" + boss));
+            }
+        });
+
         itemConfig.save();
+    }
+
+    /** Bosses whose Spell Engine-only drops were split into {@code loot_table/compat/entities/<boss>}. */
+    private static final java.util.Set<String> COMPAT_DROPS = java.util.Set.of("archmage_fire", "gemini_alpha",
+            "gemini_alpha_uber", "gemini_beta", "gemini_beta_uber", "juggernaut", "mercenary", "minor_archmage_fire",
+            "minor_juggernaut", "minor_mercenary", "minor_templar", "minor_trickster", "templar", "trickster");
+    /** ...and those that also drop the ESA-only Juggernaut / Trickster sets ({@code loot_table/compat_esa/...}). */
+    private static final java.util.Set<String> ESA_DROPS = java.util.Set.of("juggernaut", "minor_juggernaut",
+            "minor_trickster", "trickster");
+
+    private static LootPool.Builder compatPool(String path) {
+        return LootPool.builder()
+                .with(LootTableEntry.builder(RegistryKey.of(RegistryKeys.LOOT_TABLE, id(path))));
     }
 
     @Override

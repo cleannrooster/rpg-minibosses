@@ -1,0 +1,45 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "spell_engine",
+        "extraspellattributes"
+      ]
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "spell_engine"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "extraspellattributes"
+    }
+  ],
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_legs"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_feet"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_head"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "rpg-minibosses:trickster_chest"
+        }
+      ]
+    }
+  ]
+}

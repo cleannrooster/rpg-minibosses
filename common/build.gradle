@@ -55,8 +55,9 @@ dependencies {
     modImplementation "dev.eann:atlasvfx-common:${rootProject.atlasvfx_version}"
 
     // Spell Engine ecosystem (Modrinth, loader-suffixed)
-    modImplementation "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"
-    modImplementation "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
+    // Optional mods: only compat/spellengine may use them (see SpellEngineCompat).
+    modCompileOnly "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"
+    modCompileOnly "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
     modImplementation "maven.modrinth:tiny-config:${rootProject.tiny_config_version}-${platform}"
    // modImplementation "dev.kosmx.player-anim:player-animation-lib-${platform}:${rootProject.player_anim_version}"
     modImplementation "me.shedaniel.cloth:cloth-config-${platform}:${rootProject.cloth_config_version}"

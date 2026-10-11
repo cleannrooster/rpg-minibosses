@@ -1,6 +1,9 @@
 {
   "values": [
-    "rpg-minibosses:abberraths_hooves",
+    {
+      "id": "rpg-minibosses:abberraths_hooves",
+      "required": false
+    },
     {
       "id": "rpg-minibosses:trickster_feet",
       "required": false

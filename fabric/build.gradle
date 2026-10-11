@@ -57,8 +57,14 @@ dependencies {
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 
     // Spell Engine ecosystem
-    modImplementation "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"
-    modImplementation "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
+    // Optional at runtime: compiled against, never required. The dev client runs with them unless
+    // launched with -PnoSpellEngine, which is how the "without Spell Engine" setup is tested.
+    modCompileOnly "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"
+    modCompileOnly "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
+    if (!project.hasProperty('noSpellEngine')) {
+        modLocalRuntime "maven.modrinth:spell-engine:${rootProject.spell_engine_version}-${platform}"
+        modLocalRuntime "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
+    }
     include(modImplementation("maven.modrinth:tiny-config:${rootProject.tiny_config_version}-${platform}"))
    // modImplementation "dev.kosmx.player-anim:player-animation-lib-${platform}:${rootProject.player_anim_version}"
     modImplementation "me.shedaniel.cloth:cloth-config-${platform}:${rootProject.cloth_config_version}"
@@ -90,4 +96,17 @@ shadowJar {
 
 remapJar {
     inputFile.set shadowJar.archiveFile
+}
+
+// Dev runs can use a separate game directory: -PrunDir=<dir>, and "without Spell Engine" runs default to
+// their own, so mods kept in the normal run/mods (some of which need Spell Engine) do not stop them starting.
+def customRunDir = project.findProperty('runDir') ?: (project.hasProperty('noSpellEngine') ? 'run_no_spell_engine' : null)
+if (customRunDir != null) {
+    loom {
+        runs {
+            configureEach {
+                runDir = customRunDir
+            }
+        }
+    }
 }

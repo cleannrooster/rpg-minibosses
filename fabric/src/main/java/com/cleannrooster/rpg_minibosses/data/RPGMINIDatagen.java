@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 import net.minecraft.item.Item;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
@@ -191,9 +192,10 @@ public class RPGMINIDatagen {
                 Armor.Set set = armor.armorSet();
 
                 FabricTagProvider<Item>.FabricTagBuilder chestTag = this.getOrCreateTagBuilder(ItemTags.CHEST_ARMOR);
-                chestTag.add(set.chest);
+                // Optional: these items only exist when Spell Engine is installed.
+                chestTag.addOptional(Registries.ITEM.getId(set.chest));
                 FabricTagProvider<Item>.FabricTagBuilder legsTag = this.getOrCreateTagBuilder(ItemTags.LEG_ARMOR);
-                legsTag.add(set.legs);
+                legsTag.addOptional(Registries.ITEM.getId(set.legs));
 
                 int tier = armor.lootProperties().tier();
                 if (options.allowLootTierTags() && tier >= 0) {

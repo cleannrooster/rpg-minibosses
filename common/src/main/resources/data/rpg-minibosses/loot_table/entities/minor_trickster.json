@@ -1,46 +1,5 @@
 {
   "type": "minecraft:entity",
-  "pools": [
-
-    {
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:lavos_horn",
-          "conditions": [
-            {
-              "condition": "minecraft:random_chance",
-              "chance": 0.125
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:trickster_legs"
-
-        },
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:trickster_feet"
-
-        },
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:trickster_head"
-
-        },
-        {
-          "type": "minecraft:item",
-          "name": "rpg-minibosses:trickster_chest"
-        }
-      ]
-    }
-  ],
+  "pools": [],
   "random_sequence": "minecraft:entities/juggernaut"
 }

@@ -36,11 +36,17 @@
 		"java": ">=21",
 		"fabric-api": "*",
 		"architectury": ">=13.0.8",
-		"spell_power": ">=1.3.0+1.21.1",
-		"spell_engine": ">=1.8.2+1.21.1",
-		"azurelib": "~3.1.0"
+		"azurelib": "~3.1.0",
+		"cloth-config": ">=15.0.0",
+		"structure_pool_api": ">=1.2.0"
+	},
+	"breaks": {
+		"spell_engine": "<1.10.0",
+		"spell_power": "<1.6.0"
 	},
 	"suggests": {
+		"spell_engine": ">=1.10.0+1.21.1",
+		"spell_power": ">=1.6.0+1.21.1",
 		"wizards": ">=2.4.2+1.21.1",
 		"extraspellattributes": ">=1.0.6+1.21.1"
 	}
