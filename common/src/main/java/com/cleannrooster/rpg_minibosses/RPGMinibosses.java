@@ -44,7 +44,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
-import net.spell_engine.api.render.CustomModels;
 import net.tiny_config.ConfigManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +113,6 @@ public final class RPGMinibosses {
         com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter.register();
         com.cleannrooster.rpg_minibosses.magic.MagicDebugCommand.register();
         SpellEngineCompat.hooks().init();
-        registerModelIds();
         registerEvents();
         registerWorldgenInjection();
 
@@ -193,11 +191,6 @@ public final class RPGMinibosses {
     }
 
     // ── Event / handler registration (no registry mutation; Architectury-backed on both loaders) ─────
-    private static void registerModelIds() {
-        CustomModels.registerModelIds(List.of(id("projectile/flamewaveprojectile")));
-        CustomModels.registerModelIds(List.of(id("projectile/iron_dagger")));
-    }
-
     private static void registerWorldgenInjection() {
         if (!Platform.isModLoaded("lithostitched")) {
             // Only inject the village if Lithostitched is not present.

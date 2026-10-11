@@ -36,7 +36,10 @@ final class SpellPowerMagicBackend implements MagicBackend {
         if (spellSchool == null) {
             return VanillaMagicBackend.INSTANCE.roll(caster, school, base, target);
         }
-        var stats = SpellPower.getSpellPower(spellSchool, caster);
+        var stats = stats(spellSchool, caster);
+        if (stats == null) {
+            return VanillaMagicBackend.INSTANCE.roll(caster, school, base, target);
+        }
         var result = new SpellPower.Result(spellSchool, base, stats.criticalChance(), stats.criticalDamage());
         return target != null
                 ? result.random(SpellPower.getVulnerability(target, spellSchool)).amount()
@@ -46,9 +49,20 @@ final class SpellPowerMagicBackend implements MagicBackend {
     @Override
     public double fallbackPower(LivingEntity caster, MagicSchool school) {
         var spellSchool = school(school);
-        return spellSchool != null
-                ? SpellPower.getSpellPower(spellSchool, caster).baseValue()
-                : VanillaMagicBackend.INSTANCE.fallbackPower(caster, school);
+        var stats = spellSchool == null ? null : stats(spellSchool, caster);
+        return stats != null ? stats.baseValue() : VanillaMagicBackend.INSTANCE.fallbackPower(caster, school);
+    }
+
+    /**
+     * Spell Power's view of {@code caster}, or null if it cannot give one: bosses state their own power and
+     * do not carry Spell Power's attributes, and Spell Power reads them unguarded.
+     */
+    private static @Nullable SpellPower.Result stats(SpellSchool school, LivingEntity caster) {
+        try {
+            return SpellPower.getSpellPower(school, caster);
+        } catch (IllegalArgumentException missingAttribute) {
+            return null;
+        }
     }
 
     @Override

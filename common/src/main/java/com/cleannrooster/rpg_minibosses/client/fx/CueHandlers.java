@@ -65,6 +65,7 @@ public final class CueHandlers {
         register(FxCues.CONE, (world, a) -> world.play(FxShapes.cone(style(a), a.at(), a.to(), a.angle(), a.size(), a.tier(), a.seed()), DENSITY));
         register(FxCues.BURST, (world, a) -> FxShapes.burst(world, style(a), a.at(), a.size(), 12, a.seed(), DENSITY));
         register(FxCues.WISP, (world, a) -> FxShapes.wisp(world, style(a), a.at(), a.size(), 16, DENSITY.effective()));
+        register(FxCues.SMOKE, (world, a) -> FxShapes.smoke(world, a.at(), a.size(), 24, DENSITY.effective()));
         register(FxCues.RAIN, (world, a) -> FxShapes.rain(world, style(a), a.at(), a.size(), 16, DENSITY.effective()));
 
         BossProjectile.clientTick = CueHandlers::projectileTick;

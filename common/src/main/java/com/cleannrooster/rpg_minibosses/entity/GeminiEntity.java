@@ -1,6 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import com.cleannrooster.rpg_minibosses.magic.MagicCaster;
 import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
 import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
 import com.cleannrooster.rpg_minibosses.magic.CastTarget;
@@ -54,7 +55,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class GeminiEntity extends PathAwareEntity implements Monster {
+public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monster {
 
     public MagicSchool school;
     public boolean uber = false;
@@ -114,6 +115,12 @@ public class GeminiEntity extends PathAwareEntity implements Monster {
             this.bossBar.setColor(BossBar.Color.PURPLE);
         }
     }
+    /** Spell power stated by this boss's entry in {@code RPGMinibossesEntities}, from config. */
+    @Override
+    public double magicPower(MagicSchool school) {
+        return RPGMinibossesEntities.magicPower(this.getType(), school);
+    }
+
     @Override
     public boolean hasNoGravity() {
         return true;

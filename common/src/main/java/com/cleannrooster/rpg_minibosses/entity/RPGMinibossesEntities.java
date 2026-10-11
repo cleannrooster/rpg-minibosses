@@ -5,6 +5,7 @@ import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses.*;
 
 import com.cleannrooster.rpg_minibosses.config.ServerConfig;
+import com.cleannrooster.rpg_minibosses.magic.MagicCaster;
 import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import com.cleannrooster.rpg_minibosses.platform.Platform;
 import com.cleannrooster.rpg_minibosses.config.ServerConfigWrapper;
@@ -56,7 +57,6 @@ import net.minecraft.world.gen.structure.OceanMonumentStructure;
 import net.minecraft.world.gen.structure.StructureType;
 import net.minecraft.world.spawner.PatrolSpawner;
 import net.minecraft.world.spawner.SpecialSpawner;
-import net.spell_power.api.SpellSchools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -113,6 +113,14 @@ public class RPGMinibossesEntities {
             entries.add(this);
         }
 
+
+        /** This boss's power in a magical school, from config; read back through {@link MagicCaster}. */
+        public final java.util.EnumMap<MagicSchool, Double> magicPower = new java.util.EnumMap<>(MagicSchool.class);
+
+        public Entry<T> magic(MagicSchool school, double power) {
+            this.magicPower.put(school, power);
+            return this;
+        }
 
         public DefaultAttributeContainer.Builder add( RegistryEntry<EntityAttribute> attribute, double baseValue) {
               attributes.add(attribute, baseValue);
@@ -237,10 +245,10 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_ARMOR,config.fireMageGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageGreaterMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-            .add(SpellSchools.FIRE.attributeEntry,config.fireMageFirePower),
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
-            0xebcb6a,false);
+            0xebcb6a,false)
+            .magic(MagicSchool.FIRE, config.fireMageFirePower);
     public static final Entry<TemplarEntity> TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("templar",
             (entityType,world) -> new TemplarEntity(entityType,world,false,config.templarGreater),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
@@ -252,10 +260,10 @@ public class RPGMinibossesEntities {
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarGreaterMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,100F)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-            .add(SpellSchools.HEALING.attributeEntry,config.templarGreaterHealingPower),
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
-            0xebcb6a,false);
+            0xebcb6a,false)
+            .magic(MagicSchool.HEALING, config.templarGreaterHealingPower);
     public static final Entry<ArchmageFireEntity> M_ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("minor_archmage_fire",
             (entityType,world) -> new ArchmageFireEntity(entityType,world,true,config.fireMageLesser),HostileEntity.createHostileAttributes()
             .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
@@ -266,10 +274,10 @@ public class RPGMinibossesEntities {
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageLesserMaxHealth)
-            .add(SpellSchools.FIRE.attributeEntry,config.fireMageLesserFirePower)
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
-            0xebcb6a,true);
+            0xebcb6a,true)
+            .magic(MagicSchool.FIRE, config.fireMageLesserFirePower);
 
     public static final Entry<TemplarEntity> M_TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("minor_templar",
             (entityType,world) -> new TemplarEntity(entityType,world,true,config.templarLesser),HostileEntity.createHostileAttributes()
@@ -282,10 +290,10 @@ public class RPGMinibossesEntities {
 
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarLesserMovementSpeed)
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.templarLesserMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-            .add(SpellSchools.HEALING.attributeEntry,config.templarLesserHealingPower),
+            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
-            0xebcb6a,true);
+            0xebcb6a,true)
+            .magic(MagicSchool.HEALING, config.templarLesserHealingPower);
 
     public static final Entry<GeminiEntity> GEMINI_ALPHA = new Entry<GeminiEntity>("gemini_alpha",
             ((type, world) -> new GeminiEntity(type,world,MagicSchool.FIRE)),HostileEntity.createHostileAttributes()
@@ -295,14 +303,13 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.alphaHealth)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
             .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaAttackDamage)
-            .add(SpellSchools.ARCANE.attributeEntry,config.alphaFirePower)
-
-            .add(SpellSchools.FIRE.attributeEntry,config.alphaFirePower)
-            .add(SpellSchools.LIGHTNING.attributeEntry,config.alphaLightningPower),
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaAttackDamage),
 
             0x09356B,
-            0xebcb6a,false);
+            0xebcb6a,false)
+            .magic(MagicSchool.ARCANE, config.alphaFirePower)
+            .magic(MagicSchool.FIRE, config.alphaFirePower)
+            .magic(MagicSchool.LIGHTNING, config.alphaLightningPower);
 
     public static final Entry<GeminiEntity> GEMINI_BETA = new Entry<GeminiEntity>("gemini_beta",
             ((type, world) -> new GeminiEntity(type,world,MagicSchool.FROST)),HostileEntity.createHostileAttributes()
@@ -312,13 +319,12 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.betaHealth)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
             .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaAttackDamage)
-
-            .add(SpellSchools.FROST.attributeEntry,config.betaFrostPower)
-            .add(SpellSchools.LIGHTNING.attributeEntry,config.betaLightningPower),
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaAttackDamage),
 
             0x09356B,
-            0xebcb6a,false);
+            0xebcb6a,false)
+            .magic(MagicSchool.FROST, config.betaFrostPower)
+            .magic(MagicSchool.LIGHTNING, config.betaLightningPower);
 
     public static final Entry<GeminiEntity> GEMINI_ALPHA_UBER = new Entry<GeminiEntity>("gemini_alpha_uber",
             ((type, world) -> new GeminiEntity(type,world,MagicSchool.FIRE, true)),HostileEntity.createHostileAttributes()
@@ -328,12 +334,12 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.alphaUberHealth)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
             .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.alphaUberAttackDamage)
-            .add(SpellSchools.ARCANE.attributeEntry,config.alphaUberArcanePower)
-            .add(SpellSchools.FIRE.attributeEntry,config.alphaUberFirePower)
-            .add(SpellSchools.LIGHTNING.attributeEntry,config.alphaUberLightningPower),
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.alphaUberAttackDamage),
             0x09356B,
-            0xebcb6a,false);
+            0xebcb6a,false)
+            .magic(MagicSchool.ARCANE, config.alphaUberArcanePower)
+            .magic(MagicSchool.FIRE, config.alphaUberFirePower)
+            .magic(MagicSchool.LIGHTNING, config.alphaUberLightningPower);
 
     public static final Entry<GeminiEntity> GEMINI_BETA_UBER = new Entry<GeminiEntity>("gemini_beta_uber",
             ((type, world) -> new GeminiEntity(type,world,MagicSchool.FROST, true)),HostileEntity.createHostileAttributes()
@@ -343,11 +349,11 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.betaUberHealth)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
             .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaUberAttackDamage)
-            .add(SpellSchools.FROST.attributeEntry,config.betaUberFrostPower)
-            .add(SpellSchools.LIGHTNING.attributeEntry,config.betaUberLightningPower),
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaUberAttackDamage),
             0x09356B,
-            0xebcb6a,false);
+            0xebcb6a,false)
+            .magic(MagicSchool.FROST, config.betaUberFrostPower)
+            .magic(MagicSchool.LIGHTNING, config.betaUberLightningPower);
 
     public static RegistryKey<ItemGroup> KEY = RegistryKey.of(Registries.ITEM_GROUP.getKey(),Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"generic"));
 
@@ -425,6 +431,16 @@ public class RPGMinibossesEntities {
     private static void addSpawn(java.util.function.Predicate<BiomeModifications.BiomeContext> where, EntityType<?> type, int weight) {
         BiomeModifications.addProperties(where, (context, properties) ->
                 properties.getSpawnProperties().addSpawn(SpawnGroup.MONSTER, new SpawnSettings.SpawnEntry(type, weight, 1, 1)));
+    }
+
+    /** The power the entry for {@code type} states in {@code school}; 0 if it states none. */
+    public static double magicPower(EntityType<?> type, MagicSchool school) {
+        for (Entry<?> entry : entries) {
+            if (entry.entityType == type) {
+                return entry.magicPower.getOrDefault(school, 0.0);
+            }
+        }
+        return 0.0;
     }
 
     /** ITEM registry phase: spawn eggs. Requires {@link #registerEntityTypes()} to have run. */

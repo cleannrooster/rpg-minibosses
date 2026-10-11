@@ -1,6 +1,15 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
+import java.util.Objects;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.entity.Tameable;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
+import com.cleannrooster.rpg_minibosses.magic.Relations;
+import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
+import com.cleannrooster.rpg_minibosses.magic.MagicCaster;
 import com.cleannrooster.rpg_minibosses.client.entity.effect.Effects;
 import com.cleannrooster.rpg_minibosses.client.entity.renderer.MinibossAnimationProvider;
 import com.cleannrooster.rpg_minibosses.entity.AI.*;
@@ -81,11 +90,6 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.village.*;
 import net.minecraft.world.*;
 import net.spell_engine.api.effect.Synchronized;
-import net.spell_engine.internals.target.EntityRelations;
-import net.spell_engine.internals.target.SpellTarget;
-import net.spell_engine.api.spell.registry.SpellRegistry;
-import net.spell_engine.fx.ParticleHelper;
-import net.spell_engine.utils.SoundHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -96,7 +100,7 @@ import static java.lang.Math.max;
 import static net.minecraft.entity.mob.HostileEntity.canSpawnIgnoreLightLevel;
 import static net.minecraft.entity.mob.HostileEntity.isSpawnDark;
 
-public class MinibossEntity extends PathAwareEntity implements Tameable,  Angerable, Merchant,
+public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tameable,  Angerable, Merchant,
         com.cleannrooster.rpg_minibosses.entity.combat.geometry.AttackAim.Aiming {
     private UUID ownerUuid;
     public boolean performing;
@@ -816,6 +820,12 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
      * hand that owns you, never a downed miniboss unless betrayal is enabled, and never a sibling serving
      * the same master.
      */
+    /** Spell power stated by this boss's entry in {@code RPGMinibossesEntities}, from config. */
+    @Override
+    public double magicPower(MagicSchool school) {
+        return RPGMinibossesEntities.magicPower(this.getType(), school);
+    }
+
     public boolean canHarm(Entity candidate) {
         if (candidate == this || candidate.isSpectator() || !(candidate instanceof LivingEntity living)
                 || !living.isAlive()) {
@@ -835,8 +845,41 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
                 return false;
             }
         }
-        return EntityRelations.actionAllowed(SpellTarget.FocusMode.AREA, SpellTarget.Intent.HARMFUL,
-                this, candidate);
+        return allowedByRelations(candidate);
+    }
+
+    /**
+     * The relation rules minibosses have always fought by — formerly applied to Spell Engine's relation
+     * check by {@code EntityRelationsMixin}, now the core's own: an untamed boss only fights another boss it
+     * is targeting, nobody fights a downed boss, and a tamed boss never turns on its owner or the owner's
+     * other pets. Everything else falls to {@link Relations#baseCanHarm}.
+     */
+    private boolean allowedByRelations(Entity target) {
+        if (target instanceof MinibossEntity other) {
+            boolean allowed = Relations.baseCanHarm(this, target);
+            if (!this.isTamed()) {
+                allowed = this.getTarget() != null && this.getTarget().equals(target);
+            }
+            if (other.getDataTracker().get(DOWN)) {
+                allowed = false;
+            }
+            return allowed;
+        }
+        var owner = this.getOwner();
+        if (owner == null) {
+            return true;
+        }
+        if (Objects.equals(owner, target)) {
+            return false;
+        }
+        if (!(target instanceof Tameable) && !(target instanceof TameableEntity)) {
+            return true;
+        }
+        var targetOwner = target instanceof Tameable tameable ? tameable.getOwner() : null;
+        boolean sameOwner = targetOwner != null && Objects.equals(owner, targetOwner);
+        boolean ownersMayFight = targetOwner == null
+                || (owner instanceof PlayerEntity player && Relations.baseCanHarm(player, targetOwner));
+        return !sameOwner && ownersMayFight;
     }
 
     /**
@@ -872,8 +915,13 @@ public class MinibossEntity extends PathAwareEntity implements Tameable,  Angera
 
     public void playReleaseParticlesAndSound(){
         if(!this.getWorld().isClient()) {
-            ParticleHelper.sendBatches(this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.visuals.particles);
-            SoundHelper.playSound(this.getWorld(), this, SpellRegistry.from(this.getWorld()).get(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "pound")).release.sound);
+            // What the old pound spell released: a golem's grunt and a puff of dust.
+            this.getWorld().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ENTITY_IRON_GOLEM_HURT,
+                    this.getSoundCategory(), 1.0f, 1.0f);
+            if (this.getWorld() instanceof ServerWorld world) {
+                FxEmitter.emit(world, FxCues.SMOKE, CueArgs.at(MagicSchool.GENERIC, this.getPos().add(0.0, 0.5, 0.0),
+                        1.5f, 0, world.random.nextLong()));
+            }
         }
     }
     public int delay(){

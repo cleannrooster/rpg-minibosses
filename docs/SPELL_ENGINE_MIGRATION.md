@@ -14,7 +14,7 @@ loaded when Spell Engine is installed.
 | 2b | Core mechanics in `magic/` (see below) | done — awaiting in-game check |
 | 3 | `BossSounds` + sound assets + THIRD_PARTY_NOTICES | done — awaiting in-game check |
 | 4 | Cue layer (`FxEmitter` / `CueHandlers`) + telegraphs | done — awaiting in-game check |
-| 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | |
+| 5 | Port bosses: Mercenary → Rogue → Juggernaut → Templar → FireMage → Gemini | done — awaiting in-game check |
 | 6 | `SlashVisual` → AtlasVFX `ArcSweep` trails | |
 | 7 | Replace `Synchronized` / `CustomModelStatusEffect` on core bosses (GeminiRenderer) | |
 | 8 | Flip deps to optional, load conditions on SE-only data, bytecode scan, 4-way test | |
@@ -127,6 +127,22 @@ overrides: `sounds(...)`, `releaseCue`, `impactCue`, `noTelegraph()`. `ActionRun
 when an action with `cast(...)` starts.
 
 Test: `/rpgminibosses ability rpg-minibosses:debug/nova 10 40` (2-second telegraph, then the cast).
+
+## Boss ports (phase 5)
+
+Every core boss casts `AbilitySpec`s built from its old spell JSON's numbers (see the javadoc on each:
+`MercenaryBrain.TRAP_BLAST`, `RogueBrain.KNIFE`, `JuggernautBrain.POUND`, `TemplarBrain.DIVINE_FALL`,
+`FireMageBrain.FIREBALL/VOLLEY_BOLT/NOVA`, `GeminiAbilities.*`). Bosses state their school power from
+config through `MagicCaster` (`RPGMinibossesEntities.Entry.magic(...)`), no longer through Spell Power
+attributes. `MinibossEntity.canHarm` carries the relation rules `EntityRelationsMixin` used to add.
+Damage hits through invulnerability frames by default, as Spell Engine's did.
+
+Deliberate differences from the Spell Engine versions:
+- Rogue's knife flies as motes (no `iron_dagger` model) and no longer bounces once.
+- Fire Mage volley bolts burst once on first contact instead of piercing/bouncing 99 times.
+- Gemini meteor launch divergence is a landing scatter (comet 1.3 blocks, starfall 5.8).
+- Templar's slash flourish uses vanilla `ENCHANTED_HIT` until phase 6 replaces it.
+- The core spell JSONs (`beam`, `comet`, `fireball`, …) are no longer read by anything; they stay for now.
 
 ## Loader API rule (phase 2a)
 
