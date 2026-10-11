@@ -32,6 +32,9 @@ public class BossCloud extends Entity {
 
     private static final TrackedData<Byte> SCHOOL = DataTracker.registerData(BossCloud.class, TrackedDataHandlerRegistry.BYTE);
     private static final TrackedData<Float> RADIUS = DataTracker.registerData(BossCloud.class, TrackedDataHandlerRegistry.FLOAT);
+    /** World time it was placed, and how long it lasts: the client's ground overlay washes in and fades out by them. */
+    private static final TrackedData<Long> BORN = DataTracker.registerData(BossCloud.class, TrackedDataHandlerRegistry.LONG);
+    private static final TrackedData<Integer> DURATION = DataTracker.registerData(BossCloud.class, TrackedDataHandlerRegistry.INTEGER);
 
     /** Client-side ambient visual, installed by the client; does nothing on a server. */
     public static Consumer<BossCloud> clientTick = cloud -> {
@@ -52,6 +55,8 @@ public class BossCloud extends Entity {
         cloud.yaw = yaw;
         cloud.getDataTracker().set(SCHOOL, (byte) ability.lookSchool().ordinal());
         cloud.getDataTracker().set(RADIUS, (float) spec.shape().extent());
+        cloud.getDataTracker().set(BORN, world.getTime());
+        cloud.getDataTracker().set(DURATION, spec.durationTicks());
         cloud.setPosition(at);
         world.spawnEntity(cloud);
         return cloud;
@@ -61,6 +66,8 @@ public class BossCloud extends Entity {
     protected void initDataTracker(DataTracker.Builder builder) {
         builder.add(SCHOOL, (byte) 0);
         builder.add(RADIUS, 1.0f);
+        builder.add(BORN, 0L);
+        builder.add(DURATION, 0);
     }
 
     public MagicSchool school() {
@@ -70,6 +77,14 @@ public class BossCloud extends Entity {
 
     public float radius() {
         return this.getDataTracker().get(RADIUS);
+    }
+
+    public long bornTick() {
+        return this.getDataTracker().get(BORN);
+    }
+
+    public int durationTicks() {
+        return this.getDataTracker().get(DURATION);
     }
 
     @Override

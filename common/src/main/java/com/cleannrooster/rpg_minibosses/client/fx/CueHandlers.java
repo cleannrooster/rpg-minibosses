@@ -79,6 +79,7 @@ public final class CueHandlers {
 
         BossProjectile.clientTick = CueHandlers::projectileTick;
         BossCloud.clientTick = CueHandlers::cloudTick;
+        GroundFx.register();
     }
 
     private static void play(FxCuePayload payload) {
@@ -104,8 +105,9 @@ public final class CueHandlers {
         world.spray(style.debris(), at, 0.3f, Math.max(1, Math.round(2 * DENSITY.effective())));
     }
 
-    /** A cloud's lingering motes, between its damaging pulses. */
+    /** A cloud's ground overlay ({@link GroundFx}), and its lingering motes between its damaging pulses. */
     private static void cloudTick(BossCloud cloud) {
+        GroundFx.track(cloud);
         if (cloud.age % 4 != 0) {
             return;
         }
