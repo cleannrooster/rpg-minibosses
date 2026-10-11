@@ -65,7 +65,6 @@ dependencies {
     // Content / library deps
     modImplementation "mod.azure.azurelib:azurelib-${platform}-${rootProject.minecraft_version}:${rootProject.azure_lib_version}"
     modImplementation "maven.modrinth:structure-pool-api:${rootProject.structure_pool_api_version_fabric}-${platform}"
-   // modCompileOnly "maven.modrinth:wizards:${rootProject.wizards_version}-${platform}"
     modCompileOnly "maven.modrinth:runes:${rootProject.runes_version}-${platform}"
 
     // NOTE: Trinkets (Fabric-only) and StructurePlacerAPI (Fabric-only) are intentionally NOT

@@ -58,7 +58,7 @@
             "models": [
               {
                 "fx": {
-                  "model_id": "wizards:spell_projectile/frost_shard"
+                  "model_id": "rpg-minibosses:spell_projectile/frost_shard"
                 }
               }
             ]
@@ -110,7 +110,7 @@
       "angle_degrees": 360.0
     },
     "sound": {
-      "id": "wizards:frost_shard_impact"
+      "id": "spell_engine:generic_frost_impact"
     },
     "visuals": {
       "particles": [

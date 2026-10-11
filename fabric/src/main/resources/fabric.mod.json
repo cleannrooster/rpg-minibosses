@@ -47,7 +47,6 @@
 	"suggests": {
 		"spell_engine": ">=1.10.0+1.21.1",
 		"spell_power": ">=1.6.0+1.21.1",
-		"wizards": ">=2.4.2+1.21.1",
 		"extraspellattributes": ">=1.0.6+1.21.1"
 	}
 }
