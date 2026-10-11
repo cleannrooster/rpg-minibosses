@@ -302,11 +302,11 @@ public class RPGMinibossesEntities {
             .add(EntityAttributes.GENERIC_MAX_HEALTH,config.alphaHealth)
             .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,100)
             .add(EntityAttributes.GENERIC_EXPLOSION_KNOCKBACK_RESISTANCE,100)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.betaAttackDamage),
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.alphaAttackDamage),
 
             0x09356B,
             0xebcb6a,false)
-            .magic(MagicSchool.ARCANE, config.alphaFirePower)
+            .magic(MagicSchool.ARCANE, config.alphaArcanePower)
             .magic(MagicSchool.FIRE, config.alphaFirePower)
             .magic(MagicSchool.LIGHTNING, config.alphaLightningPower);
 

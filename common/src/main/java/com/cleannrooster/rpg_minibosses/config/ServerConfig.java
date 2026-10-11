@@ -93,7 +93,7 @@ public class ServerConfig  implements ConfigData {
     public  float mercenaryGreaterMaxHealth = 60F;
     @Comment("Forsaken Mercenaries Armor ")
     public  float mercenaryGreaterArmor = 14F;
-    @Comment("Forsaken Mercenaries Ranged Damage ")
+    @Comment("Forsaken Mercenaries Ranged Damage: added to each crossbow bolt they fire")
     public  float mercenaryGreaterRangedDamage = 0F;
     @Comment("Forsaken Mercenaries Movement Speed Modifier")
     public  float mercenaryGreaterMovementSpeed = 1.4F;
@@ -163,7 +163,7 @@ public class ServerConfig  implements ConfigData {
     public  float mercenaryLesserMaxHealth = 25F;
     @Comment("Lesser Mercenaries Armor ")
     public  float mercenaryLesserArmor = 10;
-    @Comment("Lesser Mercenaries Ranged Damage ")
+    @Comment("Lesser Mercenaries Ranged Damage: added to each crossbow bolt they fire")
     public  float mercenaryLesserRangedDamage = 0F;
     @Comment("Lesser Mercenaries Movement Speed Modifier")
     public  float mercenaryLesserMovementSpeed = 1.4F;

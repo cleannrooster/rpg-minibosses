@@ -1,5 +1,6 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
+import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.entity.AI.ArtilleristCrossbowAttackGoal;
 
@@ -181,8 +182,27 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
         ArtilleristCrossbowAttackGoal.reload(this, stack);
         crossbow.shootAll(this.getWorld(), this, hand, stack, 1.6F,
                 (float) (14 - this.getWorld().getDifficulty().getId() * 4), target);
+        boostFreshBolts();
         ArtilleristCrossbowAttackGoal.reload(this, stack);
         this.postShoot();
+    }
+
+    /**
+     * Adds the configured ranged damage ({@code mercenaryGreaterRangedDamage} / {@code mercenaryLesserRangedDamage})
+     * to the bolts just fired. The crossbow spawns them synchronously, so they are this mob's own arrows of age 0;
+     * multishot bolts each get the bonus. With the default of 0 they are vanilla crossbow bolts, as before.
+     */
+    private void boostFreshBolts() {
+        var config = RPGMinibossesEntities.config;
+        double bonus = this.getDataTracker().get(MinibossEntity.LESSER)
+                ? config.mercenaryLesserRangedDamage : config.mercenaryGreaterRangedDamage;
+        if (bonus == 0.0 || this.getWorld().isClient()) {
+            return;
+        }
+        for (var bolt : this.getWorld().getEntitiesByClass(PersistentProjectileEntity.class,
+                this.getBoundingBox().expand(4.0), bolt -> bolt.getOwner() == this && bolt.age == 0)) {
+            bolt.setDamage(Math.max(0.0, bolt.getDamage() + bonus));
+        }
     }
 
     @Override
@@ -355,6 +375,7 @@ public class ArtilleristEntity extends MinibossEntity implements RangedAttackMob
     }
     public void shootAt(LivingEntity target, float pullProgress) {
         this.shoot(this, 1.6F);
+        boostFreshBolts();
     }
 
     /** Angle between two vectors in degrees; 0 when either is zero-length. Same as Spell Engine's VectorHelper. */
