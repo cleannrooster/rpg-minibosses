@@ -37,6 +37,13 @@ public final class FxCues {
     public static final Identifier SMOKE = id("smoke");
     /** The school's falling motes over {@code size} around {@code at}. */
     public static final Identifier RAIN = id("rain");
+    /**
+     * A faint warning line {@code at} → {@code to}, {@code size} = width: marks where something is about to
+     * strike without looking like the strike. Re-send every few ticks and it breathes.
+     */
+    public static final Identifier GUIDE_LINE = id("guide_line");
+    /** A faint warning ring of radius {@code size} around {@code at}, lying across the direction {@code to}. */
+    public static final Identifier GUIDE_RING = id("guide_ring");
 
     private FxCues() {
     }

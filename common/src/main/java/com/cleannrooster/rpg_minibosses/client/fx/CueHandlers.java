@@ -76,6 +76,8 @@ public final class CueHandlers {
                 a.tier() == 1, ArcSweep.Plane.HORIZONTAL, 5, 6, TrailStyles.slash(a.school().color()), a.seed()), DENSITY));
         register(FxCues.SMOKE, (world, a) -> FxShapes.smoke(world, a.at(), a.size(), 24, DENSITY.effective()));
         register(FxCues.RAIN, (world, a) -> FxShapes.rain(world, style(a), a.at(), a.size(), 16, DENSITY.effective()));
+        register(FxCues.GUIDE_LINE, (world, a) -> world.add(GuideShapes.line(style(a), a.at(), a.to(), a.size()), DENSITY));
+        register(FxCues.GUIDE_RING, (world, a) -> world.add(GuideShapes.ring(style(a), a.at(), a.to(), a.size()), DENSITY));
 
         BossProjectile.clientTick = CueHandlers::projectileTick;
         BossCloud.clientTick = CueHandlers::cloudTick;

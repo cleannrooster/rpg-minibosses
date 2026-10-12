@@ -91,7 +91,7 @@ public final class AbilityPresentation {
         var eye = caster.getEyePos();
         var direction = AbilityExecutor.beamDirection(caster, target);
         double length = beam.range();
-        FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(direction.multiply(length)),
+        FxEmitter.emit(world, FxCues.GUIDE_LINE, CueArgs.between(school, eye, eye.add(direction.multiply(length)),
                 0.08f + 0.12f * strength, 0, seed));
 
         var right = direction.crossProduct(new Vec3d(0.0, 1.0, 0.0));
@@ -101,18 +101,18 @@ public final class AbilityPresentation {
         double sin = Math.sin(Math.toRadians(beam.halfAngle()));
         for (var side : new Vec3d[]{right, right.negate(), up, up.negate()}) {
             var edge = direction.multiply(cos).add(side.multiply(sin));
-            FxEmitter.emit(world, FxCues.BEAM, CueArgs.between(school, eye, eye.add(edge.multiply(length)),
+            FxEmitter.emit(world, FxCues.GUIDE_LINE, CueArgs.between(school, eye, eye.add(edge.multiply(length)),
                     0.05f + 0.05f * strength, 0, seed));
         }
         // Where the cone ends: the rim of its cap, range * sin across, range * cos out along the middle.
-        FxEmitter.emit(world, FxCues.WISP, CueArgs.at(school, eye.add(direction.multiply(length * cos)),
-                (float) (length * sin), 0, seed));
+        FxEmitter.emit(world, FxCues.GUIDE_RING, CueArgs.between(school, eye.add(direction.multiply(length * cos)),
+                direction, (float) (length * sin), 0, seed));
         // Its width at the aim, if the aim is within reach.
         var aim = target.entity() != null ? target.entity().getBoundingBox().getCenter() : target.position();
         double reach = eye.distanceTo(aim);
         if (reach < length * cos) {
-            FxEmitter.emit(world, FxCues.WISP, CueArgs.at(school, eye.add(direction.multiply(reach)),
-                    (float) (reach * Math.tan(Math.toRadians(beam.halfAngle()))), 0, seed));
+            FxEmitter.emit(world, FxCues.GUIDE_RING, CueArgs.between(school, eye.add(direction.multiply(reach)),
+                    direction, (float) (reach * Math.tan(Math.toRadians(beam.halfAngle()))), 0, seed));
         }
     }
 
