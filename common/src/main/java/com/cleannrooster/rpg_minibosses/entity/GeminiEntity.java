@@ -1,5 +1,10 @@
 package com.cleannrooster.rpg_minibosses.entity;
 
+import net.minecraft.util.math.Vec3d;
+import com.cleannrooster.rpg_minibosses.magic.Delivery;
+import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.magic.MagicCaster;
 import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
@@ -801,8 +806,40 @@ public class GeminiEntity extends PathAwareEntity implements MagicCaster, Monste
         }
         for (int tick : pulseTicks) {
             TickScheduler.schedule(world, tick, () -> {
-                if (this.isAlive()) AbilityExecutor.cast(world, this, spec, aim);
+                if (this.isAlive()) {
+                    AbilityExecutor.cast(world, this, spec, aim);
+                    coneTendrils(world, spec, aim);
+                }
             });
+        }
+    }
+
+    /** Lightning tendrils per beam pulse, and the shortest one as a share of the beam's range. */
+    private static final int TENDRILS = 7;
+    private static final double TENDRIL_MIN_REACH = 0.35;
+
+    /**
+     * Lightning crackling through the blast: jagged, forking arcs from the vertex (the eye) out to points
+     * scattered through the cone it hits. Directions are spread evenly over the cone's opening and lengths
+     * vary, so the tendrils fill the volume rather than all reaching its tip; none leaves the cone.
+     */
+    private void coneTendrils(ServerWorld world, AbilitySpec spec, CastTarget aim) {
+        if (!(spec.delivery() instanceof Delivery.Beam beam)) return;
+        var eye = this.getEyePos();
+        var axis = AbilityExecutor.beamDirection(this, aim);
+        var right = axis.crossProduct(new Vec3d(0.0, 1.0, 0.0));
+        right = right.lengthSquared() < 1.0e-6 ? new Vec3d(1.0, 0.0, 0.0) : right.normalize();
+        var up = right.crossProduct(axis).normalize();
+        double maxTan = Math.tan(Math.toRadians(beam.halfAngle()));
+        var random = this.getRandom();
+        for (int i = 0; i < TENDRILS; i++) {
+            // sqrt for an even spread over the cone's cross-section rather than a cluster on the axis.
+            double offset = maxTan * Math.sqrt(random.nextDouble());
+            double around = random.nextDouble() * Math.PI * 2.0;
+            var direction = axis.add(right.multiply(Math.cos(around) * offset)).add(up.multiply(Math.sin(around) * offset)).normalize();
+            double reach = beam.range() * (TENDRIL_MIN_REACH + (1.0 - TENDRIL_MIN_REACH) * random.nextDouble());
+            FxEmitter.emit(world, FxCues.ARC, CueArgs.between(MagicSchool.LIGHTNING, eye, eye.add(direction.multiply(reach)),
+                    1.0f, 1, random.nextLong()));
         }
     }
 
