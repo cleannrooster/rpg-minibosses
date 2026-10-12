@@ -14,7 +14,8 @@ import net.minecraft.network.packet.CustomPayload;
  *
  * @param helpful drawn in the helpful colour rather than the danger colour
  */
-public record TelegraphPayload(TelegraphArea area, TelegraphTiming timing, boolean helpful) implements CustomPayload {
+/** @param colour the telegraph's colour, or 0 for the usual look (red, or green when {@code helpful}) */
+public record TelegraphPayload(TelegraphArea area, TelegraphTiming timing, boolean helpful, int colour) implements CustomPayload {
 
     public static final CustomPayload.Id<TelegraphPayload> ID = new CustomPayload.Id<>(RPGMinibosses.id("telegraph"));
 
@@ -55,6 +56,7 @@ public record TelegraphPayload(TelegraphArea area, TelegraphTiming timing, boole
         buffer.writeLong(this.timing.triggerTick());
         buffer.writeVarInt(this.timing.fadeTicks());
         buffer.writeBoolean(this.helpful);
+        buffer.writeInt(this.colour);
     }
 
     private static TelegraphPayload read(RegistryByteBuf buffer) {
@@ -66,7 +68,8 @@ public record TelegraphPayload(TelegraphArea area, TelegraphTiming timing, boole
             default -> new TelegraphArea.Circle(origin, buffer.readFloat());
         };
         var timing = new TelegraphTiming(buffer.readLong(), buffer.readLong(), buffer.readVarInt());
-        return new TelegraphPayload(area, timing, buffer.readBoolean());
+        boolean helpful = buffer.readBoolean();
+        return new TelegraphPayload(area, timing, helpful, buffer.readInt());
     }
 
     @Override

@@ -37,7 +37,8 @@ public final class AbilityPresentation {
         }
         var area = telegraphedArea(caster, spec, target);
         if (area != null) {
-            FxEmitter.telegraph(world, area, windupTicks, spec.intent() == AbilitySpec.Intent.HELPFUL);
+            FxEmitter.telegraph(world, area, windupTicks, spec.intent() == AbilitySpec.Intent.HELPFUL,
+                    presentation.telegraphColour());
         }
     }
 

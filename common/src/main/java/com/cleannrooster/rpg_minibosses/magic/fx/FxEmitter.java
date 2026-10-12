@@ -42,8 +42,13 @@ public final class FxEmitter {
 
     /** Warn of {@code area} (already placed and turned), landing {@code windupTicks} from now. */
     public static void telegraph(ServerWorld world, TelegraphArea area, int windupTicks, boolean helpful) {
+        telegraph(world, area, windupTicks, helpful, 0);
+    }
+
+    /** As above, drawn in {@code colour}; 0 for the usual look. */
+    public static void telegraph(ServerWorld world, TelegraphArea area, int windupTicks, boolean helpful, int colour) {
         var timing = TelegraphTiming.starting(world.getTime(), windupTicks, 8);
-        send(world, area.origin(), new TelegraphPayload(area, timing, helpful));
+        send(world, area.origin(), new TelegraphPayload(area, timing, helpful, colour));
     }
 
     public static void sound(ServerWorld world, Vec3d at, SoundEvent sound, float volume, float pitch) {

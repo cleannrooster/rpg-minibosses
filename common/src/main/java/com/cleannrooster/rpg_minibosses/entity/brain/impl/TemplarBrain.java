@@ -8,6 +8,7 @@ import net.minecraft.server.world.ServerWorld;
 import com.cleannrooster.rpg_minibosses.magic.AbilityExecutor;
 import com.cleannrooster.rpg_minibosses.magic.AbilitySpec;
 import com.cleannrooster.rpg_minibosses.magic.CastTarget;
+import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
 import com.cleannrooster.rpg_minibosses.magic.Delivery;
 import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import dev.eann.atlasvfx.telegraph.TelegraphArea;
@@ -61,6 +62,8 @@ public class TemplarBrain extends MobBrain {
                     .bursting(new TelegraphArea.Circle(Vec3d.ZERO, 4.0f), 3.0), 4.0))
             .damage(0.8f)
             .looksLike(MagicSchool.LIGHTNING)
+            // Holy gold, the strike's own colour, rather than the usual red.
+            .telegraphColour(0xFFD24A)
             .sounds(BossSounds.HEALING.windup(), BossSounds.HEALING.release(), BossSounds.HEALING.impact())
             .impactCue(FxCues.HOLY_STRIKE)
             .build();
@@ -352,13 +355,22 @@ public class TemplarBrain extends MobBrain {
         return this.sweepRightToLeft ? this.sweepRl : this.sweepLr;
     }
 
-    /** One Divine Fall strike on the target's current position. */
+    /**
+     * One Divine Fall strike on the target's current position, with its burst marked on the ground (in the
+     * strike's holy gold) for exactly as long as the light takes to fall onto it.
+     */
     private void callDown(ActionContext ctx) {
         var target = ctx.liveTarget();
-        if (target == null || !entity.canSee(target) || entity.getWorld().isClient()) {
+        if (target == null || !entity.canSee(target) || !(entity.getWorld() instanceof ServerWorld world)) {
             return;
         }
-        AbilityExecutor.cast((ServerWorld) entity.getWorld(), entity, DIVINE_FALL, CastTarget.at(entity, target));
+        var aim = CastTarget.at(entity, target);
+        if (DIVINE_FALL.delivery() instanceof Delivery.Meteor meteor && meteor.spec().burst() != null) {
+            int fallTicks = (int) Math.ceil(meteor.height() / meteor.spec().speed());
+            FxEmitter.telegraph(world, meteor.spec().burst().shape().at(aim.position(), aim.yaw()), fallTicks, false,
+                    DIVINE_FALL.presentation().telegraphColour());
+        }
+        AbilityExecutor.cast(world, entity, DIVINE_FALL, aim);
     }
 
     /**

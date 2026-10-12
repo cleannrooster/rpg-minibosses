@@ -28,8 +28,11 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
      */
     public record Presentation(@Nullable SoundEvent windupSound, @Nullable SoundEvent releaseSound,
                                @Nullable SoundEvent impactSound, @Nullable Identifier releaseCue,
-                               @Nullable Identifier impactCue, boolean telegraph, @Nullable MagicSchool look) {
-        public static final Presentation DEFAULT = new Presentation(null, null, null, null, null, true, null);
+                               @Nullable Identifier impactCue, boolean telegraph, @Nullable MagicSchool look,
+                               int telegraphColour) {
+        /** {@link #telegraphColour} when the telegraph takes the usual look: red to hurt, green to help. */
+        public static final int USUAL_TELEGRAPH = 0;
+        public static final Presentation DEFAULT = new Presentation(null, null, null, null, null, true, null, USUAL_TELEGRAPH);
     }
 
     /** The school it looks and sounds like. */
@@ -65,6 +68,7 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
         private @Nullable Identifier impactCue;
         private boolean telegraph = true;
         private @Nullable MagicSchool look;
+        private int telegraphColour = Presentation.USUAL_TELEGRAPH;
 
         private Builder(Identifier id, MagicSchool school) {
             this.id = id;
@@ -112,6 +116,12 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
         }
 
         /** Look and sound like {@code school} while still dealing this ability's own school of damage. */
+        /** Draws its telegraph in {@code rgb} instead of the usual red (or green, for a helpful ability). */
+        public Builder telegraphColour(int rgb) {
+            this.telegraphColour = rgb & 0xFFFFFF;
+            return this;
+        }
+
         public Builder looksLike(MagicSchool school) {
             this.look = school;
             return this;
@@ -125,7 +135,7 @@ public record AbilitySpec(Identifier id, MagicSchool school, Intent intent, Deli
 
         public AbilitySpec build() {
             var presentation = new Presentation(this.windupSound, this.releaseSound, this.impactSound,
-                    this.releaseCue, this.impactCue, this.telegraph, this.look);
+                    this.releaseCue, this.impactCue, this.telegraph, this.look, this.telegraphColour);
             var spec = new AbilitySpec(this.id, this.school, this.intent, this.delivery, this.impacts, presentation);
             AbilityRegistry.register(spec);
             return spec;

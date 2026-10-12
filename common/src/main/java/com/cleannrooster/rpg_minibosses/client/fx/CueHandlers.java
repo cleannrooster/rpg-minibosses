@@ -94,8 +94,12 @@ public final class CueHandlers {
         handler.play(FxWorld.get(), payload.args());
     }
 
+    /** Telegraph looks by colour, built once each. */
+    private static final Map<Integer, TelegraphStyle> TELEGRAPH_COLOURS = new HashMap<>();
+
     private static void telegraph(TelegraphPayload payload) {
-        var style = payload.helpful() ? HELPFUL : TelegraphStyles.DANGER;
+        var style = payload.colour() != 0 ? TELEGRAPH_COLOURS.computeIfAbsent(payload.colour(), TelegraphStyles::of)
+                : payload.helpful() ? HELPFUL : TelegraphStyles.DANGER;
         FxWorld.get().play(Telegraph.fixed(payload.area(), payload.timing(), style), DENSITY);
     }
 
