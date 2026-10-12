@@ -1,5 +1,7 @@
 package com.cleannrooster.rpg_minibosses.entity.brain.impl;
 
+import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.BossSounds;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.server.world.ServerWorld;
@@ -50,11 +52,17 @@ public class TemplarBrain extends MobBrain {
     /**
      * The old {@code divine_fall} spell: holy light dropped from four blocks above the target, falling
      * slowly enough to step out from under, bursting over four blocks for 0.8 × healing power as damage.
+     *
+     * <p>It still hits as healing power, but looks like holy lightning: lightning's pale-gold sparks in flight
+     * and a {@link FxCues#HOLY_STRIKE} on landing. Its sounds stay the healing school's own events.</p>
      */
     static final AbilitySpec DIVINE_FALL = AbilitySpec.builder(RPGMinibosses.id("templar/divine_fall"), MagicSchool.HEALING)
             .delivery(new Delivery.Meteor(Delivery.ProjectileSpec.straight(0.1).withLifetime(80)
                     .bursting(new TelegraphArea.Circle(Vec3d.ZERO, 4.0f), 3.0), 4.0))
             .damage(0.8f)
+            .looksLike(MagicSchool.LIGHTNING)
+            .sounds(BossSounds.HEALING.windup(), BossSounds.HEALING.release(), BossSounds.HEALING.impact())
+            .impactCue(FxCues.HOLY_STRIKE)
             .build();
 
     public enum Stance implements BrainState {

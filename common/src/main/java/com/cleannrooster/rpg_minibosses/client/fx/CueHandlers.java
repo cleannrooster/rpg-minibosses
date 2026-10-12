@@ -78,6 +78,7 @@ public final class CueHandlers {
         register(FxCues.RAIN, (world, a) -> FxShapes.rain(world, style(a), a.at(), a.size(), 16, DENSITY.effective()));
         register(FxCues.GUIDE_LINE, (world, a) -> world.add(GuideShapes.line(style(a), a.at(), a.to(), a.size()), DENSITY));
         register(FxCues.GUIDE_RING, (world, a) -> world.add(GuideShapes.ring(style(a), a.at(), a.to(), a.size()), DENSITY));
+        register(FxCues.HOLY_STRIKE, CueHandlers::holyStrike);
 
         BossProjectile.clientTick = CueHandlers::projectileTick;
         BossCloud.clientTick = CueHandlers::cloudTick;
@@ -115,6 +116,28 @@ public final class CueHandlers {
         }
         var style = SchoolStyles.of(cloud.school());
         FxShapes.wisp(FxWorld.get(), style, cloud.getPos().add(0.0, 0.3, 0.0), cloud.radius(), 6, DENSITY.effective());
+    }
+
+    /** Bolts in a holy strike, and how high above the ground they come out of the sky. */
+    private static final int HOLY_BOLTS = 5;
+    private static final double HOLY_BOLT_HEIGHT = 9.0;
+
+    /** Holy lightning: a shaft down onto the spot, forked bolts out of the sky across the area, a flash. */
+    private static void holyStrike(FxWorld world, CueArgs a) {
+        var holy = SchoolStyles.holy();
+        var random = new java.util.Random(a.seed());
+        world.play(FxShapes.blast(holy, a.at(), a.size(), 1, a.seed(), true), DENSITY);
+        world.play(FxShapes.explosion(holy, a.at(), a.size(), 1, a.seed()), DENSITY);
+        // One bolt straight down the middle, the rest scattered over the area; each starts a little off to the
+        // side of where it lands, so they slant like real strikes rather than standing as straight posts.
+        for (int i = 0; i < HOLY_BOLTS; i++) {
+            double r = i == 0 ? 0.0 : a.size() * Math.sqrt(random.nextDouble());
+            double around = random.nextDouble() * Math.PI * 2.0;
+            var ground = a.at().add(Math.cos(around) * r, 0.1, Math.sin(around) * r);
+            var sky = ground.add((random.nextDouble() - 0.5) * 3.0, HOLY_BOLT_HEIGHT * (0.8 + 0.4 * random.nextDouble()),
+                    (random.nextDouble() - 0.5) * 3.0);
+            world.play(FxShapes.arc(holy, sky, ground, i == 0 ? 2 : 1, random.nextLong()), DENSITY);
+        }
     }
 
     private static dev.eann.atlasvfx.FxStyle style(CueArgs args) {

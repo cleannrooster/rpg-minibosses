@@ -44,6 +44,11 @@ public final class FxCues {
     public static final Identifier GUIDE_LINE = id("guide_line");
     /** A faint warning ring of radius {@code size} around {@code at}, lying across the direction {@code to}. */
     public static final Identifier GUIDE_RING = id("guide_ring");
+    /**
+     * Holy lightning landing at {@code at} over {@code size} blocks: a gold-white shaft coming down, forked
+     * bolts striking out of the sky across the area, and a flash. School is ignored; it is always holy.
+     */
+    public static final Identifier HOLY_STRIKE = id("holy_strike");
 
     private FxCues() {
     }

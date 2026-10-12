@@ -40,6 +40,13 @@ public final class SchoolStyles {
         return STYLES.get(school);
     }
 
+    /** Holy light: warm gold-white, throwing sparks like lightning. For the Templar's holy strikes. */
+    public static FxStyle holy() {
+        return HOLY;
+    }
+
+    private static final FxStyle HOLY = style(0xFFE9A8, FxSprite.particleRun("generic", 8), FxSprite.particleRun("spark", 8), false);
+
     private static FxStyle style(int colour, FxSprite debrisSprite, FxSprite accentSprite, boolean snows) {
         int hot = FxColor.mix(colour, FxColor.WHITE, 0.7f);
         var debris = new MoteRecipe(debrisSprite, FxBlend.EMISSIVE, Motion.BURST,
