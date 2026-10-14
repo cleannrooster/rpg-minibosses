@@ -1,0 +1,6 @@
+{
+  "parent": "anarchy_rpg:block/poster_inventory",
+  "textures": {
+    "texture": "anarchy_rpg:block/poster_templar"
+  }
+}

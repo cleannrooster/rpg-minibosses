@@ -2,7 +2,7 @@
 
 ## Sound effects
 
-`common/src/main/resources/assets/rpg-minibosses/sounds/boss/**/*.ogg` are converted (mono,
+`common/src/main/resources/assets/anarchy_rpg/sounds/boss/**/*.ogg` are converted (mono,
 silence-trimmed except loops, Ogg Vorbis) from two OpenGameArt packs by `tools/convert_sounds.py`,
 which also lists which source file backs which sound. The converted files remain under their source
 licences; the rest of the mod keeps its own licence.

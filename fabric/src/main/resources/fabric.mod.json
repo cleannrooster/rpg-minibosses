@@ -12,23 +12,23 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/rpg-minibosses/icon.png",
+	"icon": "assets/anarchy_rpg/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.cleannrooster.rpg_minibosses.fabric.RPGMinibossesFabric"
+			"com.cleannrooster.anarchy_rpg.fabric.RPGMinibossesFabric"
 		],
 		"client": [
-			"com.cleannrooster.rpg_minibosses.fabric.RPGMinibossesFabricClient"
+			"com.cleannrooster.anarchy_rpg.fabric.RPGMinibossesFabricClient"
 		],
 		"fabric-datagen": [
-			"com.cleannrooster.rpg_minibosses.data.DataGenRPG"
+			"com.cleannrooster.anarchy_rpg.data.DataGenRPG"
 		]
 	},
 	"mixins": [
-		"rpg-minibosses.mixins.json",
-		"rpg-minibosses-spell_engine.mixins.json",
-		"rpg-minibosses-fabric.mixins.json"
+		"anarchy_rpg.mixins.json",
+		"anarchy_rpg-spell_engine.mixins.json",
+		"anarchy_rpg-fabric.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.5",

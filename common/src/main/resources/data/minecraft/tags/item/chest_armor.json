@@ -1,11 +1,11 @@
 {
   "values": [
     {
-      "id": "rpg-minibosses:trickster_chest",
+      "id": "anarchy_rpg:trickster_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:juggernaut_chest",
+      "id": "anarchy_rpg:juggernaut_chest",
       "required": false
     }
   ]

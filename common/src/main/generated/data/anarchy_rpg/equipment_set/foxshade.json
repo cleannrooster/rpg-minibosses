@@ -1,0 +1,32 @@
+{
+  "bonuses": [
+    {
+      "attributes": {
+        "modifiers": [
+          {
+            "type": "spell_engine:evasion_chance",
+            "amount": 0.4000000059604645,
+            "id": "anarchy_rpg:set_bonus",
+            "operation": "add_multiplied_base",
+            "slot": "armor"
+          }
+        ]
+      },
+      "required_piece_count": 2
+    },
+    {
+      "required_piece_count": 2,
+      "spells": {
+        "access": "ANY",
+        "spell_ids": [
+          "anarchy_rpg:foxshade"
+        ]
+      }
+    }
+  ],
+  "items": [
+    "anarchy_rpg:foxshade_chest",
+    "anarchy_rpg:foxshade_legs"
+  ],
+  "name": "foxshade"
+}

@@ -20,7 +20,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-ASSETS = os.path.join(ROOT, "common", "src", "main", "resources", "assets", "rpg-minibosses")
+ASSETS = os.path.join(ROOT, "common", "src", "main", "resources", "assets", "anarchy_rpg")
 JAVA = os.path.join(ROOT, "common", "src", "main", "java")
 
 ACTIVE = os.path.join(ASSETS, "animations", "mobs_v2.animations.json")
@@ -55,7 +55,7 @@ TIMING_EXEMPT = {
     "jugg_spin": "the clip loops for the duration of the spin rather than spanning it once",
 }
 
-BRAIN_DIR = os.path.join(JAVA, "com", "cleannrooster", "rpg_minibosses", "entity", "brain", "impl")
+BRAIN_DIR = os.path.join(JAVA, "com", "cleannrooster", "anarchy_rpg", "entity", "brain", "impl")
 
 FAMILY_PREFIX = {
     "JuggernautBrain.java": "animation.v2.jugg.",
@@ -250,7 +250,7 @@ def main():
     families = ("animation.v2.jugg.", "animation.v2.templar.", "animation.v2.trickster.",
                 "animation.v2.merc.", "animation.v2.mage.")
 
-    dispatcher = os.path.join(JAVA, "com", "cleannrooster", "rpg_minibosses", "client", "entity",
+    dispatcher = os.path.join(JAVA, "com", "cleannrooster", "anarchy_rpg", "client", "entity",
                               "renderer", "MinibossAnimationProvider.java")
     text = open(dispatcher, encoding="utf-8").read()
     # AzCommand.create("controller", "clip", ...) — the legacy one-shot commands.

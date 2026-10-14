@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "anarchy_rpg:item/deatomized_fragment"
+  }
+}

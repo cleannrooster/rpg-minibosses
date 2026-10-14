@@ -1,0 +1,32 @@
+{
+  "bonuses": [
+    {
+      "attributes": {
+        "modifiers": [
+          {
+            "type": "minecraft:generic.attack_damage",
+            "amount": 0.5,
+            "id": "anarchy_rpg:set_bonus",
+            "operation": "add_multiplied_base",
+            "slot": "armor"
+          }
+        ]
+      },
+      "required_piece_count": 2
+    },
+    {
+      "required_piece_count": 2,
+      "spells": {
+        "access": "ANY",
+        "spell_ids": [
+          "anarchy_rpg:despot"
+        ]
+      }
+    }
+  ],
+  "items": [
+    "anarchy_rpg:despot_chest",
+    "anarchy_rpg:despot_legs"
+  ],
+  "name": "despot"
+}

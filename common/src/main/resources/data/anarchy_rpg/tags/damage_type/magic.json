@@ -1,0 +1,11 @@
+{
+  "values": [
+    "anarchy_rpg:generic",
+    "anarchy_rpg:arcane",
+    "anarchy_rpg:fire",
+    "anarchy_rpg:frost",
+    "anarchy_rpg:healing",
+    "anarchy_rpg:lightning",
+    "anarchy_rpg:soul"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "com.cleannrooster.anarchy_rpg.compat.spellengine.mixin",
+  "plugin": "com.cleannrooster.anarchy_rpg.compat.SpellEngineMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "SpellProjectileMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

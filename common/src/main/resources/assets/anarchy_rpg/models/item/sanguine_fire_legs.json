@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "anarchy_rpg:item/sanguine_fire_legs"
+  }
+
+}

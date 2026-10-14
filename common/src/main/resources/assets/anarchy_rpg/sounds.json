@@ -1,0 +1,513 @@
+{
+  "explosion": {
+    "subtitle": "subtitles.anarchy_rpg.dark_matter_explosion",
+    "sounds": [
+      "anarchy_rpg:explosion"
+    ]
+  },
+  "boom": {
+    "subtitle": "subtitles.anarchy_rpg.anticipation",
+    "sounds": [
+      "anarchy_rpg:boom"
+    ]
+  },
+  "warcry": {
+    "subtitle": "subtitles.anarchy_rpg.warcry",
+    "sounds": [
+      "anarchy_rpg:warcry"
+    ]
+  },
+  "boss.fire.windup": {
+    "subtitle": "subtitles.anarchy_rpg.boss.fire.windup",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/fire/windup_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.fire.release": {
+    "subtitle": "subtitles.anarchy_rpg.boss.fire.release",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/fire/release_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/fire/release_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/fire/release_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.fire.impact": {
+    "subtitle": "subtitles.anarchy_rpg.boss.fire.impact",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/fire/impact_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/fire/impact_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/fire/impact_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.fire.ignite": {
+    "subtitle": "subtitles.anarchy_rpg.boss.fire.ignite",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/fire/ignite_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.fire.loop": {
+    "subtitle": "subtitles.anarchy_rpg.boss.fire.loop",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/fire/loop_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.frost.windup": {
+    "subtitle": "subtitles.anarchy_rpg.boss.frost.windup",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/frost/windup_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.frost.release": {
+    "subtitle": "subtitles.anarchy_rpg.boss.frost.release",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/frost/release_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/frost/release_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/frost/release_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.frost.impact": {
+    "subtitle": "subtitles.anarchy_rpg.boss.frost.impact",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/frost/impact_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/frost/impact_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/frost/impact_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.frost.freeze": {
+    "subtitle": "subtitles.anarchy_rpg.boss.frost.freeze",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/frost/freeze_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.frost.loop": {
+    "subtitle": "subtitles.anarchy_rpg.boss.frost.loop",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/frost/loop_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.lightning.windup": {
+    "subtitle": "subtitles.anarchy_rpg.boss.lightning.windup",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/lightning/windup_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.lightning.release": {
+    "subtitle": "subtitles.anarchy_rpg.boss.lightning.release",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/lightning/release_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/lightning/release_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/lightning/release_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.lightning.impact": {
+    "subtitle": "subtitles.anarchy_rpg.boss.lightning.impact",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/lightning/impact_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/lightning/impact_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/lightning/impact_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.lightning.loop": {
+    "subtitle": "subtitles.anarchy_rpg.boss.lightning.loop",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/lightning/loop_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.arcane.windup": {
+    "subtitle": "subtitles.anarchy_rpg.boss.arcane.windup",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/arcane/windup_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/arcane/windup_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.arcane.release": {
+    "subtitle": "subtitles.anarchy_rpg.boss.arcane.release",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/arcane/release_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/arcane/release_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/arcane/release_3",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/arcane/release_4",
+        "stream": false
+      }
+    ]
+  },
+  "boss.arcane.impact": {
+    "subtitle": "subtitles.anarchy_rpg.boss.arcane.impact",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/arcane/impact_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.soul.windup": {
+    "subtitle": "subtitles.anarchy_rpg.boss.soul.windup",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/soul/windup_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/soul/windup_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/soul/windup_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.soul.release": {
+    "subtitle": "subtitles.anarchy_rpg.boss.soul.release",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/soul/release_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.soul.impact": {
+    "subtitle": "subtitles.anarchy_rpg.boss.soul.impact",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/soul/impact_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.soul.loop": {
+    "subtitle": "subtitles.anarchy_rpg.boss.soul.loop",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/soul/loop_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.healing.windup": {
+    "subtitle": "subtitles.anarchy_rpg.boss.healing.windup",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/healing/windup_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/healing/windup_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.healing.release": {
+    "subtitle": "subtitles.anarchy_rpg.boss.healing.release",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/lightning/release_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.healing.impact": {
+    "subtitle": "subtitles.anarchy_rpg.boss.healing.impact",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/lightning/impact_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/lightning/impact_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.swing": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.swing",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/swing_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/swing_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/swing_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.heavy_swing": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.heavy_swing",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/heavy_swing_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/heavy_swing_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/heavy_swing_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.hit": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.hit",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/hit_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/hit_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/hit_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.heavy_hit": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.heavy_hit",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/heavy_hit_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/heavy_hit_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/heavy_hit_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.dagger_throw": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.dagger_throw",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/dagger_throw_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/dagger_throw_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/dagger_throw_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.dagger_hit": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.dagger_hit",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/dagger_hit_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/dagger_hit_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/dagger_hit_3",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.bow_draw": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.bow_draw",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/bow_draw_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/bow_draw_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.bow_shoot": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.bow_shoot",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/bow_shoot_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/bow_shoot_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.physical.bow_hit": {
+    "subtitle": "subtitles.anarchy_rpg.boss.physical.bow_hit",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/physical/bow_hit_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/physical/bow_hit_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.teleport.out": {
+    "subtitle": "subtitles.anarchy_rpg.boss.teleport.out",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/teleport/out_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.teleport.in": {
+    "subtitle": "subtitles.anarchy_rpg.boss.teleport.in",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/teleport/in_1",
+        "stream": false
+      }
+    ]
+  },
+  "boss.shield": {
+    "subtitle": "subtitles.anarchy_rpg.boss.shield",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/shield_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/shield_2",
+        "stream": false
+      }
+    ]
+  },
+  "boss.explosion": {
+    "subtitle": "subtitles.anarchy_rpg.boss.explosion",
+    "sounds": [
+      {
+        "name": "anarchy_rpg:boss/explosion_1",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/explosion_2",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/explosion_3",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/explosion_4",
+        "stream": false
+      },
+      {
+        "name": "anarchy_rpg:boss/explosion_5",
+        "stream": false
+      }
+    ]
+  }
+}

@@ -1,11 +1,11 @@
 {
   "values": [
     {
-      "id": "rpg-minibosses:trickster_legs",
+      "id": "anarchy_rpg:trickster_legs",
       "required": false
     },
     {
-      "id": "rpg-minibosses:juggernaut_legs",
+      "id": "anarchy_rpg:juggernaut_legs",
       "required": false
     }
   ]

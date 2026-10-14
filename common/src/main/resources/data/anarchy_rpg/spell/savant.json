@@ -1,0 +1,84 @@
+{
+  "school": "spell_power:generic",
+  "range": 0.0,
+  "tier": 7,
+  "tooltip": {
+    "show_header": false,
+    "name": {
+      "show_in_compact": false,
+      "show_in_details": false
+    },
+    "description": {
+      "color": "dark_green"
+    }
+  },
+  "type": "PASSIVE",
+  "passive": {
+    "triggers": [
+      {
+        "type": "SPELL_IMPACT_ANY",
+        "chance": 1,
+        "spell": {
+          "type": "ACTIVE"
+        },
+        "impact": {
+          "impact_type": "DAMAGE",
+          "critical": true
+        }
+      }
+    ]
+  },
+  "release": {
+    "sound": {
+      "id": "relics_rpgs:melee_activate_1"
+    },
+    "visuals": {
+      "particles": [
+        {
+          "id": "spell_engine:magic_spark",
+          "appearance": {
+            "motion": "DECELERATE",
+            "color": 4294967295
+          },
+          "batch": {
+            "count": 25.0,
+            "shape": "SPHERE",
+            "min_speed": 0.14,
+            "max_speed": 0.15
+          }
+        },
+        {
+          "id": "spell_engine:magic_spark",
+          "appearance": {
+            "motion": "DECELERATE",
+            "color": 4294967295
+          },
+          "batch": {
+            "count": 25.0,
+            "shape": "SPHERE",
+            "min_speed": 0.24,
+            "max_speed": 0.25
+          }
+        }
+      ]
+    }
+  },
+  "impacts": [
+    {
+      "action": {
+        "type": "STATUS_EFFECT",
+        "apply_to_caster": true,
+        "status_effect": {
+          "effect_id": "anarchy_rpg:savant",
+          "duration": 4.0,
+          "refresh_duration": false
+        }
+      }
+    }
+  ],
+  "cost": {
+    "cooldown": {
+      "duration": 4
+    }
+  }
+}

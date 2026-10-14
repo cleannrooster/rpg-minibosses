@@ -1,0 +1,32 @@
+{
+  "bonuses": [
+    {
+      "attributes": {
+        "modifiers": [
+          {
+            "type": "minecraft:generic.armor",
+            "amount": 0.25,
+            "id": "anarchy_rpg:set_bonus",
+            "operation": "add_multiplied_base",
+            "slot": "armor"
+          }
+        ]
+      },
+      "required_piece_count": 2
+    },
+    {
+      "required_piece_count": 2,
+      "spells": {
+        "access": "ANY",
+        "spell_ids": [
+          "anarchy_rpg:kintsugi"
+        ]
+      }
+    }
+  ],
+  "items": [
+    "anarchy_rpg:kintsugi_chest",
+    "anarchy_rpg:kintsugi_legs"
+  ],
+  "name": "kintsugi"
+}

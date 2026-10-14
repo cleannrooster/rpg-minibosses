@@ -4,7 +4,7 @@ The table below is the single source of truth for which source file backs which 
 the script:
 
   * converts each listed source to mono Ogg Vorbis under
-    common/src/main/resources/assets/rpg-minibosses/sounds/boss/<key path>_<n>.ogg
+    common/src/main/resources/assets/anarchy_rpg/sounds/boss/<key path>_<n>.ogg
     (mono so the game fades it with distance; leading/trailing silence trimmed, except loops, whose
     length is the loop),
   * adds a sounds.json entry for each key that does not have one yet.
@@ -29,10 +29,10 @@ import sys
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
-ASSETS = PROJECT / "common/src/main/resources/assets/rpg-minibosses"
+ASSETS = PROJECT / "common/src/main/resources/assets/anarchy_rpg"
 SOUNDS_DIR = ASSETS / "sounds/boss"
 SOUNDS_JSON = ASSETS / "sounds.json"
-NAMESPACE = "rpg-minibosses"
+NAMESPACE = "anarchy_rpg"
 
 FANTASY = "Fantasy SFX Pack Vol 1/"
 F = "Fantasy SFX Pack Vol 1_"
@@ -43,7 +43,7 @@ def fantasy(name):
                       else name.split("|")[0] + "_" + F + name.split("|")[1])
 
 
-# key (sound event path under rpg-minibosses:boss.) -> (subtitle, [source files relative to the Mods folder])
+# key (sound event path under anarchy_rpg:boss.) -> (subtitle, [source files relative to the Mods folder])
 # Fantasy pack files are written as "Prefix|Name" for "Prefix_Fantasy SFX Pack Vol 1_Name.wav".
 SOUNDS = {
     # --- fire ---

@@ -43,7 +43,7 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-ANIM = os.path.join(ROOT, "common", "src", "main", "resources", "assets", "rpg-minibosses", "animations")
+ANIM = os.path.join(ROOT, "common", "src", "main", "resources", "assets", "anarchy_rpg", "animations")
 
 GEMINI_LEGACY = os.path.join(ANIM, "gemini.animations.json")
 GEMINI_V2 = os.path.join(ANIM, "gemini_v2.animations.json")

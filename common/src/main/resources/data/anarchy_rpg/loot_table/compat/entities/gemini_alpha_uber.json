@@ -1,0 +1,60 @@
+{
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "spell_engine"
+      ]
+    }
+  ],
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "spell_engine"
+    }
+  ],
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:empty"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:whispering_ice"
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:despot_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:kintsugi_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:foxshade_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:sanguine_arcane_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:sanguine_frost_chest"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "anarchy_rpg:sanguine_fire_chest"
+        }
+      ]
+    }
+  ]
+}

@@ -1,27 +1,27 @@
 {
   "values": [
     {
-      "id": "rpg-minibosses:despot_chest",
+      "id": "anarchy_rpg:despot_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:foxshade_chest",
+      "id": "anarchy_rpg:foxshade_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:kintsugi_chest",
+      "id": "anarchy_rpg:kintsugi_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_fire_chest",
+      "id": "anarchy_rpg:sanguine_fire_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_frost_chest",
+      "id": "anarchy_rpg:sanguine_frost_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_arcane_chest",
+      "id": "anarchy_rpg:sanguine_arcane_chest",
       "required": false
     }
   ]

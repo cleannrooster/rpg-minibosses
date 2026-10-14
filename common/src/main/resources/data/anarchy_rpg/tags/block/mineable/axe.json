@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "anarchy_rpg:poster_merc",
+    "anarchy_rpg:poster_rogue",
+    "anarchy_rpg:poster_mage",
+    "anarchy_rpg:poster_jugg",
+    "anarchy_rpg:poster_templar"
+  ]
+}
+

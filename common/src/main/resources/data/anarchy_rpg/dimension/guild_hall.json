@@ -1,0 +1,19 @@
+{
+  "type": "anarchy_rpg:guild_hall",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "anarchy_rpg:guild_hall",
+      "lakes": false,
+      "features": false,
+      "layers": [
+        {
+          "block": "minecraft:air",
+          "height": 64
+        }
+      ],
+      "structure_overrides": [
+      ]
+    }
+  }
+}

@@ -4,10 +4,10 @@ license = "CC0-1.0"
 issueTrackerURL = "https://github.com/FabricMC/fabric-example-mod"
 
 [[mixins]]
-config = "rpg-minibosses.mixins.json"
+config = "anarchy_rpg.mixins.json"
 
 [[mixins]]
-config = "rpg-minibosses-spell_engine.mixins.json"
+config = "anarchy_rpg-spell_engine.mixins.json"
 
 [[mods]]
 modId = "${neoforge_mod_id}"
@@ -17,7 +17,7 @@ authors = "cleannrooster/Forg!"
 description = '''
 Find petrified adventurers in the wild!
 '''
-logoFile = "assets/rpg-minibosses/icon.png"
+logoFile = "assets/anarchy_rpg/icon.png"
 
 [[dependencies.${neoforge_mod_id}]]
 modId = "neoforge"

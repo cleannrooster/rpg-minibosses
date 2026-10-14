@@ -38,61 +38,61 @@
           "maxCount": 2
         },
         {
-          "type": "rpg-minibosses:minor_juggernaut",
+          "type": "anarchy_rpg:minor_juggernaut",
           "weight": 10,
           "minCount": 1,
           "maxCount": 1
         },
         {
-          "type": "rpg-minibosses:minor_trickster",
+          "type": "anarchy_rpg:minor_trickster",
           "weight": 10,
           "minCount": 1,
           "maxCount": 1
         },
        {
-          "type": "rpg-minibosses:minor_templar",
+          "type": "anarchy_rpg:minor_templar",
           "weight": 10,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:minor_archmage_fire",
+          "type": "anarchy_rpg:minor_archmage_fire",
           "weight": 10,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:minor_mercenary",
+          "type": "anarchy_rpg:minor_mercenary",
           "weight": 10,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:juggernaut",
+          "type": "anarchy_rpg:juggernaut",
           "weight": 2,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:trickster",
+          "type": "anarchy_rpg:trickster",
           "weight": 2,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:templar",
+          "type": "anarchy_rpg:templar",
           "weight": 2,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:archmage_fire",
+          "type": "anarchy_rpg:archmage_fire",
           "weight": 2,
           "minCount": 1,
           "maxCount": 1
         },
 		{
-          "type": "rpg-minibosses:mercenary",
+          "type": "anarchy_rpg:mercenary",
           "weight": 2,
           "minCount": 1,
           "maxCount": 1

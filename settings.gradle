@@ -9,7 +9,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'rpg-minibosses'
+rootProject.name = 'anarchy_rpg'
 
 include 'common'
 include 'fabric'

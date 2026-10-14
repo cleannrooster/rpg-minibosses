@@ -1,0 +1,21 @@
+{
+	"required": true,
+	"package": "com.cleannrooster.anarchy_rpg.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"PatrolSpawnerMixin",
+		"ServerPlayerEntityMixin"
+	],
+	"client": [
+		"WorldRendererMixin",
+		"DimensionEffectsMixin",
+		"ClientWorldMixin",
+		"PropertiesMixin",
+		"RenderSystemMixin",
+		"EntityRenderDispatcherMixin"
+
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

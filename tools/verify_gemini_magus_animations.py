@@ -23,8 +23,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
-ASSETS = os.path.join(ROOT, "common", "src", "main", "resources", "assets", "rpg-minibosses")
-JAVA = os.path.join(ROOT, "common", "src", "main", "java", "com", "cleannrooster", "rpg_minibosses")
+ASSETS = os.path.join(ROOT, "common", "src", "main", "resources", "assets", "anarchy_rpg")
+JAVA = os.path.join(ROOT, "common", "src", "main", "java", "com", "cleannrooster", "anarchy_rpg")
 
 BOSSES = {
     "gemini": {

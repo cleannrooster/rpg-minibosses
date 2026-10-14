@@ -89,7 +89,7 @@ from collections import OrderedDict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ANIM_DIR = os.path.join(HERE, "..", "common", "src", "main", "resources",
-                        "assets", "rpg-minibosses", "animations")
+                        "assets", "anarchy_rpg", "animations")
 LEGACY = os.path.join(ANIM_DIR, "mobs.animations.json")
 OUTPUT = os.path.join(ANIM_DIR, "mobs_v2.animations.json")
 #: Checksum of what this script last emitted, so hand edits to the output can be detected.

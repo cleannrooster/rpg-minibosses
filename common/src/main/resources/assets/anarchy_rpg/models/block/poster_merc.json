@@ -1,0 +1,6 @@
+{
+  "parent": "anarchy_rpg:block/poster",
+  "textures": {
+    "texture": "anarchy_rpg:block/poster_merc"
+  }
+}

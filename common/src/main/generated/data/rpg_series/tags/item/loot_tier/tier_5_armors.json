@@ -1,51 +1,51 @@
 {
   "values": [
     {
-      "id": "rpg-minibosses:despot_chest",
+      "id": "anarchy_rpg:despot_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:despot_legs",
+      "id": "anarchy_rpg:despot_legs",
       "required": false
     },
     {
-      "id": "rpg-minibosses:foxshade_chest",
+      "id": "anarchy_rpg:foxshade_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:foxshade_legs",
+      "id": "anarchy_rpg:foxshade_legs",
       "required": false
     },
     {
-      "id": "rpg-minibosses:kintsugi_chest",
+      "id": "anarchy_rpg:kintsugi_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:kintsugi_legs",
+      "id": "anarchy_rpg:kintsugi_legs",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_fire_chest",
+      "id": "anarchy_rpg:sanguine_fire_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_fire_legs",
+      "id": "anarchy_rpg:sanguine_fire_legs",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_frost_chest",
+      "id": "anarchy_rpg:sanguine_frost_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_frost_legs",
+      "id": "anarchy_rpg:sanguine_frost_legs",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_arcane_chest",
+      "id": "anarchy_rpg:sanguine_arcane_chest",
       "required": false
     },
     {
-      "id": "rpg-minibosses:sanguine_arcane_legs",
+      "id": "anarchy_rpg:sanguine_arcane_legs",
       "required": false
     }
   ]
