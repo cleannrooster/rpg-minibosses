@@ -635,6 +635,22 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         this.partyMembership = partyMembership;
     }
 
+    /** The player this adventurer is talking to, if any. Server-side and not saved: a reload ends it. */
+    @Nullable
+    private UUID conversationPartner;
+
+    public @Nullable UUID getConversationPartner() {
+        return this.conversationPartner;
+    }
+
+    public void setConversationPartner(@Nullable UUID partner) {
+        this.conversationPartner = partner;
+    }
+
+    public boolean isDowned() {
+        return this.getDataTracker().get(DOWN);
+    }
+
     @Override
     public void setAiDisabled(boolean aiDisabled) {
         super.setAiDisabled(aiDisabled);
@@ -670,6 +686,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         ((MobNavigation)this.getNavigation()).setCanWalkOverFences(true);
         aimAt(this.getTarget());
         super.mobTick();
+        com.cleannrooster.anarchy_rpg.conversation.Conversations.tick(this);
 
     }
 
@@ -760,19 +777,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
             }
 
-            if (this.getOwnerUuid() != null && Objects.equals(this.getOwner(), player)) {
-                this.setSitting(!this.sitting);
-                if (this.getWorld() instanceof ServerWorld) {
-                    if (this.sitting) {
-                        player.sendMessage(this.getName().copy().append(Text.translatable(": ")).append(Text.of("I will stay here.")));
-                    } else {
-                        player.sendMessage(this.getName().copy().append(Text.translatable(": ")).append(Text.of("I will follow.")));
-
-                    }
-                }
-                return ActionResult.SUCCESS_NO_ITEM_USED;
-
-            }
             if (this.getDataTracker().get(DOWN) && !this.getCantHire()) {
                 if (this.getOwnerUuid() == null) {
                     if (player instanceof ServerPlayerEntity serverPlayer) {
@@ -786,6 +790,17 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
                 }
             }
+            // Spawn eggs and name tags keep their vanilla use on adventurers.
+            ItemStack held = player.getStackInHand(hand);
+            if (this.isDowned() || held.getItem() instanceof SpawnEggItem || held.isOf(Items.NAME_TAG)) {
+                return ActionResult.PASS;
+            }
+            // Talking (including the owner's Follow and Stay orders) is decided on the server.
+            if (this.getWorld().isClient()) {
+                return ActionResult.SUCCESS;
+            }
+            return player instanceof ServerPlayerEntity serverPlayer && com.cleannrooster.anarchy_rpg.conversation.Conversations.tryOpen(this, serverPlayer)
+                    ? ActionResult.CONSUME : ActionResult.PASS;
         }
         return ActionResult.PASS;
     }
@@ -810,6 +825,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public boolean damage(DamageSource source, float amount) {
+        if (!this.getWorld().isClient() && source.getAttacker() != null) {
+            com.cleannrooster.anarchy_rpg.conversation.Conversations.onDamagedBy(this, source.getAttacker().getUuid());
+        }
         if(amount < 1000000 && !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && this.getWorld().getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
             return false;
         }
@@ -1041,7 +1059,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     }
     public boolean shouldWander = false;
     public boolean shouldWander(){
-        return shouldWander;
+        return shouldWander && this.conversationPartner == null;
     }
     public class WanderAroundFarGoalConditional extends WanderAroundGoal {
         public static final float CHANCE = 0.001F;

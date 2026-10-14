@@ -101,6 +101,7 @@ public final class RPGMinibosses {
         com.cleannrooster.anarchy_rpg.magic.TickScheduler.register();
         com.cleannrooster.anarchy_rpg.magic.MagicDebugCommand.register();
         com.cleannrooster.anarchy_rpg.faction.Factions.register();
+        com.cleannrooster.anarchy_rpg.conversation.Conversations.register();
         SpellEngineCompat.hooks().init();
         registerEvents();
         registerWorldgenInjection();
