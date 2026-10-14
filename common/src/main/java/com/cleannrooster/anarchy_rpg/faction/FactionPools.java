@@ -83,7 +83,7 @@ public record FactionPools(List<String> names, List<DyeColor> colors, List<Ident
                             RPGMinibosses.CONTENT_NAMESPACE, RESOURCE, error))
                     .orElse(null);
             if (parsed == null || !parsed.usable()) {
-                RPGMinibosses.LOGGER.warn("[{}] {} cannot roll three distinct factions; using the built-in pools",
+                RPGMinibosses.LOGGER.warn("[{}] {} cannot roll three distinct guilds; using the built-in pools",
                         RPGMinibosses.CONTENT_NAMESPACE, RESOURCE);
                 current = DEFAULT;
             } else {

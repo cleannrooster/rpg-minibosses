@@ -51,6 +51,8 @@ public final class Companions {
     private static final double DEPART_DISTANCE = 64.0;
     private static final double DEPART_WATCH = 48.0;
     private static final int DEPART_MAX_TICKS = 2400;
+    /** Not hit for this long, and nothing targeted: out of combat. */
+    private static final int OUT_OF_COMBAT_TICKS = 100;
 
     public enum RecruitResult { BOUND, ALREADY_HAS_COMPANION }
 
@@ -66,6 +68,7 @@ public final class Companions {
         CompanionOptions.register();
         CompanionMenus.registerOption();
         CompanionDebugCommand.register();
+        CompanionCommand.register();
     }
 
     static long now(MinecraftServer server) {
@@ -243,6 +246,23 @@ public final class Companions {
         return true;
     }
 
+    /**
+     * Any healing gets a downed companion straight back up: it keeps its health plus the heal, rather than
+     * waiting out the timer for the usual revive.
+     */
+    public static void onHealed(MinibossEntity npc) {
+        if (!(npc.getWorld() instanceof ServerWorld world) || !npc.getDataTrackerCompanionDowned()) {
+            return;
+        }
+        CompanionRegistry registry = CompanionRegistry.get(world.getServer());
+        CompanionRecord record = registry.ofNpc(npc.getUuid());
+        npc.setCompanionDowned(false);
+        if (record != null && record.mode == CompanionMode.DOWNED) {
+            record.mode = record.modeBeforeDown == CompanionMode.DOWNED ? CompanionMode.FOLLOWING : record.modeBeforeDown;
+            registry.markDirty();
+        }
+    }
+
     private static void revive(MinibossEntity npc, CompanionRecord record) {
         npc.setCompanionDowned(false);
         npc.setHealth(Math.max(1.0F, npc.getMaxHealth() * RPGMinibossesEntities.config.companionReviveHealth));
@@ -267,7 +287,15 @@ public final class Companions {
         CompanionRegistry registry = CompanionRegistry.get(server);
         CompanionRecord record = registry.ofNpc(npc.getUuid());
         if (record == null) {
-            // Owned, but not on the books: a companion from before 3.0's registry, or one that was released.
+            // Owned, but not on the books. One that was ever registered (incarnation above 0) was released
+            // while this copy sat unloaded: it never re-binds, it just leaves. Only a companion from before the
+            // registry existed is adopted.
+            if (npc.getCompanionIncarnation() > 0) {
+                npc.setOwnerUuid(null);
+                npc.setSitting(true);
+                npc.startDeparting(npc.getBlockPos(), 0);
+                return;
+            }
             if (registry.ofOwner(npc.getOwnerUuid()) == null && registry.bind(npc.getOwnerUuid(), npc.getUuid()) != null) {
                 record = registry.ofNpc(npc.getUuid());
                 record.incarnation = Math.max(1, npc.getCompanionIncarnation());
@@ -286,6 +314,10 @@ public final class Companions {
         record.lastKnown = GlobalPos.create(world.getRegistryKey(), npc.getBlockPos());
         record.missingSince = 0;
         long now = now(server);
+        record.lastSeen = now;
+        if (checkSeparated(server, world, npc, record, now)) {
+            return;
+        }
         switch (record.mode) {
             case DOWNED -> {
                 npc.setCompanionDowned(true);
@@ -305,28 +337,95 @@ public final class Companions {
             }
             case AT_BASE -> {
                 npc.setSitting(true);
-                GlobalPos base = rendezvousOf(server, record.owner);
-                if (base == null) {
-                    record.mode = CompanionMode.FOLLOWING;
-                } else if (!base.dimension().equals(world.getRegistryKey()) || npc.getBlockPos().getSquaredDistance(base.pos()) > BASE_MOVED * BASE_MOVED) {
+                GlobalPos base = baseOf(server, record.owner);
+                if (!base.dimension().equals(world.getRegistryKey()) || npc.getBlockPos().getSquaredDistance(base.pos()) > BASE_MOVED * BASE_MOVED) {
                     record.mode = CompanionMode.TRAVELING_TO_BASE;
                 }
             }
             case FOLLOWING -> npc.setSitting(false);
         }
+        restNearSpawn(server, world, npc, record);
         if (npc.age % SNAPSHOT_INTERVAL == 0 && !npc.isRemoved()) {
             snapshot(npc, record);
         }
         registry.markDirty();
     }
 
-    /** Walk to the rendezvous point if it is near and in this dimension; otherwise vanish onto a simulated trip. */
-    private static void walkHome(MinecraftServer server, ServerWorld world, MinibossEntity npc, CompanionRecord record) {
-        GlobalPos base = rendezvousOf(server, record.owner);
-        if (base == null) {
-            record.mode = CompanionMode.FOLLOWING;
+    /**
+     * Failsafe: a following (or downed) companion that has been away from its online owner for
+     * {@code companionLostTimeoutTicks} (in another dimension, or farther than {@code companionLostDistance})
+     * makes its way home instead of holding the owner's companion slot forever. Returns true if it left.
+     */
+    private static boolean checkSeparated(MinecraftServer server, ServerWorld world, MinibossEntity npc, CompanionRecord record, long now) {
+        if (record.mode != CompanionMode.FOLLOWING && record.mode != CompanionMode.DOWNED) {
+            record.separatedSince = 0;
+            return false;
+        }
+        ServerPlayerEntity owner = server.getPlayerManager().getPlayer(record.owner);
+        if (owner == null) {
+            record.separatedSince = 0; // Owner offline: wait where it is for their return.
+            return false;
+        }
+        double limit = RPGMinibossesEntities.config.companionLostDistance;
+        boolean away = owner.getWorld() != world || owner.squaredDistanceTo(npc) > limit * limit;
+        if (!away) {
+            record.separatedSince = 0;
+            return false;
+        }
+        if (record.separatedSince == 0) {
+            record.separatedSince = now;
+            return false;
+        }
+        if (now - record.separatedSince < RPGMinibossesEntities.config.companionLostTimeoutTicks) {
+            return false;
+        }
+        sendHome(server, record, npc);
+        owner.sendMessage(Text.translatable("companion." + RPGMinibosses.CONTENT_NAMESPACE + ".heading_home", npc.getName()));
+        return true;
+    }
+
+    /**
+     * Sends the companion home (rendezvous point, else spawn) as a simulated trip, from wherever it is or was
+     * last seen. A loaded entity is removed; an unloaded copy is left behind with an older incarnation and
+     * removes itself if it ever loads. Gets up if it was down.
+     */
+    static void sendHome(MinecraftServer server, CompanionRecord record, @Nullable MinibossEntity loaded) {
+        GlobalPos home = baseOf(server, record.owner);
+        if (loaded != null && !loaded.isRemoved()) {
+            loaded.setCompanionDowned(false);
+            beginTrip(server, loaded, record, home);
+            loaded.discard();
+        } else {
+            GlobalPos from = record.lastKnown;
+            record.tripDestination = home;
+            record.tripArrivesAt = now(server) + (from == null ? 20 : travelTicks(from, home));
+            record.incarnation++;
+            record.mode = CompanionMode.TRAVELING_TO_BASE;
+        }
+        record.separatedSince = 0;
+        CompanionRegistry.get(server).markDirty();
+    }
+
+    /**
+     * Out of combat and close to the owner's spawn point, a companion slowly heals (runs once a second).
+     * Never while downed: healing would stand it straight back up.
+     */
+    private static void restNearSpawn(MinecraftServer server, ServerWorld world, MinibossEntity npc, CompanionRecord record) {
+        ServerConfig config = RPGMinibossesEntities.config;
+        if (record.mode == CompanionMode.DOWNED || npc.isRemoved() || npc.getHealth() >= npc.getMaxHealth()
+                || npc.getTarget() != null || npc.age - npc.getLastAttackedTime() < OUT_OF_COMBAT_TICKS) {
             return;
         }
+        GlobalPos spawn = spawnPointOf(server, record.owner);
+        double radius = config.companionRestRadius;
+        if (spawn.dimension().equals(world.getRegistryKey()) && npc.getBlockPos().getSquaredDistance(spawn.pos()) <= radius * radius) {
+            npc.heal(config.companionRestHealPerSecond);
+        }
+    }
+
+    /** Walk to the rendezvous point if it is near and in this dimension; otherwise vanish onto a simulated trip. */
+    private static void walkHome(MinecraftServer server, ServerWorld world, MinibossEntity npc, CompanionRecord record) {
+        GlobalPos base = baseOf(server, record.owner);
         double range = RPGMinibossesEntities.config.companionWalkRange;
         Vec3d target = Vec3d.ofBottomCenter(base.pos());
         boolean sameWorld = base.dimension().equals(world.getRegistryKey());
@@ -431,16 +530,28 @@ public final class Companions {
             record.missingSince = 0;
             // Unloaded: carry on with whatever its orders say. This is also how a companion whose chunk unloads
             // partway through walking home switches to a simulated trip, from where it was last seen.
-            GlobalPos base = rendezvousOf(server, record.owner);
             boolean stayOver = record.mode == CompanionMode.STAYING && now >= record.stayUntil;
-            if (base == null) {
-                // Nowhere to wait: an ended Wait, or a trip whose rendezvous is gone, means back to following.
-                if (stayOver || record.mode == CompanionMode.TRAVELING_TO_BASE || record.mode == CompanionMode.AT_BASE) {
-                    record.mode = CompanionMode.FOLLOWING;
-                    registry.markDirty();
-                }
+            ServerPlayerEntity owner = server.getPlayerManager().getPlayer(record.owner);
+            if (owner == null || record.lastSeen == 0) {
+                // Time away only counts while the owner is online: a companion left following someone who logged
+                // off waits for them, and gets the full grace period after they return for its chunk to load.
+                record.lastSeen = now;
+            }
+            if (owner != null && (record.mode == CompanionMode.FOLLOWING || record.mode == CompanionMode.DOWNED)
+                    && now - record.lastSeen >= RPGMinibossesEntities.config.companionLostTimeoutTicks) {
+                // Left behind somewhere unloaded while its owner is off elsewhere: it makes its way home.
+                sendHome(server, record, null);
+                owner.sendMessage(Text.translatable("companion." + RPGMinibosses.CONTENT_NAMESPACE + ".heading_home",
+                        Text.translatable("companion." + RPGMinibosses.CONTENT_NAMESPACE + ".your_companion")));
                 continue;
             }
+            if (stayOver && rendezvousOf(server, record.owner) == null) {
+                // A Wait over with no rendezvous point: back to following (it catches up when its owner returns).
+                record.mode = CompanionMode.FOLLOWING;
+                registry.markDirty();
+                continue;
+            }
+            GlobalPos base = baseOf(server, record.owner);
             boolean baseMoved = record.mode == CompanionMode.AT_BASE && last != null
                     && (!last.dimension().equals(base.dimension()) || last.pos().getSquaredDistance(base.pos()) > BASE_MOVED * BASE_MOVED);
             if (stayOver || record.mode == CompanionMode.TRAVELING_TO_BASE || baseMoved) {
@@ -468,7 +579,15 @@ public final class Companions {
             return;
         }
         ServerWorld world = server.getWorld(at.dimension());
-        if (world == null || !world.isChunkLoaded(at.pos())) {
+        if (world == null) {
+            // That dimension is gone (a removed mod or datapack): come home to the overworld spawn instead.
+            at = GlobalPos.create(World.OVERWORLD, server.getOverworld().getSpawnPos());
+            world = server.getOverworld();
+            if (record.tripDestination != null) {
+                record.tripDestination = at;
+            }
+        }
+        if (!world.isChunkLoaded(at.pos())) {
             return;
         }
         if (existing != null) {

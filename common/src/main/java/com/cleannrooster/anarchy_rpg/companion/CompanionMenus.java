@@ -18,13 +18,15 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-/** The companion storage menu: its type, and the conversation option that opens it (owner only). */
+/** The companion windows (storage, equipment, hire): their menu types and the conversation options that open them. */
 public final class CompanionMenus {
     /** Created eagerly so the client can bind its screen during mod construction; registered later. */
     public static final ScreenHandlerType<CompanionStorageScreenHandler> STORAGE =
             MenuRegistry.ofExtended((syncId, inventory, buf) -> CompanionStorageScreenHandler.client(syncId, inventory, buf.readVarInt()));
     public static final ScreenHandlerType<CompanionEquipmentScreenHandler> EQUIPMENT =
             MenuRegistry.ofExtended((syncId, inventory, buf) -> CompanionEquipmentScreenHandler.client(syncId, inventory, buf.readVarInt()));
+    public static final ScreenHandlerType<HireScreenHandler> HIRE =
+            MenuRegistry.ofExtended((syncId, inventory, buf) -> HireScreenHandler.client(syncId, inventory, buf.readVarInt()));
 
     private CompanionMenus() {
     }
@@ -33,19 +35,32 @@ public final class CompanionMenus {
     public static void registerMenus() {
         Registry.register(Registries.SCREEN_HANDLER, RPGMinibosses.id("companion_storage"), STORAGE);
         Registry.register(Registries.SCREEN_HANDLER, RPGMinibosses.id("companion_equipment"), EQUIPMENT);
+        Registry.register(Registries.SCREEN_HANDLER, RPGMinibosses.id("hire"), HIRE);
     }
 
     static void registerOption() {
         ConversationOptions.register(ConversationOption.STORAGE,
                 (npc, player, disposition) -> Companions.recordFor(player, npc) != null ? OptionAvailability.ENABLED : OptionAvailability.HIDDEN,
-                (npc, player, argument) -> open(npc, player, false));
+                (npc, player, argument) -> open(npc, player, Window.STORAGE));
         ConversationOptions.register(ConversationOption.COMPANION_GEAR,
                 (npc, player, disposition) -> Companions.recordFor(player, npc) != null ? OptionAvailability.ENABLED : OptionAvailability.HIDDEN,
-                (npc, player, argument) -> open(npc, player, true));
+                (npc, player, argument) -> open(npc, player, Window.EQUIPMENT));
+        // Hire: any adventurer not yet anyone's companion; disabled, with the reason, when it can't be hired.
+        ConversationOptions.register(ConversationOption.HIRE,
+                (npc, player, disposition) -> {
+                    if (npc.getOwnerUuid() != null) {
+                        return OptionAvailability.HIDDEN;
+                    }
+                    Text reason = Hiring.whyNot(npc, player, disposition);
+                    return reason == null ? OptionAvailability.ENABLED : OptionAvailability.disabled(reason);
+                },
+                (npc, player, argument) -> open(npc, player, Window.HIRE));
     }
 
+    private enum Window { STORAGE, EQUIPMENT, HIRE }
+
     /** Ends the conversation quietly (the window replaces it) and holds the companion still. */
-    private static boolean open(MinibossEntity npc, ServerPlayerEntity player, boolean equipment) {
+    private static boolean open(MinibossEntity npc, ServerPlayerEntity player, Window window) {
         Conversations.end(npc, player, false);
         npc.setCustomer(player);
         MenuRegistry.openExtendedMenu(player, new ExtendedMenuProvider() {
@@ -61,9 +76,11 @@ public final class CompanionMenus {
 
             @Override
             public ScreenHandler createMenu(int syncId, PlayerInventory inventory, PlayerEntity menuPlayer) {
-                return equipment
-                        ? CompanionEquipmentScreenHandler.server(syncId, inventory, npc)
-                        : CompanionStorageScreenHandler.server(syncId, inventory, npc);
+                return switch (window) {
+                    case STORAGE -> CompanionStorageScreenHandler.server(syncId, inventory, npc);
+                    case EQUIPMENT -> CompanionEquipmentScreenHandler.server(syncId, inventory, npc);
+                    case HIRE -> HireScreenHandler.server(syncId, inventory, npc);
+                };
             }
         });
         return true;

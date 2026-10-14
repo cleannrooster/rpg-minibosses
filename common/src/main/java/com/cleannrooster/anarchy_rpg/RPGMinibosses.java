@@ -205,6 +205,17 @@ public final class RPGMinibosses {
                             return 1;
                         })));
 
+    }
+
+
+    /**
+     * The guild hall: deprecated in 3.0. Its dimension is disabled (data/anarchy_rpg/dimension/guild_hall.json
+     * is shipped as .deprecated), and these hooks and the /guildHideout and /leaveGuildHideout commands are no
+     * longer registered. Kept intact for its return in 3.1 (M7).
+     */
+    @Deprecated
+    @SuppressWarnings("unused")
+    private static void registerGuildHall() {
         // The guild hall is look-only for anyone not in creative.
         BlockEvent.BREAK.register((world, pos, state, player, xp) ->
                 isLockedInGuildHall(player) ? EventResult.interruptFalse() : EventResult.pass());
@@ -249,10 +260,12 @@ public final class RPGMinibosses {
                         })));
     }
 
+    @Deprecated
     private static boolean isLockedInGuildHall(PlayerEntity player) {
         return player.getWorld().getRegistryKey().equals(DIMENSIONKEY) && !player.isCreative();
     }
 
+    @Deprecated
     private static void placeInGuildHall(ServerPlayerEntity player) {
         if (!(player.getWorld() instanceof ServerWorld world) || !world.getRegistryKey().equals(DIMENSIONKEY)) {
             return;

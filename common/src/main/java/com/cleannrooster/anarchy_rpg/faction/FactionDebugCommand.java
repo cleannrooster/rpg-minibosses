@@ -23,7 +23,7 @@ import java.util.Locale;
 /**
  * Operator commands for checking the faction system in game:
  * <ul>
- *   <li>{@code /rpgminibosses factions} — this world's roster, its relations, and your standing and
+ *   <li>{@code /rpgminibosses guilds} (or {@code factions}) — this world's roster, its relations, and your standing and
  *   disposition with each faction;</li>
  *   <li>{@code /rpgminibosses factions look} — the party, faction and disposition of the adventurer
  *   under your crosshair;</li>
@@ -37,18 +37,24 @@ final class FactionDebugCommand {
     }
 
     static void register() {
+        // "guilds" is the name players know them by; "factions" stays as an alias.
         CommandRegistrationEvent.EVENT.register((dispatcher, registryAccess, environment) ->
                 dispatcher.register(CommandManager.literal("rpgminibosses")
                         .requires(source -> source.hasPermissionLevel(2))
-                        .then(CommandManager.literal("factions")
-                                .executes(FactionDebugCommand::showRoster)
-                                .then(CommandManager.literal("look").executes(FactionDebugCommand::lookAt))
-                                .then(CommandManager.literal("standing")
-                                        .then(CommandManager.argument("faction", StringArgumentType.word())
-                                                .suggests((context, builder) -> CommandSource.suggestMatching(
-                                                        Arrays.stream(FactionSlot.values()).map(slot -> slot.name().toLowerCase(Locale.ROOT)), builder))
-                                                .then(CommandManager.argument("value", IntegerArgumentType.integer())
-                                                        .executes(FactionDebugCommand::setStanding)))))));
+                        .then(subcommand("guilds"))
+                        .then(subcommand("factions"))));
+    }
+
+    private static com.mojang.brigadier.builder.LiteralArgumentBuilder<ServerCommandSource> subcommand(String name) {
+        return CommandManager.literal(name)
+                .executes(FactionDebugCommand::showRoster)
+                .then(CommandManager.literal("look").executes(FactionDebugCommand::lookAt))
+                .then(CommandManager.literal("standing")
+                        .then(CommandManager.argument("guild", StringArgumentType.word())
+                                .suggests((context, builder) -> CommandSource.suggestMatching(
+                                        Arrays.stream(FactionSlot.values()).map(slot -> slot.name().toLowerCase(Locale.ROOT)), builder))
+                                .then(CommandManager.argument("value", IntegerArgumentType.integer())
+                                        .executes(FactionDebugCommand::setStanding))));
     }
 
     private static int showRoster(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -83,7 +89,7 @@ final class FactionDebugCommand {
         }
         PartyMembership party = npc.getPartyMembership();
         FactionSlot slot = Factions.factionOf(npc);
-        Text factionName = slot == null ? Text.literal("no faction (companion)")
+        Text factionName = slot == null ? Text.literal("no guild (companion)")
                 : FactionState.roster(context.getSource().getServer()).get(slot).name();
         Text line = npc.getName().copy()
                 .append(Text.literal(" — party " + party.party().toString().substring(0, 8) + ", "))
@@ -95,12 +101,12 @@ final class FactionDebugCommand {
 
     private static int setStanding(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-        String name = StringArgumentType.getString(context, "faction").toUpperCase(Locale.ROOT);
+        String name = StringArgumentType.getString(context, "guild").toUpperCase(Locale.ROOT);
         FactionSlot slot;
         try {
             slot = FactionSlot.valueOf(name);
         } catch (IllegalArgumentException e) {
-            context.getSource().sendError(Text.literal("Faction must be first, second or third."));
+            context.getSource().sendError(Text.literal("Guild must be first, second or third."));
             return 0;
         }
         StandingLedger ledger = StandingLedger.get(context.getSource().getServer());

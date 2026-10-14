@@ -42,6 +42,10 @@ public final class CompanionRecord {
     boolean needsRestore;
     /** Server time the companion was first noticed missing from its loaded chunk; 0 when not missing. */
     long missingSince;
+    /** World time the companion was last seen loaded. */
+    long lastSeen;
+    /** World time a loaded companion was first seen far from (or in another world than) its owner; 0 when not. */
+    long separatedSince;
 
     CompanionRecord(UUID owner, UUID npc) {
         this.owner = owner;
@@ -94,6 +98,7 @@ public final class CompanionRecord {
         nbt.put("Snapshot", this.snapshot);
         nbt.putLong("Incarnation", this.incarnation);
         nbt.putBoolean("NeedsRestore", this.needsRestore);
+        nbt.putLong("LastSeen", this.lastSeen);
         return nbt;
     }
 
@@ -112,6 +117,7 @@ public final class CompanionRecord {
         record.snapshot = nbt.getCompound("Snapshot");
         record.incarnation = nbt.getLong("Incarnation");
         record.needsRestore = nbt.getBoolean("NeedsRestore");
+        record.lastSeen = nbt.getLong("LastSeen");
         return record;
     }
 

@@ -42,6 +42,9 @@ public final class RPGMinibossesClient {
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.cleannrooster.anarchy_rpg.companion.CompanionMenus.EQUIPMENT,
                 com.cleannrooster.anarchy_rpg.client.companion.CompanionEquipmentScreen::new);
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.cleannrooster.anarchy_rpg.companion.CompanionMenus.HIRE,
+                com.cleannrooster.anarchy_rpg.client.companion.HireScreen::new);
         registerEntityRenderers();
         SpellEngineCompatClient.earlyInit();
     }

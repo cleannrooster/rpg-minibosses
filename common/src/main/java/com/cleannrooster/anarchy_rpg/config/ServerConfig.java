@@ -12,18 +12,9 @@ public class ServerConfig  implements ConfigData {
 
 
     public ServerConfig(){}
-    @Comment("Enable Guild Hall")
+    @Comment("Guild Hall: deprecated in 3.0 (its dimension, commands and hooks are disabled); returns in 3.1")
     public boolean guild = false;
-    @Comment("Trade Multiplier")
-
-    public float tradeMultiplier = 1;
-    @Comment("Trade Amount")
-
-    public int tradeAmount = 5;
-    @Comment("Rare Trade Multiplier")
-
-    public int rareTradeMultiplier = 4;
-    @Comment("Currency item: worth exactly 1 in Exchange, and the price item in guild hall trades")
+    @Comment("Currency item: worth exactly 1 in Exchange and hiring")
     public String currencyItem = "minecraft:emerald";
 
     @Comment("Minibosses can spawn in the Nether")
@@ -231,25 +222,25 @@ public class ServerConfig  implements ConfigData {
     @Comment("Distance to enforce advancement requirement.")
     public float distance = 128;
 
-    @Comment("Standing: lowest value a player's standing with a faction can fall to")
+    @Comment("Standing: lowest value a player's standing with a guild can fall to")
     public int standingMin = -100;
-    @Comment("Standing: highest value a player's standing with a faction can rise to")
+    @Comment("Standing: highest value a player's standing with a guild can rise to")
     public int standingMax = 100;
-    @Comment("Standing: below this, a faction's adventurers attack on sight and refuse to talk")
+    @Comment("Standing: below this, a guild's adventurers attack on sight and refuse to talk")
     public int standingHostileBelow = -20;
-    @Comment("Standing: below this (and not hostile), a faction's adventurers are wary")
+    @Comment("Standing: below this (and not hostile), a guild's adventurers are wary")
     public int standingWaryBelow = -5;
-    @Comment("Standing: above this, a faction's adventurers are friendly")
+    @Comment("Standing: above this, a guild's adventurers are friendly")
     public int standingFriendlyAbove = 20;
-    @Comment("Standing: above this, a faction's adventurers are devoted")
+    @Comment("Standing: above this, a guild's adventurers are devoted")
     public int standingDevotedAbove = 50;
-    @Comment("Standing change for killing a faction's adventurer")
+    @Comment("Standing change for killing a guild's adventurer")
     public int standingKillMember = -20;
-    @Comment("Standing change for provoking a faction's adventurer")
+    @Comment("Standing change for provoking a guild's adventurer")
     public int standingProvokeMember = -4;
     @Comment("Standing change for sparing a defeated adventurer")
     public int standingSpareMember = 8;
-    @Comment("Adventurers attack adventurers of a faction their own faction is at war with (ignored when betrayal is on)")
+    @Comment("Adventurers attack adventurers of a guild their own guild is at war with (ignored when betrayal is on)")
     public boolean factionWarfare = true;
 
     @Comment("Exchange: each extra stack requested raises the price of everything requested by this fraction")
@@ -298,6 +289,18 @@ public class ServerConfig  implements ConfigData {
     public double companionTravelBlocksPerTick = 0.2;
     @Comment("Companions: a simulated trip between dimensions never takes longer than this many ticks (48000 = 2 days)")
     public long companionCrossDimensionMaxTicks = 48000L;
+    @Comment("Companions: price (in currency items) to hire an adventurer at neutral standing; standing raises or lowers it like Exchange prices")
+    public double companionHirePrice = 32.0;
+    @Comment("Standing change for hiring a guild's adventurer")
+    public int standingHire = 2;
+    @Comment("Companions: a companion that has been away from its online owner this long (unloaded, another dimension, or too far) makes its way home")
+    public long companionLostTimeoutTicks = 2400L;
+    @Comment("Companions: farther than this from its online owner (same dimension) counts as away")
+    public double companionLostDistance = 256.0;
+    @Comment("Companions: health regained per second while out of combat near the owner's spawn point")
+    public float companionRestHealPerSecond = 1.0F;
+    @Comment("Companions: how close to the owner's spawn point (same dimension) a companion must be to heal at rest")
+    public double companionRestRadius = 64.0;
     @Comment("Companions: a rendezvous point must be within this many blocks of the owner's spawn point")
     public double companionRendezvousRadius = 64.0;
 

@@ -99,7 +99,7 @@ import static java.lang.Math.max;
 import static net.minecraft.entity.mob.HostileEntity.canSpawnIgnoreLightLevel;
 import static net.minecraft.entity.mob.HostileEntity.isSpawnDark;
 
-public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tameable,  Angerable, Merchant,
+public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tameable,  Angerable,
         com.cleannrooster.anarchy_rpg.entity.combat.geometry.AttackAim.Aiming {
     private UUID ownerUuid;
     public boolean performing;
@@ -116,9 +116,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         this.setPathfindingPenalty(PathNodeType.DOOR_WOOD_CLOSED,0F);
         this.dispatcher = new MinibossAnimationProvider.MinibossAnimationDispatcher(this);
         this.moveAnalysis = new MoveAnalysis(this);
-    }
-    public TradeOffer create(ItemStack stack, int price, int maxUses, int experience, int multiplier,  Entity entity, Random random) {
-        return new TradeOffer( new TradedItem(Registries.ITEM.get(Identifier.tryParse(RPGMinibossesEntities.config.currencyItem)), price),new ItemStack(stack.getItem()), maxUses, experience, 1);
     }
 
 
@@ -394,7 +391,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (com.cleannrooster.anarchy_rpg.companion.Companions.onLethalDamage(this, damageSource)) {
             return;
         }
-        if(!this.getCantHire()) {
+        // Killed by an adventurer of a faction at war with this one's: a real death, not a recruitable downing.
+        boolean killedInWar = damageSource.getAttacker() instanceof MinibossEntity killer
+                && com.cleannrooster.anarchy_rpg.faction.Factions.atWar(killer, this);
+        if(!this.getCantHire() && !killedInWar) {
             if (!damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null) {
                 this.setHealth(0.01F);
                 //(this).triggerAnim("down", "down");
@@ -689,6 +689,19 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         this.getDataTracker().set(COMPANION_DOWNED, downed);
     }
 
+    public boolean getDataTrackerCompanionDowned() {
+        return this.getDataTracker().get(COMPANION_DOWNED);
+    }
+
+    /** Healing a downed companion gets it straight back up. */
+    @Override
+    public void heal(float amount) {
+        if (amount > 0.0F && !this.getWorld().isClient() && this.getDataTracker().get(COMPANION_DOWNED)) {
+            com.cleannrooster.anarchy_rpg.companion.Companions.onHealed(this);
+        }
+        super.heal(amount);
+    }
+
     /** Which re-creation of a companion this entity is; a copy behind the registry's count removes itself. */
     private long companionIncarnation;
 
@@ -844,17 +857,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         }
         super.dropEquipment(world, source, causedByPlayer);
     }
-    private void beginTradeWith(PlayerEntity customer) {
-        this.setCustomer(customer);
-        this.sendOffers(customer, this.getDisplayName(), 0);
-    }
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
         if(hand.equals(Hand.MAIN_HAND)) {
-            if(this.getWorld().getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
-                this.beginTradeWith(player);
-                return ActionResult.SUCCESS_NO_ITEM_USED;
-            }
             if (!this.notPetrified()) {
                 for (MinibossEntity boss : this.getWorld().getEntitiesByType(TypeFilter.instanceOf(MinibossEntity.class), this.getBoundingBox().expand(8), Predicates.alwaysTrue())) {
                     if (!boss.notPetrified()) {
@@ -924,6 +929,11 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     @Override
     public boolean damage(DamageSource source, float amount) {
         if (this.getDataTracker().get(COMPANION_DOWNED) && !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return false;
+        }
+        // A companion's owner can never hurt it: melee, projectiles, owner-lit TNT and spells all resolve to
+        // the owner through getAttacker().
+        if (this.getOwnerUuid() != null && source.getAttacker() != null && this.getOwnerUuid().equals(source.getAttacker().getUuid())) {
             return false;
         }
         if (!this.getWorld().isClient() && source.getAttacker() != null) {
@@ -1407,12 +1417,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (this.getDataTracker().get(NAME) != -1) {
             nbt.putInt("exileName", this.getDataTracker().get(NAME));
         }
-        if (!this.getWorld().isClient) {
-            TradeOfferList tradeOfferList = this.getOffers();
-            if (tradeOfferList != null && !tradeOfferList.isEmpty()) {
-                nbt.put("Offers", (NbtElement)TradeOfferList.CODEC.encodeStart(this.getRegistryManager().getOps(NbtOps.INSTANCE), tradeOfferList).getOrThrow());
-            }
-        }
         nbt.putBoolean("Sitting", this.sitting);
         nbt.putBoolean("cantHire", this.getDataTracker().get(CANTHIRE));
         nbt.putBoolean("FromStructure", this.fromStructure);
@@ -1427,7 +1431,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         }
 
     }
-    protected TradeOfferList offers;
 
 
     @Nullable
@@ -1460,14 +1463,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             shouldWander = nbt.getBoolean("shouldWander");
         } else {
             shouldWander = true;
-        }
-        if (nbt.contains("Offers")) {
-            DataResult var10000 = TradeOfferList.CODEC.parse(this.getRegistryManager().getOps(NbtOps.INSTANCE), nbt.get("Offers"));
-            Logger var10002 = LOGGER;
-            Objects.requireNonNull(var10002);
-            var10000.resultOrPartial(Util.addPrefix("Failed to load offers: ", var10002::warn)).ifPresent((offers) -> {
-                this.offers =(TradeOfferList) offers;
-            });
         }
         if (nbt.contains("exileName")) {
             this.getDataTracker().set(NAME,nbt.getInt("exileName"));
@@ -1549,150 +1544,21 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     protected boolean isDisallowedInPeaceful() {
         return !this.isTamed();
     }
-    public PlayerEntity customer;
+    /**
+     * Whoever has one of this adventurer's windows open (Exchange, Storage, Equipment, Hire). It stands still
+     * for them and talks to nobody else meanwhile. Server-side; not saved.
+     */
+    @Nullable
+    private PlayerEntity customer;
 
-    @Override
     public void setCustomer(@Nullable PlayerEntity customer) {
         this.customer = customer;
     }
 
     @Nullable
-    @Override
     public PlayerEntity getCustomer() {
-        return customer;
+        return this.customer;
     }
-    public TradeOfferList getOffers() {
-        if (this.getWorld().isClient) {
-            throw new IllegalStateException("Cannot load Villager offers on the client");
-        } else {
-            if (this.offers == null && !this.bonusList.isEmpty()) {
-                this.offers = new TradeOfferList();
-                RegistryKey<LootTable> registryKey = EntityType.ENDER_DRAGON.getLootTableId();
-
-                LootTable lootTable = this.getWorld().getServer().getReloadableRegistries().getLootTable(registryKey);
-                LootContextParameterSet.Builder builder = (new LootContextParameterSet.Builder((ServerWorld) this.getWorld())).add(LootContextParameters.THIS_ENTITY, this).add(LootContextParameters.ORIGIN, this.getPos()).add(LootContextParameters.DAMAGE_SOURCE, this.getDamageSources().generic());
-
-
-                LootContextParameterSet lootContextParameterSet = builder.build(LootContextTypes.ENTITY);
-
-                this.offers.addAll(
-                        List.of(
-                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(), (int) (this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount*RPGMinibossesEntities.config.tradeMultiplier),this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()),
-                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(), (int) (this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount*RPGMinibossesEntities.config.tradeMultiplier),this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()),
-                                create(this.bonusList.get(this.getRandom().nextInt(this.bonusList.size())).getDefaultStack(), (int) (this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount*RPGMinibossesEntities.config.tradeMultiplier),this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom())))
-
-                ;
-                lootTable.generateLoot(lootContextParameterSet, this.getLootTableSeed(), (itemStack) ->{
-                        this.offers.add(create(itemStack,(this.getRandom().nextInt(5)+RPGMinibossesEntities.config.tradeAmount)*RPGMinibossesEntities.config.rareTradeMultiplier,this.getRandom().nextInt(5)+1, 20,1,this,this.getRandom()));
-
-                });
-
-            }
-
-            return this.offers;
-        }
-    }
-    protected void fillRecipes() {
-        if (this.getWorld().getEnabledFeatures().contains(FeatureFlags.TRADE_REBALANCE)) {
-            this.fillRebalancedRecipes();
-        } else {
-            TradeOffers.Factory[] factorys = (TradeOffers.Factory[])TradeOffers.WANDERING_TRADER_TRADES.get(1);
-            TradeOffers.Factory[] factorys2 = (TradeOffers.Factory[])TradeOffers.WANDERING_TRADER_TRADES.get(2);
-            if (factorys != null && factorys2 != null) {
-                TradeOfferList tradeOfferList = this.getOffers();
-                this.fillRecipesFromPool(tradeOfferList, factorys, 5);
-                int i = this.random.nextInt(factorys2.length);
-                TradeOffers.Factory factory = factorys2[i];
-                TradeOffer tradeOffer = factory.create(this, this.random);
-                if (tradeOffer != null) {
-                    tradeOfferList.add(tradeOffer);
-                }
-
-            }
-        }
-    }
-
-
-
-    private void fillRebalancedRecipes() {
-        TradeOfferList tradeOfferList = this.getOffers();
-        Iterator var2 = TradeOffers.REBALANCED_WANDERING_TRADER_TRADES.iterator();
-
-        while(var2.hasNext()) {
-            org.apache.commons.lang3.tuple.Pair<TradeOffers.Factory[], Integer> pair = (Pair)var2.next();
-            TradeOffers.Factory[] factorys = (TradeOffers.Factory[])pair.getLeft();
-            this.fillRecipesFromPool(tradeOfferList, factorys, (Integer)pair.getRight());
-        }
-
-    }
-    protected void fillRecipesFromPool(TradeOfferList recipeList, TradeOffers.Factory[] pool, int count) {
-        ArrayList<TradeOffers.Factory> arrayList = Lists.newArrayList(pool);
-        int i = 0;
-
-        while(i < count && !arrayList.isEmpty()) {
-            TradeOffer tradeOffer = ((TradeOffers.Factory)arrayList.remove(this.random.nextInt(arrayList.size()))).create(this, this.random);
-            if (tradeOffer != null) {
-                recipeList.add(tradeOffer);
-                ++i;
-            }
-        }
-
-    }
-
-    @Override
-    public void setOffersFromServer(TradeOfferList offers) {
-        this.offers = offers;
-    }
-
-    @Override
-    public void trade(TradeOffer offer) {
-        offer.use();
-        this.ambientSoundChance = -this.getMinAmbientSoundDelay();
-        this.afterUsing(offer);
-
-    }
-
-    private void afterUsing(TradeOffer offer) {
-    }
-
-    @Override
-    public void onSellingItem(ItemStack stack) {
-        if (!this.getWorld().isClient && this.ambientSoundChance > -this.getMinAmbientSoundDelay() + 20) {
-            this.ambientSoundChance = -this.getMinAmbientSoundDelay();
-            this.playSound(this.getTradingSound(!stack.isEmpty()));
-        }
-    }
-    protected SoundEvent getTradingSound(boolean sold) {
-        return sold ? SoundEvents.ENTITY_VILLAGER_YES : SoundEvents.ENTITY_VILLAGER_NO;
-    }
-    @Override
-    public int getExperience() {
-        return 0;
-    }
-
-    @Override
-    public void setExperienceFromServer(int experience) {
-
-    }
-
-    @Override
-    public boolean isLeveledMerchant() {
-        return false;
-    }
-
-    @Override
-    public SoundEvent getYesSound() {
-        return null;
-    }
-
-    @Override
-    public boolean isClient() {
-        return this.getWorld().isClient;
-    }
-
-
-
-
     public class MinibossLookControl extends LookControl {
         protected final MobEntity entity;
         protected float maxYawChange;
