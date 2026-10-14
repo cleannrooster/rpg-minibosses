@@ -5,7 +5,7 @@ import java.util.Objects;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.Tameable;
 import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
-import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import dev.eann.atlasvfx.cue.FxCues;
 import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
 import com.cleannrooster.rpg_minibosses.magic.Relations;
 import com.cleannrooster.rpg_minibosses.magic.MagicSchool;

@@ -13,7 +13,7 @@ import com.cleannrooster.rpg_minibosses.magic.MagicBackends;
 import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
 import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
-import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import dev.eann.atlasvfx.cue.FxCues;
 import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
 import com.cleannrooster.rpg_minibosses.compat.spellengine.SpellEngineEffects;
 import net.minecraft.util.math.Vec3d;

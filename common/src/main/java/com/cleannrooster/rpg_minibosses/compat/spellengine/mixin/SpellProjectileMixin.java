@@ -34,14 +34,14 @@ public class SpellProjectileMixin {
             // Snap dark matter projectiles to the orb on first tick
             if (projectile.age <= 1
                     && spellEntry != null
-                    && spellEntry.getIdAsString().equals("rpg_minibosses:magus_dark_matter_proj")
+                    && spellEntry.getIdAsString().equals("rpg-minibosses:magus_dark_matter_proj")
                     && magus.activeDarkMatterOrb != null
                     && !magus.activeDarkMatterOrb.isRemoved()) {
                 OrbEntity orb = magus.activeDarkMatterOrb;
                 projectile.setPosition(orb.getX(), orb.getY() + 0.5, orb.getZ());
             }
             if (projectile.age == 12
-                    && (spellEntry == null || !spellEntry.getIdAsString().equals("rpg_minibosses:magus_dark_matter_proj"))) {
+                    && (spellEntry == null || !spellEntry.getIdAsString().equals("rpg-minibosses:magus_dark_matter_proj"))) {
                 projectile.setFollowedTarget(null);
             }
         }

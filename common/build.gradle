@@ -37,7 +37,14 @@ repositories {
     maven { url 'https://maven.wispforest.io/releases' }
     maven { url 'https://maven.su5ed.dev/releases' }
     maven { url 'https://maven.fabricmc.net' }
-    mavenLocal()
+    // AtlasVFX, from its public Maven - and only from there.
+    maven {
+        url = 'https://cleannrooster.github.io/atlasvfx-maven/'
+        content { includeGroup 'dev.eann' }
+    }
+    mavenLocal {
+        content { excludeGroup 'dev.eann' }
+    }
 }
 
 // Common code must not use Fabric API: NeoForge has no Fabric API at runtime. Keeping it off the

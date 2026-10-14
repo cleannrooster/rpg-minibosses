@@ -1,7 +1,7 @@
 {
   "textures": {
-    "0": "rpg-minibosses:spell_projectile/frost2",
-    "particle": "rpg-minibosses:spell_projectile/frost2"
+    "0": "block/packed_ice",
+    "particle": "block/packed_ice"
   },
   "elements": [
     {

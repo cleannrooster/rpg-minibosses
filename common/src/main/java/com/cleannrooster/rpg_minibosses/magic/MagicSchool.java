@@ -49,6 +49,14 @@ public enum MagicSchool {
         return this.magical;
     }
 
+    /**
+     * The name of this school's look in AtlasVFX's cue layer ({@code rpg-minibosses:school/<name>}). The
+     * client registers a style under it; the server names it in every cue it sends.
+     */
+    public Identifier styleId() {
+        return RPGMinibosses.id("school/" + this.name);
+    }
+
     /** The matching Spell Power school id, e.g. {@code spell_power:fire}. */
     public Identifier spellPowerId() {
         return Identifier.of("spell_power", this.name);

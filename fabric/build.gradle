@@ -44,7 +44,14 @@ repositories {
     }
     maven { name = 'TerraformersMC'; url = 'https://maven.terraformersmc.com/' }
     maven { name = 'Ladysnake Libs'; url = 'https://maven.ladysnake.org/releases' }
-    mavenLocal()
+    // AtlasVFX, from its public Maven - and only from there.
+    maven {
+        url = 'https://cleannrooster.github.io/atlasvfx-maven/'
+        content { includeGroup 'dev.eann' }
+    }
+    mavenLocal {
+        content { excludeGroup 'dev.eann' }
+    }
 }
 
 dependencies {
@@ -66,7 +73,7 @@ dependencies {
         modLocalRuntime "maven.modrinth:spell-power:${rootProject.spell_power_version}-${platform}"
     }
     include(modImplementation("maven.modrinth:tiny-config:${rootProject.tiny_config_version}-${platform}"))
-   // modImplementation "dev.kosmx.player-anim:player-animation-lib-${platform}:${rootProject.player_anim_version}"
+    modImplementation "dev.kosmx.player-anim:player-animation-lib-${platform}:${rootProject.player_anim_version}"
     modImplementation "me.shedaniel.cloth:cloth-config-${platform}:${rootProject.cloth_config_version}"
 
     // Content / library deps

@@ -31,7 +31,6 @@ public final class RPGMinibossesClient {
      */
     public static void earlyInit() {
         com.cleannrooster.rpg_minibosses.client.combat.SlashEffectManager.registerReceiver();
-        com.cleannrooster.rpg_minibosses.client.fx.CueHandlers.registerReceivers();
         registerEntityRenderers();
         SpellEngineCompatClient.earlyInit();
     }

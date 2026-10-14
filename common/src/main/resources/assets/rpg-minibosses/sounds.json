@@ -295,7 +295,7 @@
     "subtitle": "subtitles.rpg-minibosses.boss.healing.release",
     "sounds": [
       {
-        "name": "rpg-minibosses:boss/healing/release_1",
+        "name": "rpg-minibosses:boss/lightning/release_1",
         "stream": false
       }
     ]
@@ -304,11 +304,11 @@
     "subtitle": "subtitles.rpg-minibosses.boss.healing.impact",
     "sounds": [
       {
-        "name": "rpg-minibosses:boss/healing/impact_1",
+        "name": "rpg-minibosses:boss/lightning/impact_1",
         "stream": false
       },
       {
-        "name": "rpg-minibosses:boss/healing/impact_2",
+        "name": "rpg-minibosses:boss/lightning/impact_2",
         "stream": false
       }
     ]

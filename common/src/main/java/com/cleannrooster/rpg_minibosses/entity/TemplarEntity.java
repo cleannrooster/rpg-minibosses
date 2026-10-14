@@ -2,7 +2,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
-import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import dev.eann.atlasvfx.cue.FxCues;
 import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
 import com.cleannrooster.rpg_minibosses.magic.MagicSchool;
 import com.cleannrooster.rpg_minibosses.magic.TickScheduler;
@@ -288,7 +288,7 @@ public class TemplarEntity extends MinibossEntity{
                 // The flourish for contacts outside the action system: a short blade trail across the
                 // Templar's front, alternating sides with the swing animation.
                 var facing = Vec3d.fromPolar(0.0f, this.getYaw());
-                FxEmitter.emit(serverWorld, FxCues.SLASH, new CueArgs(MagicSchool.GENERIC, this.getEyePos(), facing,
+                FxEmitter.emit(serverWorld, FxCues.SLASH, CueArgs.of(MagicSchool.GENERIC, this.getEyePos(), facing,
                         5.5f * this.getWidth(), 80.0f, swingBool ? 1 : 0, serverWorld.random.nextLong(), -1));
             }
             if (swingBool) {

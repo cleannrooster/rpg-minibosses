@@ -3,7 +3,7 @@ package com.cleannrooster.rpg_minibosses.entity;
 import net.minecraft.util.math.Vec3d;
 import com.cleannrooster.rpg_minibosses.magic.Delivery;
 import com.cleannrooster.rpg_minibosses.magic.fx.CueArgs;
-import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import dev.eann.atlasvfx.cue.FxCues;
 import com.cleannrooster.rpg_minibosses.magic.fx.FxEmitter;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import com.cleannrooster.rpg_minibosses.magic.MagicCaster;

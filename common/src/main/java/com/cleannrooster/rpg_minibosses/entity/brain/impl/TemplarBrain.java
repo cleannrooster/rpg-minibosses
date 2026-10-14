@@ -1,6 +1,6 @@
 package com.cleannrooster.rpg_minibosses.entity.brain.impl;
 
-import com.cleannrooster.rpg_minibosses.magic.fx.FxCues;
+import com.cleannrooster.rpg_minibosses.magic.fx.BossCues;
 import com.cleannrooster.rpg_minibosses.magic.BossSounds;
 import com.cleannrooster.rpg_minibosses.RPGMinibosses;
 import net.minecraft.util.math.Vec3d;
@@ -65,7 +65,7 @@ public class TemplarBrain extends MobBrain {
             // Holy gold, the strike's own colour, rather than the usual red.
             .telegraphColour(0xFFD24A)
             .sounds(BossSounds.HEALING.windup(), BossSounds.HEALING.release(), BossSounds.HEALING.impact())
-            .impactCue(FxCues.HOLY_STRIKE)
+            .impactCue(BossCues.HOLY_STRIKE)
             .build();
 
     public enum Stance implements BrainState {
