@@ -19,9 +19,10 @@ import java.util.List;
  * Server to client: open the conversation screen. Carries everything the screen shows, already decided
  * on the server: the client never works out which options exist or whether they can be picked.
  *
+ * @param factionName   null for a companion, which belongs to its player rather than to a faction
  * @param heardAboutYou gossip about someone asking after this player; always null until Rumors exist
  */
-public record OpenConversationPayload(int npcId, Text npcName, Text greeting, Text factionName,
+public record OpenConversationPayload(int npcId, Text npcName, Text greeting, @Nullable Text factionName,
                                       DyeColor flagColor, Disposition standing, @Nullable Text heardAboutYou,
                                       List<Entry> options) implements CustomPayload {
 
@@ -44,7 +45,7 @@ public record OpenConversationPayload(int npcId, Text npcName, Text greeting, Te
         buffer.writeVarInt(this.npcId);
         TextCodecs.REGISTRY_PACKET_CODEC.encode(buffer, this.npcName);
         TextCodecs.REGISTRY_PACKET_CODEC.encode(buffer, this.greeting);
-        TextCodecs.REGISTRY_PACKET_CODEC.encode(buffer, this.factionName);
+        writeOptionalText(buffer, this.factionName);
         buffer.writeVarInt(this.flagColor.getId());
         buffer.writeVarInt(this.standing.ordinal());
         writeOptionalText(buffer, this.heardAboutYou);
@@ -60,7 +61,7 @@ public record OpenConversationPayload(int npcId, Text npcName, Text greeting, Te
         int npcId = buffer.readVarInt();
         Text npcName = TextCodecs.REGISTRY_PACKET_CODEC.decode(buffer);
         Text greeting = TextCodecs.REGISTRY_PACKET_CODEC.decode(buffer);
-        Text factionName = TextCodecs.REGISTRY_PACKET_CODEC.decode(buffer);
+        Text factionName = readOptionalText(buffer);
         DyeColor flagColor = DyeColor.byId(buffer.readVarInt());
         Disposition standing = Disposition.values()[Math.floorMod(buffer.readVarInt(), Disposition.values().length)];
         Text heardAboutYou = readOptionalText(buffer);

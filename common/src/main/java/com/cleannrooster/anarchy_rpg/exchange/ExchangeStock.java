@@ -67,6 +67,15 @@ public final class ExchangeStock {
     }
 
     /**
+     * Empties the stock and marks it generated, so it is never filled later. Called on recruitment: the
+     * inventory becomes the companion's storage, and the trade goods it carried are not the player's to take.
+     */
+    public void clearForRecruit() {
+        this.inventory.clear();
+        this.generated = true;
+    }
+
+    /**
      * Fills the stock on first use; afterwards does nothing.
      *
      * @param asker the player asking to trade, credited with the kill when rolling the drop pool

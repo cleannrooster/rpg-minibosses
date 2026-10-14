@@ -7,6 +7,12 @@ import com.cleannrooster.anarchy_rpg.hub.HubMarkersPayload;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.util.DefaultSkinHelper;
+import net.minecraft.client.util.SkinTextures;
+import net.minecraft.util.Identifier;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OverlayTexture;
@@ -22,9 +28,11 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Draws faction flags floating above adventurers and above hubs, but only up close: within
+ * Draws faction flags floating above adventurers and above hubs, and a companion's owner's face above the
+ * companion instead of a flag, but only up close: within
  * {@link #ADVENTURER_RANGE} blocks of an adventurer and {@link #HUB_RANGE} of a hub.
  *
  * <p>The flag is vanilla's own banner flag (the {@code banner} model layer and its pattern textures, via
@@ -41,6 +49,8 @@ public final class FactionFlagRenderer {
     private static final float PX = 1.0F / 16.0F;
     /** Gap between an adventurer's head (and its name tag) and the bottom of its flag. */
     private static final double ADVENTURER_GAP = 0.85;
+    /** A companion's owner face, in blocks. */
+    private static final float FACE_SIZE = 0.4F;
 
     private static volatile List<HubMarkersPayload.Marker> hubs = List.of();
     private static ModelPart flag;
@@ -73,17 +83,26 @@ public final class FactionFlagRenderer {
 
         double adventurerRangeSq = ADVENTURER_RANGE * ADVENTURER_RANGE;
         for (Entity entity : world.getEntities()) {
-            if (!(entity instanceof MinibossEntity npc) || !npc.isAlive() || npc.isInvisible() || npc.isDowned()) {
+            if (!(entity instanceof MinibossEntity npc) || !npc.isAlive() || npc.isInvisible() || npc.isIncapacitated()) {
                 continue;
             }
-            int packed = npc.getPackedFactionFlag();
-            if (packed == PackedFlag.NONE || npc.squaredDistanceTo(cameraPos) > adventurerRangeSq) {
+            if (npc.squaredDistanceTo(cameraPos) > adventurerRangeSq) {
                 continue;
             }
             double x = MathHelper.lerp(partialTick, npc.prevX, npc.getX());
             double y = MathHelper.lerp(partialTick, npc.prevY, npc.getY()) + npc.getHeight() + ADVENTURER_GAP;
             double z = MathHelper.lerp(partialTick, npc.prevZ, npc.getZ());
-            drawFlag(matrices, consumers, camera, canvas, new Vec3d(x, y, z), ADVENTURER_SCALE, packed, world);
+            Vec3d bottom = new Vec3d(x, y, z);
+            // A companion answers to its player, not a faction: it shows its owner's face instead of a flag.
+            UUID owner = npc.getOwnerUuid();
+            if (owner != null) {
+                drawFace(matrices, consumers, camera, bottom, skinOf(client, owner));
+                continue;
+            }
+            int packed = npc.getPackedFactionFlag();
+            if (packed != PackedFlag.NONE) {
+                drawFlag(matrices, consumers, camera, canvas, bottom, ADVENTURER_SCALE, packed, world);
+            }
         }
 
         double hubRangeSq = HUB_RANGE * HUB_RANGE;
@@ -112,6 +131,44 @@ public final class FactionFlagRenderer {
                 OverlayTexture.DEFAULT_UV, canvas, ModelLoader.BANNER_BASE, true, PackedFlag.base(packed),
                 PackedFlag.patterns(packed, world.getRegistryManager()));
         matrices.pop();
+    }
+
+    /** The owner's skin: from the player list while they are online, else vanilla's default skin for them. */
+    private static Identifier skinOf(MinecraftClient client, UUID owner) {
+        PlayerListEntry entry = client.getNetworkHandler() == null ? null : client.getNetworkHandler().getPlayerListEntry(owner);
+        SkinTextures skin = entry != null ? entry.getSkinTextures() : DefaultSkinHelper.getSkinTextures(owner);
+        return skin.texture();
+    }
+
+    /**
+     * The owner's face as a camera-facing square, its bottom edge at {@code bottom}: the face from the skin's
+     * head (8,8 to 16,16 of 64) with the hat layer (40,8 to 48,16) just in front, as vanilla draws heads.
+     */
+    private static void drawFace(MatrixStack matrices, VertexConsumerProvider consumers, Camera camera, Vec3d bottom, Identifier skin) {
+        Vec3d cameraPos = camera.getPos();
+        matrices.push();
+        matrices.translate(bottom.x - cameraPos.x, bottom.y - cameraPos.y + FACE_SIZE, bottom.z - cameraPos.z);
+        matrices.multiply(camera.getRotation());
+        // As name tags do: y points down the face, x to the right.
+        matrices.scale(FACE_SIZE, -FACE_SIZE, FACE_SIZE);
+        VertexConsumer buffer = consumers.getBuffer(RenderLayer.getEntityCutoutNoCull(skin));
+        MatrixStack.Entry entry = matrices.peek();
+        faceQuad(buffer, entry, 0.0F, 8.0F, 8.0F);
+        faceQuad(buffer, entry, -0.01F, 40.0F, 8.0F);
+        matrices.pop();
+    }
+
+    private static void faceQuad(VertexConsumer buffer, MatrixStack.Entry entry, float z, float u, float v) {
+        float u0 = u / 64.0F, u1 = (u + 8.0F) / 64.0F, v0 = v / 64.0F, v1 = (v + 8.0F) / 64.0F;
+        int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
+        vertex(buffer, entry, -0.5F, 0.0F, z, u0, v0, light);
+        vertex(buffer, entry, -0.5F, 1.0F, z, u0, v1, light);
+        vertex(buffer, entry, 0.5F, 1.0F, z, u1, v1, light);
+        vertex(buffer, entry, 0.5F, 0.0F, z, u1, v0, light);
+    }
+
+    private static void vertex(VertexConsumer buffer, MatrixStack.Entry entry, float x, float y, float z, float u, float v, int light) {
+        buffer.vertex(entry, x, y, z).color(0xFFFFFFFF).texture(u, v).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry, 0.0F, 0.0F, -1.0F);
     }
 
     /** The banner flag part, rebuilt if resources were reloaded. Centered on x, hanging from y = 0. */

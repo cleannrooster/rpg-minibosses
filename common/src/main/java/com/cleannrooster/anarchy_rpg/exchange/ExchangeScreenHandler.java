@@ -143,7 +143,8 @@ public final class ExchangeScreenHandler extends ScreenHandler {
         boolean owner = false;
         if (customer instanceof ServerPlayerEntity player) {
             owner = player.getUuid().equals(this.npc.getOwnerUuid());
-            standing = StandingLedger.get(player.getServer()).get(player.getUuid(), this.npc.getPartyMembership().faction());
+            var faction = Factions.factionOf(this.npc);
+            standing = faction == null ? 0 : StandingLedger.get(player.getServer()).get(player.getUuid(), faction);
         }
         return ExchangePricing.quote(stacks(this.request), stacks(this.offer), standing, owner);
     }
@@ -262,7 +263,7 @@ public final class ExchangeScreenHandler extends ScreenHandler {
         if (this.npc == null) {
             return true;
         }
-        return this.npc.isAlive() && !this.npc.isRemoved() && !this.npc.isDowned()
+        return this.npc.isAlive() && !this.npc.isRemoved() && !this.npc.isIncapacitated()
                 && this.npc.getCustomer() == player
                 && player.squaredDistanceTo(this.npc) <= MAX_DISTANCE * MAX_DISTANCE
                 && !(player instanceof ServerPlayerEntity serverPlayer && Factions.disposition(this.npc, serverPlayer) == Disposition.HOSTILE);

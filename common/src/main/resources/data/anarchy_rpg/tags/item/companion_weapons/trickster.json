@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:swords",
+    {
+      "id": "#rpg_series:weapon_type/dagger",
+      "required": false
+    },
+    {
+      "id": "#rpg_series:weapon_type/sickle",
+      "required": false
+    }
+  ]
+}

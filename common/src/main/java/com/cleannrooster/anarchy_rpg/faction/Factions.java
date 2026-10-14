@@ -30,9 +30,18 @@ public final class Factions {
     }
 
     /**
+     * The faction this adventurer currently answers to, or null for a companion: a devoted companion
+     * belongs to its player, not to a faction. Its party is kept, only set aside while it has an owner.
+     */
+    public static @org.jetbrains.annotations.Nullable FactionSlot factionOf(MinibossEntity npc) {
+        return npc.getOwnerUuid() != null ? null : npc.getPartyMembership().faction();
+    }
+
+    /**
      * How {@code npc} regards {@code player}, in order: its owner is always devoted; true anarchy makes
      * everyone else hostile; an adventurer angry at the player is hostile while the anger lasts;
-     * otherwise the player's standing with the adventurer's faction decides.
+     * a factionless companion is neutral to everyone but its owner; otherwise the player's standing with the
+     * adventurer's faction decides.
      */
     public static Disposition disposition(MinibossEntity npc, ServerPlayerEntity player) {
         if (player.getUuid().equals(npc.getOwnerUuid())) {
@@ -44,13 +53,20 @@ public final class Factions {
         if (npc.getAngerTime() > 0 && player.getUuid().equals(npc.getAngryAt())) {
             return Disposition.HOSTILE;
         }
-        int standing = StandingLedger.get(player.getServer()).get(player.getUuid(), npc.getPartyMembership().faction());
+        FactionSlot faction = factionOf(npc);
+        if (faction == null) {
+            return Disposition.NEUTRAL;
+        }
+        int standing = StandingLedger.get(player.getServer()).get(player.getUuid(), faction);
         return Disposition.ofStanding(standing, StandingThresholds.from(RPGMinibossesEntities.config));
     }
 
-    /** Whether the factions of two adventurers are at war. Party-mates never are. */
+    /** Whether the factions of two adventurers are at war. Party-mates and companions never are. */
     public static boolean atWar(MinibossEntity a, MinibossEntity b) {
         if (!(a.getWorld() instanceof ServerWorld world)) {
+            return false;
+        }
+        if (factionOf(a) == null || factionOf(b) == null) {
             return false;
         }
         PartyMembership first = a.getPartyMembership();
@@ -61,11 +77,15 @@ public final class Factions {
         return FactionState.roster(world.getServer()).between(first.faction(), second.faction()) == FactionRelation.AT_WAR;
     }
 
-    /** Records a deed by {@code player} toward {@code npc}'s faction. */
+    /** Records a deed by {@code player} toward {@code npc}'s faction. A companion has none, so nothing changes. */
     public static void recordDeed(MinibossEntity npc, ServerPlayerEntity player, StandingCause cause, int delta) {
+        FactionSlot faction = factionOf(npc);
+        if (faction == null) {
+            return;
+        }
         var server = player.getServer();
         StandingLedger.get(server).apply(player.getUuid(),
-                new StandingEvent(npc.getPartyMembership().faction(), cause, delta, npc.getUuid()),
+                new StandingEvent(faction, cause, delta, npc.getUuid()),
                 FactionState.roster(server));
     }
 

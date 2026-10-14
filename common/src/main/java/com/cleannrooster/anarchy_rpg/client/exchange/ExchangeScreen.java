@@ -1,6 +1,7 @@
 package com.cleannrooster.anarchy_rpg.client.exchange;
 
 import com.cleannrooster.anarchy_rpg.RPGMinibosses;
+import com.cleannrooster.anarchy_rpg.client.gui.VanillaPanel;
 import com.cleannrooster.anarchy_rpg.exchange.ExchangeLayout;
 import com.cleannrooster.anarchy_rpg.exchange.ExchangePricing;
 import com.cleannrooster.anarchy_rpg.exchange.ExchangeScreenHandler;
@@ -23,19 +24,6 @@ import java.util.Locale;
  * the villager trade arrow from stock to request. Text follows vanilla containers: 0x404040, no shadow.
  */
 public final class ExchangeScreen extends HandledScreen<ExchangeScreenHandler> {
-    private static final Identifier PANEL = Identifier.ofVanilla("textures/gui/container/dispenser.png");
-    private static final int PANEL_TEXTURE_WIDTH = 176;
-    private static final int PANEL_TEXTURE_HEIGHT = 166;
-    /** The dispenser panel's bevel, sliced off each edge and corner. */
-    private static final int BORDER = 4;
-    /**
-     * A plain stretch of the dispenser panel left of its 3x3 grid (56x76 in vanilla), tiled for the interior
-     * and, along its rim, for the edges.
-     */
-    private static final int PLAIN_U = BORDER;
-    private static final int PLAIN_V = BORDER;
-    private static final int PLAIN_WIDTH = 56;
-    private static final int PLAIN_HEIGHT = 76;
     private static final Identifier SLOT = Identifier.ofVanilla("container/slot");
     private static final Identifier ARROW = Identifier.ofVanilla("container/villager/trade_arrow");
     private static final int TEXT = 0x404040;
@@ -80,45 +68,13 @@ public final class ExchangeScreen extends HandledScreen<ExchangeScreenHandler> {
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        drawPanel(context, this.x, this.y, this.backgroundWidth, this.backgroundHeight);
+        VanillaPanel.draw(context, this.x, this.y, this.backgroundWidth, this.backgroundHeight);
         for (Slot slot : this.handler.slots) {
             context.drawGuiTexture(SLOT, this.x + slot.x - 1, this.y + slot.y - 1, ExchangeLayout.SLOT, ExchangeLayout.SLOT);
         }
         int arrowX = this.x + ExchangeLayout.STOCK_X + ExchangeLayout.GRID * ExchangeLayout.SLOT + 2;
         int arrowY = this.y + ExchangeLayout.PANES_Y + ExchangeLayout.SLOT + 4;
         context.drawGuiTexture(ARROW, arrowX, arrowY, 10, 9);
-    }
-
-    /** Draws the dispenser panel at any size: corners as they are, edges and interior tiled. */
-    private static void drawPanel(DrawContext context, int x, int y, int width, int height) {
-        int b = BORDER;
-        int tw = PANEL_TEXTURE_WIDTH;
-        int th = PANEL_TEXTURE_HEIGHT;
-        int innerW = width - 2 * b;
-        int innerH = height - 2 * b;
-        // Corners.
-        tile(context, x, y, b, b, 0, 0, b, b);
-        tile(context, x + width - b, y, b, b, tw - b, 0, b, b);
-        tile(context, x, y + height - b, b, b, 0, th - b, b, b);
-        tile(context, x + width - b, y + height - b, b, b, tw - b, th - b, b, b);
-        // Edges, from the rim beside the plain stretch.
-        tile(context, x + b, y, innerW, b, PLAIN_U, 0, PLAIN_WIDTH, b);
-        tile(context, x + b, y + height - b, innerW, b, PLAIN_U, th - b, PLAIN_WIDTH, b);
-        tile(context, x, y + b, b, innerH, 0, PLAIN_V, b, PLAIN_HEIGHT);
-        tile(context, x + width - b, y + b, b, innerH, tw - b, PLAIN_V, b, PLAIN_HEIGHT);
-        // Interior.
-        tile(context, x + b, y + b, innerW, innerH, PLAIN_U, PLAIN_V, PLAIN_WIDTH, PLAIN_HEIGHT);
-    }
-
-    /** Repeats the texture region (u, v, tileWidth x tileHeight) over the area, clipping the last tiles. */
-    private static void tile(DrawContext context, int x, int y, int width, int height, int u, int v, int tileWidth, int tileHeight) {
-        for (int dy = 0; dy < height; dy += tileHeight) {
-            int h = Math.min(tileHeight, height - dy);
-            for (int dx = 0; dx < width; dx += tileWidth) {
-                int w = Math.min(tileWidth, width - dx);
-                context.drawTexture(PANEL, x + dx, y + dy, u, v, w, h, 256, 256);
-            }
-        }
     }
 
     @Override

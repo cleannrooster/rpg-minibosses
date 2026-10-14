@@ -61,7 +61,6 @@ public final class Conversations {
                     }
                 }));
         PlayerEvent.PLAYER_QUIT.register(player -> ACTIVE.remove(player.getUuid()));
-        CompanionOrderOptions.register();
     }
 
     /**
@@ -70,7 +69,7 @@ public final class Conversations {
      * why when it is something other than hostility.
      */
     public static boolean tryOpen(MinibossEntity npc, ServerPlayerEntity player) {
-        if (!(npc.getWorld() instanceof ServerWorld world) || !npc.notPetrified() || npc.isDowned()) {
+        if (!(npc.getWorld() instanceof ServerWorld world) || !npc.notPetrified() || npc.isIncapacitated()) {
             return false;
         }
         Disposition disposition = Factions.disposition(npc, player);
@@ -88,7 +87,9 @@ public final class Conversations {
             end(other, player, true);
         }
 
-        Faction faction = FactionState.roster(world.getServer()).get(npc.getPartyMembership().faction());
+        // A companion belongs to its player, not to a faction: no faction line for it.
+        var slot = Factions.factionOf(npc);
+        Faction faction = slot == null ? null : FactionState.roster(world.getServer()).get(slot);
         List<OpenConversationPayload.Entry> options = new ArrayList<>();
         for (Entry<ConversationOption, ConversationOptions.Registration> entry : ConversationOptions.all().entrySet()) {
             OptionAvailability availability = entry.getValue().rule().check(npc, player, disposition);
@@ -101,7 +102,8 @@ public final class Conversations {
         npc.getNavigation().stop();
         ACTIVE.put(player.getUuid(), npc.getId());
         NetworkManager.sendToPlayer(player, new OpenConversationPayload(npc.getId(), npc.getName(), greeting(npc, disposition),
-                faction.name(), faction.flag().base(), disposition, null, options));
+                faction == null ? null : faction.name(),
+                faction == null ? net.minecraft.util.DyeColor.WHITE : faction.flag().base(), disposition, null, options));
         return true;
     }
 
@@ -134,7 +136,7 @@ public final class Conversations {
             end(npc, player, true);
             return;
         }
-        boolean keepOpen = registration.handler().choose(npc, player);
+        boolean keepOpen = registration.handler().choose(npc, player, payload.argument());
         if (!keepOpen) {
             end(npc, player, true);
         }
@@ -177,7 +179,7 @@ public final class Conversations {
     }
 
     private static @Nullable String whyInvalid(MinibossEntity npc, ServerPlayerEntity player) {
-        if (!npc.isAlive() || npc.isRemoved() || npc.isDowned() || !npc.notPetrified()) return "npc unavailable";
+        if (!npc.isAlive() || npc.isRemoved() || npc.isIncapacitated() || !npc.notPetrified()) return "npc unavailable";
         if (!player.isAlive() || player.isSpectator() || player.getWorld() != npc.getWorld()) return "player unavailable";
         if (player.squaredDistanceTo(npc) > MAX_DISTANCE * MAX_DISTANCE) return "too far";
         if (npc.getTarget() != null) return "fighting";

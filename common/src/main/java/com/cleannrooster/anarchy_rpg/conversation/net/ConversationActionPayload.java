@@ -10,9 +10,11 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Client to server: the player picked an option, or (with a null option) left the conversation. The
- * server re-checks everything before acting on it.
+ * server re-checks everything before acting on it, including clamping {@code argument}.
+ *
+ * @param argument the option's setting, where it has one (Wait: hours); 0 otherwise
  */
-public record ConversationActionPayload(int npcId, @Nullable ConversationOption option) implements CustomPayload {
+public record ConversationActionPayload(int npcId, @Nullable ConversationOption option, int argument) implements CustomPayload {
 
     public static final CustomPayload.Id<ConversationActionPayload> ID =
             new CustomPayload.Id<>(Identifier.of(RPGMinibosses.CONTENT_NAMESPACE, "conversation_action"));
@@ -21,11 +23,12 @@ public record ConversationActionPayload(int npcId, @Nullable ConversationOption 
             PacketCodec.of((payload, buffer) -> {
                         buffer.writeVarInt(payload.npcId);
                         buffer.writeVarInt(payload.option == null ? -1 : payload.option.ordinal());
+                        buffer.writeVarInt(payload.argument);
                     },
-                    buffer -> new ConversationActionPayload(buffer.readVarInt(), ConversationOption.fromIndex(buffer.readVarInt())));
+                    buffer -> new ConversationActionPayload(buffer.readVarInt(), ConversationOption.fromIndex(buffer.readVarInt()), buffer.readVarInt()));
 
     public static ConversationActionPayload leave(int npcId) {
-        return new ConversationActionPayload(npcId, null);
+        return new ConversationActionPayload(npcId, null, 0);
     }
 
     @Override

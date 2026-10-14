@@ -42,11 +42,15 @@ public final class ExchangeMenus {
     public static void register() {
         ReloadListenerRegistry.register(ResourceType.SERVER_DATA,
                 (SynchronousResourceReloader) ItemValues::reload, RPGMinibosses.id("item_values"));
-        ConversationOptions.register(ConversationOption.EXCHANGE, ExchangeMenus::availability, ExchangeMenus::open);
+        ConversationOptions.register(ConversationOption.EXCHANGE, ExchangeMenus::availability, (npc, player, argument) -> open(npc, player));
     }
 
     private static OptionAvailability availability(MinibossEntity npc, ServerPlayerEntity player,
                                                    com.cleannrooster.anarchy_rpg.faction.Disposition disposition) {
+        if (npc.getOwnerUuid() != null) {
+            // A companion is not a trader: its owner gets Storage, everyone else nothing.
+            return OptionAvailability.HIDDEN;
+        }
         npc.getExchangeStock().ensureGenerated(npc, player);
         if (npc.getExchangeStock().isEmpty()) {
             return OptionAvailability.disabled(Text.translatable("conversation." + RPGMinibosses.CONTENT_NAMESPACE + ".exchange.empty"));

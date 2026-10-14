@@ -47,6 +47,9 @@ public final class RPGMinibossesNeoForge {
         event.register(RegistryKeys.STATUS_EFFECT, helper -> RPGMinibosses.registerEffects());
         event.register(RegistryKeys.FEATURE, helper -> RPGMinibosses.registerFeatures());
         event.register(RegistryKeys.ITEM, helper -> RPGMinibosses.registerItems());
-        event.register(RegistryKeys.SCREEN_HANDLER, helper -> com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.registerMenus());
+        event.register(RegistryKeys.SCREEN_HANDLER, helper -> {
+            com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.registerMenus();
+            com.cleannrooster.anarchy_rpg.companion.CompanionMenus.registerMenus();
+        });
     }
 }

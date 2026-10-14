@@ -82,10 +82,12 @@ final class FactionDebugCommand {
             return 0;
         }
         PartyMembership party = npc.getPartyMembership();
-        Faction faction = FactionState.roster(context.getSource().getServer()).get(party.faction());
+        FactionSlot slot = Factions.factionOf(npc);
+        Text factionName = slot == null ? Text.literal("no faction (companion)")
+                : FactionState.roster(context.getSource().getServer()).get(slot).name();
         Text line = npc.getName().copy()
                 .append(Text.literal(" — party " + party.party().toString().substring(0, 8) + ", "))
-                .append(faction.name())
+                .append(factionName)
                 .append(Text.literal(", regards you as " + Factions.disposition(npc, player)));
         context.getSource().sendFeedback(() -> line, false);
         return 1;

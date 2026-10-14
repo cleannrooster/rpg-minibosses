@@ -152,6 +152,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         builder.add(OWNER_UUID, Optional.empty());
         builder.add(CANTHIRE, false);
         builder.add(FACTION_FLAG, com.cleannrooster.anarchy_rpg.faction.PackedFlag.NONE);
+        builder.add(COMPANION_DOWNED, false);
 
     }
 
@@ -240,6 +241,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     public static final TrackedData<Boolean> CANTHIRE ;
     /** This adventurer's faction flag, packed ({@link com.cleannrooster.anarchy_rpg.faction.PackedFlag}), for drawing it above them. */
     public static final TrackedData<Integer> FACTION_FLAG;
+    /** A companion knocked down by a lethal blow. Separate from {@link #DOWN}, which means downed and recruitable. */
+    public static final TrackedData<Boolean> COMPANION_DOWNED;
     /** Mirrors the intro (petrified) effect to clients, which vanilla does not send it to. */
     public static final TrackedData<Boolean> PETRIFIED;
 
@@ -251,6 +254,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         OWNER_UUID = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
         CANTHIRE = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         FACTION_FLAG = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
+        COMPANION_DOWNED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         PETRIFIED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     }
@@ -387,6 +391,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public void onDeath(DamageSource damageSource) {
+        if (com.cleannrooster.anarchy_rpg.companion.Companions.onLethalDamage(this, damageSource)) {
+            return;
+        }
         if(!this.getCantHire()) {
             if (!damageSource.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !this.getDataTracker().get(DOWN) && this.getWorld() instanceof ServerWorld && this.getOwnerUuid() == null) {
                 this.setHealth(0.01F);
@@ -408,7 +415,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public void move(MovementType movementType, Vec3d movement) {
-        if(this.getDataTracker().get(DOWN)) {
+        if(this.isIncapacitated()) {
             return;
         }
         super.move(movementType, movement);
@@ -456,6 +463,11 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public void tick() {
+        // Companion timers run here, not in mobTick: a downed companion has its AI off, so mobTick stops,
+        // and it still has to notice when it is time to get back up.
+        if (!this.getWorld().isClient()) {
+            com.cleannrooster.anarchy_rpg.companion.Companions.tick(this);
+        }
         // Teach this client the shapes of this mob's attacks. Done on tick rather than in the
         // constructor because the hook is overridden per mob, and a base constructor calling it would
         // build the brain before the subclass's own fields exist.
@@ -465,7 +477,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             this.dataTracker.set(PETRIFIED, this.hasStatusEffect(this.getIntroEffect()));
         }
         if(this.getTarget() != null){
-            if(this.getTarget() instanceof MinibossEntity entity && entity.getDataTracker().get(DOWN) && this.isTamed()){
+            if(this.getTarget() instanceof MinibossEntity entity && entity.isIncapacitated() && this.isTamed()){
                 this.setTarget(null);
             }
         }
@@ -588,7 +600,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             return null;
         }
         if(super.getTarget() != null){
-            if(super.getTarget() instanceof MinibossEntity entity && entity.getDataTracker().get(DOWN) && this.isTamed()){
+            if(super.getTarget() instanceof MinibossEntity entity && entity.isIncapacitated() && this.isTamed()){
                 this.setTarget(null);
                 return null;
             }
@@ -631,8 +643,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     /** Keeps the tracked flag in step with this adventurer's faction, so clients can draw it. */
     private void syncFactionFlag(ServerWorld world) {
-        var faction = com.cleannrooster.anarchy_rpg.faction.FactionState.roster(world.getServer()).get(this.getPartyMembership().faction());
-        int packed = com.cleannrooster.anarchy_rpg.faction.PackedFlag.pack(faction.flag(), world.getRegistryManager());
+        var slot = com.cleannrooster.anarchy_rpg.faction.Factions.factionOf(this);
+        int packed = slot == null ? com.cleannrooster.anarchy_rpg.faction.PackedFlag.NONE
+                : com.cleannrooster.anarchy_rpg.faction.PackedFlag.pack(
+                        com.cleannrooster.anarchy_rpg.faction.FactionState.roster(world.getServer()).get(slot).flag(), world.getRegistryManager());
         if (this.dataTracker.get(FACTION_FLAG) != packed) {
             this.dataTracker.set(FACTION_FLAG, packed);
         }
@@ -664,6 +678,50 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     public boolean isDowned() {
         return this.getDataTracker().get(DOWN);
+    }
+
+    /** Downed either way: recruitable ({@link #DOWN}) or a companion waiting to get up. Out of the fight. */
+    public boolean isIncapacitated() {
+        return this.getDataTracker().get(DOWN) || this.getDataTracker().get(COMPANION_DOWNED);
+    }
+
+    public void setCompanionDowned(boolean downed) {
+        this.getDataTracker().set(COMPANION_DOWNED, downed);
+    }
+
+    /** Which re-creation of a companion this entity is; a copy behind the registry's count removes itself. */
+    private long companionIncarnation;
+
+    public long getCompanionIncarnation() {
+        return this.companionIncarnation;
+    }
+
+    public void setCompanionIncarnation(long incarnation) {
+        this.companionIncarnation = incarnation;
+    }
+
+    /** A dismissed companion walking away for good. */
+    private boolean departing;
+    @Nullable
+    private BlockPos departTarget;
+    private int departUntilAge;
+
+    public boolean isDeparting() {
+        return this.departing;
+    }
+
+    public void startDeparting(BlockPos target, int maxTicks) {
+        this.departing = true;
+        this.departTarget = target;
+        this.departUntilAge = this.age + maxTicks;
+    }
+
+    public @Nullable BlockPos getDepartTarget() {
+        return this.departTarget;
+    }
+
+    public boolean departTimedOut() {
+        return this.age >= this.departUntilAge;
     }
 
     /** What this adventurer has to trade. Server-side; generated on first use and saved. */
@@ -709,7 +767,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         aimAt(this.getTarget());
         super.mobTick();
         com.cleannrooster.anarchy_rpg.conversation.Conversations.tick(this);
-        if (this.age % 40 == 0 && this.getWorld() instanceof ServerWorld serverWorld) {
+        if (this.age % 20 == 0 && this.getWorld() instanceof ServerWorld serverWorld) {
             this.syncFactionFlag(serverWorld);
         }
         if (this.getCustomer() != null && !this.getWorld().isClient()) {
@@ -781,6 +839,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     protected void dropEquipment(ServerWorld world, DamageSource source, boolean causedByPlayer) {
+        if (this.getOwnerUuid() != null) {
+            return;
+        }
         super.dropEquipment(world, source, causedByPlayer);
     }
     private void beginTradeWith(PlayerEntity customer) {
@@ -808,20 +869,28 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
             if (this.getDataTracker().get(DOWN) && !this.getCantHire()) {
                 if (this.getOwnerUuid() == null) {
-                    if (player instanceof ServerPlayerEntity serverPlayer) {
-                        com.cleannrooster.anarchy_rpg.faction.Factions.recordDeed(this, serverPlayer,
-                                com.cleannrooster.anarchy_rpg.faction.StandingCause.SPARED_MEMBER, RPGMinibossesEntities.config.standingSpareMember);
+                    // Recruiting is the server's decision. The client only acknowledges the click: changing its
+                    // own copy here (owner, DOWN, health) left a refused recruit looking recruited on screen,
+                    // with nothing from the server to correct it.
+                    if (!(player instanceof ServerPlayerEntity serverPlayer)) {
+                        return ActionResult.SUCCESS_NO_ITEM_USED;
                     }
-                    this.setOwnerUuid(player.getUuid());
+                    if (com.cleannrooster.anarchy_rpg.companion.CompanionRegistry.get(serverPlayer.getServer()).ofOwner(serverPlayer.getUuid()) != null) {
+                        serverPlayer.sendMessage(Text.translatable("companion." + RPGMinibosses.CONTENT_NAMESPACE + ".already_have"), true);
+                        return ActionResult.SUCCESS_NO_ITEM_USED;
+                    }
+                    // The spare counts with the adventurer's faction while it still has one: once recruited it has none.
+                    com.cleannrooster.anarchy_rpg.faction.Factions.recordDeed(this, serverPlayer,
+                            com.cleannrooster.anarchy_rpg.faction.StandingCause.SPARED_MEMBER, RPGMinibossesEntities.config.standingSpareMember);
+                    com.cleannrooster.anarchy_rpg.companion.Companions.tryRecruit(serverPlayer, this);
                     this.getDataTracker().set(DOWN, false);
                     this.heal(this.getMaxHealth());
                     return ActionResult.SUCCESS_NO_ITEM_USED;
-
                 }
             }
             // Spawn eggs and name tags keep their vanilla use on adventurers.
             ItemStack held = player.getStackInHand(hand);
-            if (this.isDowned() || held.getItem() instanceof SpawnEggItem || held.isOf(Items.NAME_TAG)) {
+            if (this.isIncapacitated() || held.getItem() instanceof SpawnEggItem || held.isOf(Items.NAME_TAG)) {
                 return ActionResult.PASS;
             }
             // Talking (including the owner's Follow and Stay orders) is decided on the server.
@@ -854,13 +923,16 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public boolean damage(DamageSource source, float amount) {
+        if (this.getDataTracker().get(COMPANION_DOWNED) && !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return false;
+        }
         if (!this.getWorld().isClient() && source.getAttacker() != null) {
             com.cleannrooster.anarchy_rpg.conversation.Conversations.onDamagedBy(this, source.getAttacker().getUuid());
         }
         if(amount < 1000000 && !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && this.getWorld().getRegistryKey().equals(RPGMinibosses.DIMENSIONKEY)){
             return false;
         }
-        if(this.getDataTracker().get(DOWN) && source.getAttacker() instanceof MinibossEntity && !RPGMinibossesEntities.config.betrayal){
+        if(this.isIncapacitated() && source.getAttacker() instanceof MinibossEntity && !RPGMinibossesEntities.config.betrayal){
             return false;
         }
         // The friendly-fire reduction exists so a patrol does not blow itself apart with splash. It has no
@@ -927,7 +999,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             return false;
         }
         if (candidate instanceof MinibossEntity other) {
-            if (other.getDataTracker().get(DOWN) && !RPGMinibossesEntities.config.betrayal) {
+            if (other.isIncapacitated() && !RPGMinibossesEntities.config.betrayal) {
                 return false;
             }
             if (this.getOwnerUuid() != null && this.getOwnerUuid().equals(other.getOwnerUuid())) {
@@ -949,7 +1021,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             if (!this.isTamed()) {
                 allowed = this.getTarget() != null && this.getTarget().equals(target);
             }
-            if (other.getDataTracker().get(DOWN)) {
+            if (other.isIncapacitated()) {
                 allowed = false;
             }
             return allowed;
@@ -1034,7 +1106,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public boolean isAiDisabled() {
-        return (this.getDataTracker().get(DOWN) || !notPetrified() || super.isAiDisabled());
+        return (this.isIncapacitated() || !notPetrified() || super.isAiDisabled());
     }
     public boolean isTamed() {
         return this.getOwnerUuid() != null;
@@ -1046,7 +1118,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
                 return !wolfEntity.isTamed() || wolfEntity.getOwner() != owner;
             }
             else if (target instanceof MinibossEntity tameable) {
-                return (!tameable.isTamed() || !Objects.equals(tameable.getOwner(), this.getOwner())) &&!tameable.getDataTracker().get(DOWN);
+                return (!tameable.isTamed() || !Objects.equals(tameable.getOwner(), this.getOwner())) &&!tameable.isIncapacitated();
             }
             else    if (target instanceof Tameable tameable) {
                 return tameable.getOwnerUuid() == null || tameable.getOwnerUuid()!=this.getOwnerUuid();
@@ -1151,7 +1223,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
         if (!RPGMinibossesEntities.config.betrayal && RPGMinibossesEntities.config.factionWarfare) {
             this.targetSelector.add(3, new ActiveTargetGoal<>(this, MinibossEntity.class, true, (target) -> !this.isTamed()
-                    && target instanceof MinibossEntity other && !other.isTamed() && !other.getDataTracker().get(DOWN)
+                    && target instanceof MinibossEntity other && !other.isTamed() && !other.isIncapacitated()
                     && com.cleannrooster.anarchy_rpg.faction.Factions.atWar(this, other)));
         }
 
@@ -1253,8 +1325,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
 
  /*   private PlayState predicate2(AnimationState<MinibossEntity> state) {
-        state.setControllerSpeed(this.getDataTracker().get(DOWN) ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
-        if(this.getDataTracker().get(DOWN)){
+        state.setControllerSpeed(this.isIncapacitated() ? 1F : (float) (state.isMoving() ? this.getVelocity().length()/0.1F : 1F));
+        if(this.isIncapacitated()){
             return  state.setAndContinue(DOWNANIM);
         }
         if(state.isMoving()){
@@ -1348,6 +1420,11 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             nbt.put("Party", this.partyMembership.toNbt());
         }
         nbt.put("ExchangeStock", this.exchangeStock.toNbt(this.getRegistryManager()));
+        nbt.putBoolean("CompanionDowned", this.getDataTracker().get(COMPANION_DOWNED));
+        nbt.putLong("CompanionIncarnation", this.companionIncarnation);
+        if (this.departing) {
+            nbt.putBoolean("Departing", true);
+        }
 
     }
     protected TradeOfferList offers;
@@ -1408,6 +1485,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (nbt.contains("ExchangeStock")) {
             this.exchangeStock.readNbt(nbt.getCompound("ExchangeStock"), this.getRegistryManager());
         }
+        this.getDataTracker().set(COMPANION_DOWNED, nbt.getBoolean("CompanionDowned"));
+        this.companionIncarnation = nbt.getLong("CompanionIncarnation");
+        // A departing ex-companion that loads again simply finishes leaving.
+        this.departing = nbt.getBoolean("Departing");
 
     }
     static {
@@ -1780,7 +1861,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             AnimState newState;
             float animSpeed;
 
-            if (this.getDataTracker().get(DOWN)) {
+            if (this.isIncapacitated()) {
                 newState = AnimState.DOWN;
                 animSpeed = 1F;
             } else if (this.isAttacking()) {

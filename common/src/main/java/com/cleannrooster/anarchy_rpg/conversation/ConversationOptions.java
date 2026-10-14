@@ -20,10 +20,13 @@ public final class ConversationOptions {
         OptionAvailability check(MinibossEntity npc, ServerPlayerEntity player, Disposition disposition);
     }
 
-    /** Runs a picked option. Returns whether the conversation stays open afterwards. */
+    /**
+     * Runs a picked option. {@code argument} is the option's setting where it has one (Wait: hours), as
+     * sent by the client: clamp it. Returns whether the conversation stays open afterwards.
+     */
     @FunctionalInterface
     public interface Handler {
-        boolean choose(MinibossEntity npc, ServerPlayerEntity player);
+        boolean choose(MinibossEntity npc, ServerPlayerEntity player, int argument);
     }
 
     record Registration(Rule rule, Handler handler) {

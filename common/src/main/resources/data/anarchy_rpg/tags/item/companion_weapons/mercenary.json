@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:crossbow",
+    {
+      "id": "#rpg_series:weapon_type/heavy_crossbow",
+      "required": false
+    },
+    {
+      "id": "#rpg_series:loot_tier/rapid_crossbow",
+      "required": false
+    }
+  ]
+}

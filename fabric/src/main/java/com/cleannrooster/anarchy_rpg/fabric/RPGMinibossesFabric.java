@@ -24,6 +24,7 @@ public final class RPGMinibossesFabric implements ModInitializer {
         RPGMinibosses.registerFeatures();
         RPGMinibosses.registerItems(); // also registers armor materials + creative tabs
         com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.registerMenus();
+        com.cleannrooster.anarchy_rpg.companion.CompanionMenus.registerMenus();
 
         RPGMinibosses.init();
     }

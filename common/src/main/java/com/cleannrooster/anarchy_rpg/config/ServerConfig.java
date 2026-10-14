@@ -288,4 +288,17 @@ public class ServerConfig  implements ConfigData {
     @Comment("Hubs: chunks around each player checked for hub structures")
     public int hubScanRadiusChunks = 8;
 
+    @Comment("Companions: ticks a companion stays down after a lethal blow before getting back up")
+    public long companionDownedTicks = 1200L;
+    @Comment("Companions: fraction of max health a companion gets back up with")
+    public float companionReviveHealth = 0.5F;
+    @Comment("Companions: within this many blocks of base (same dimension) a companion walks home; farther, the trip is simulated")
+    public double companionWalkRange = 128.0;
+    @Comment("Companions: simulated travel speed, in blocks per tick (0.2 = 4 blocks a second)")
+    public double companionTravelBlocksPerTick = 0.2;
+    @Comment("Companions: a simulated trip between dimensions never takes longer than this many ticks (48000 = 2 days)")
+    public long companionCrossDimensionMaxTicks = 48000L;
+    @Comment("Companions: a rendezvous point must be within this many blocks of the owner's spawn point")
+    public double companionRendezvousRadius = 64.0;
+
 }
