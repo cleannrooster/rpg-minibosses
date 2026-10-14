@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "anarchy_rpg:lavos_horn",
+      "required": false
+    },
+    {
+      "id": "anarchy_rpg:gemini_fragment",
+      "required": false
+    },
+    {
+      "id": "anarchy_rpg:deatomized_fragment",
+      "required": false
+    }
+  ]
+}

@@ -32,6 +32,9 @@ public final class RPGMinibossesClient {
     public static void earlyInit() {
         com.cleannrooster.anarchy_rpg.client.combat.SlashEffectManager.registerReceiver();
         com.cleannrooster.anarchy_rpg.client.conversation.ConversationClient.registerReceivers();
+        dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
+                com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.EXCHANGE,
+                com.cleannrooster.anarchy_rpg.client.exchange.ExchangeScreen::new);
         registerEntityRenderers();
         SpellEngineCompatClient.earlyInit();
     }

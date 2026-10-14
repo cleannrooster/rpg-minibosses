@@ -23,8 +23,8 @@ public class ServerConfig  implements ConfigData {
     @Comment("Rare Trade Multiplier")
 
     public int rareTradeMultiplier = 4;
-    @Comment("Trade Item")
-    public String tradeItem = "minecraft:emerald";
+    @Comment("Currency item: worth exactly 1 in Exchange, and the price item in guild hall trades")
+    public String currencyItem = "minecraft:emerald";
 
     @Comment("Minibosses can spawn in the Nether")
     public boolean hell = true;
@@ -251,5 +251,30 @@ public class ServerConfig  implements ConfigData {
     public int standingSpareMember = 8;
     @Comment("Adventurers attack adventurers of a faction their own faction is at war with (ignored when betrayal is on)")
     public boolean factionWarfare = true;
+
+    @Comment("Exchange: each extra stack requested raises the price of everything requested by this fraction")
+    public double exchangeMarkupPerStack = 0.15;
+    @Comment("Exchange: price multiplier from the angriest adventurer still willing to talk (the most prices ever rise)")
+    public double exchangeAngryPriceMultiplier = 2.0;
+    @Comment("Exchange: price multiplier from a devoted adventurer (the most prices ever fall)")
+    public double exchangeDevotedPriceMultiplier = 0.75;
+    @Comment("Exchange: rolls of the adventurer's own drop pool (its loot table, including Spell Engine and RPG Series drops) into its stock")
+    public int exchangeStockDropRolls = 4;
+    @Comment("Exchange: chance that an adventurer's stock carries one boss key (item tag anarchy_rpg:boss_keys)")
+    public double exchangeBossKeyChance = 0.08;
+    @Comment("Exchange: chance that an adventurer's stock includes some generic dungeon loot")
+    public double exchangeDungeonLootChance = 0.3;
+    @Comment("Exchange: chest loot tables the dungeon loot is drawn from (one is picked at random)")
+    public java.util.List<String> exchangeDungeonLootTables = new java.util.ArrayList<>(java.util.List.of(
+            "minecraft:chests/simple_dungeon", "minecraft:chests/abandoned_mineshaft",
+            "minecraft:chests/desert_pyramid", "minecraft:chests/jungle_temple"));
+    @Comment("Exchange: at most this many stacks of a dungeon loot roll make it into the stock")
+    public int exchangeDungeonLootMaxStacks = 3;
+    @Comment("Exchange: weapons drawn from the adventurer's weapon pool into its stock")
+    public int exchangeStockWeapons = 3;
+    @Comment("Exchange: rolls of the anarchy_rpg:exchange/supplies loot table into an adventurer's stock")
+    public int exchangeStockSupplyRolls = 3;
+    @Comment("Standing change for completing a trade")
+    public int standingTrade = 1;
 
 }

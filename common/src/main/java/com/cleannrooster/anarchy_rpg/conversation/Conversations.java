@@ -78,7 +78,8 @@ public final class Conversations {
             return false;
         }
         UUID partner = npc.getConversationPartner();
-        if (npc.getTarget() != null || (partner != null && !partner.equals(player.getUuid()))) {
+        boolean tradingWithSomeoneElse = npc.getCustomer() != null && npc.getCustomer() != player;
+        if (npc.getTarget() != null || tradingWithSomeoneElse || (partner != null && !partner.equals(player.getUuid()))) {
             player.sendMessage(Text.translatable("conversation." + RPGMinibosses.CONTENT_NAMESPACE + ".busy", npc.getName()), true);
             return false;
         }

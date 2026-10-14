@@ -93,6 +93,13 @@
   "item.anarchy_rpg.tabula_rasa": "Tabula Rasa",
 
   "conversation.anarchy_rpg.goodbye": "Goodbye",
+  "conversation.anarchy_rpg.exchange.empty": "Has nothing left to trade.",
+  "exchange.anarchy_rpg.stock": "Goods",
+  "exchange.anarchy_rpg.request": "Request",
+  "exchange.anarchy_rpg.offer": "Offer",
+  "exchange.anarchy_rpg.cost": "Cost",
+  "exchange.anarchy_rpg.value": "Value",
+  "exchange.anarchy_rpg.trade": "Trade",
   "conversation.anarchy_rpg.busy": "%s is busy right now.",
   "conversation.anarchy_rpg.option.exchange": "Exchange gear",
   "conversation.anarchy_rpg.option.rumors": "Heard any rumors?",

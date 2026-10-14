@@ -118,7 +118,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         this.moveAnalysis = new MoveAnalysis(this);
     }
     public TradeOffer create(ItemStack stack, int price, int maxUses, int experience, int multiplier,  Entity entity, Random random) {
-        return new TradeOffer( new TradedItem(Registries.ITEM.get(Identifier.tryParse(RPGMinibossesEntities.config.tradeItem)), price),new ItemStack(stack.getItem()), maxUses, experience, 1);
+        return new TradeOffer( new TradedItem(Registries.ITEM.get(Identifier.tryParse(RPGMinibossesEntities.config.currencyItem)), price),new ItemStack(stack.getItem()), maxUses, experience, 1);
     }
 
 
@@ -164,6 +164,11 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     }
 
     List<Item> bonusList = List.of();
+
+    /** The weapons this adventurer can be equipped with; also what its Exchange stock draws weapons from. */
+    public List<Item> getWeaponPool() {
+        return this.bonusList;
+    }
 
     @Override
     public Text getName() {
@@ -644,6 +649,13 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         return this.getDataTracker().get(DOWN);
     }
 
+    /** What this adventurer has to trade. Server-side; generated on first use and saved. */
+    private final com.cleannrooster.anarchy_rpg.exchange.ExchangeStock exchangeStock = new com.cleannrooster.anarchy_rpg.exchange.ExchangeStock();
+
+    public com.cleannrooster.anarchy_rpg.exchange.ExchangeStock getExchangeStock() {
+        return this.exchangeStock;
+    }
+
     @Override
     public void setAiDisabled(boolean aiDisabled) {
         super.setAiDisabled(aiDisabled);
@@ -680,6 +692,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         aimAt(this.getTarget());
         super.mobTick();
         com.cleannrooster.anarchy_rpg.conversation.Conversations.tick(this);
+        if (this.getCustomer() != null && !this.getWorld().isClient()) {
+            this.getNavigation().stop();
+            this.getLookControl().lookAt(this.getCustomer(), 30.0F, 30.0F);
+        }
 
     }
 
@@ -1052,7 +1068,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     }
     public boolean shouldWander = false;
     public boolean shouldWander(){
-        return shouldWander && this.conversationPartner == null;
+        return shouldWander && this.conversationPartner == null && this.getCustomer() == null;
     }
     public class WanderAroundFarGoalConditional extends WanderAroundGoal {
         public static final float CHANCE = 0.001F;
@@ -1311,6 +1327,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (this.partyMembership != null) {
             nbt.put("Party", this.partyMembership.toNbt());
         }
+        nbt.put("ExchangeStock", this.exchangeStock.toNbt(this.getRegistryManager()));
 
     }
     protected TradeOfferList offers;
@@ -1367,6 +1384,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         this.fromStructure = nbt.getBoolean("FromStructure");
         if (nbt.contains("Party")) {
             this.partyMembership = com.cleannrooster.anarchy_rpg.faction.PartyMembership.fromNbt(nbt.getCompound("Party"));
+        }
+        if (nbt.contains("ExchangeStock")) {
+            this.exchangeStock.readNbt(nbt.getCompound("ExchangeStock"), this.getRegistryManager());
         }
 
     }
