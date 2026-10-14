@@ -277,4 +277,15 @@ public class ServerConfig  implements ConfigData {
     @Comment("Standing change for completing a trade")
     public int standingTrade = 1;
 
+    @Comment("Hubs (camps and towers): how many adventurers live in each")
+    public int hubResidents = 8;
+    @Comment("Hubs: ticks between rotations (72000 = 3 Minecraft days)")
+    public long hubRotationTicks = 72000L;
+    @Comment("Hubs: how many of the longest-staying residents leave at each rotation")
+    public int hubRetireCount = 4;
+    @Comment("Hubs: a hub never rotates while a player is within this many blocks of it")
+    public double hubWatchRadius = 48.0;
+    @Comment("Hubs: chunks around each player checked for hub structures")
+    public int hubScanRadiusChunks = 8;
+
 }

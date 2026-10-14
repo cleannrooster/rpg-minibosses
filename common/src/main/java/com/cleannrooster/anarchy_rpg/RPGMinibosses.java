@@ -103,6 +103,7 @@ public final class RPGMinibosses {
         com.cleannrooster.anarchy_rpg.faction.Factions.register();
         com.cleannrooster.anarchy_rpg.conversation.Conversations.register();
         com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.register();
+        com.cleannrooster.anarchy_rpg.hub.HubTurnover.register();
         SpellEngineCompat.hooks().init();
         registerEvents();
         registerWorldgenInjection();

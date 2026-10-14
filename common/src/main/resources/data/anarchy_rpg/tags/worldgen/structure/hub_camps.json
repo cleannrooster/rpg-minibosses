@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "anarchy_rpg:plains_camp",
+    "anarchy_rpg:desert_camp",
+    "anarchy_rpg:snowy_camp"
+  ]
+}
