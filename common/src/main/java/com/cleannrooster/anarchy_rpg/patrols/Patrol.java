@@ -2,6 +2,7 @@ package com.cleannrooster.anarchy_rpg.patrols;
 
 import com.cleannrooster.anarchy_rpg.entity.MinibossEntity;
 import com.cleannrooster.anarchy_rpg.entity.RPGMinibossesEntities;
+import com.cleannrooster.anarchy_rpg.faction.PartyMembership;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.EndPortalBlock;
 import net.minecraft.entity.EntityData;
@@ -74,15 +75,17 @@ public class Patrol {
                                         int n = 0;
                                         int o = (int)Math.ceil((double)world.getLocalDifficulty(mutable).getLocalDifficulty()) + 1;
 
+                                        // One patrol is one party: every member shares its faction.
+                                        PartyMembership party = PartyMembership.create(random);
                                         for(int p = 0; p < o; ++p) {
                                             ++n;
                                             mutable.setY(world.getTopPosition(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, mutable).getY());
                                             if (p == 0) {
-                                                if (!spawnPatrol(world, mutable, random, true)) {
+                                                if (!spawnPatrol(world, mutable, random, true, party)) {
                                                     break;
                                                 }
                                             } else {
-                                                spawnPatrol(world, mutable, random, false);
+                                                spawnPatrol(world, mutable, random, false, party);
                                             }
 
                                             mutable.setX(mutable.getX() + random.nextInt(5) - random.nextInt(5));
@@ -114,15 +117,17 @@ public class Patrol {
             int n = 0;
             int o = (int)Math.ceil((double)world.getLocalDifficulty(mutable).getLocalDifficulty()) + 1;
 
+            // One patrol is one party: every member shares its faction.
+            PartyMembership party = PartyMembership.create(random);
             for(int p = 0; p < o; ++p) {
                 ++n;
                 mutable.setY(world.getTopPosition(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, mutable).getY());
                 if (p == 0) {
-                    if (!spawnPatrol(world, mutable, random, true)) {
+                    if (!spawnPatrol(world, mutable, random, true, party)) {
                         break;
                     }
                 } else {
-                    spawnPatrol(world, mutable, random, false);
+                    spawnPatrol(world, mutable, random, false, party);
                 }
 
                 mutable.setX(mutable.getX() + random.nextInt(5) - random.nextInt(5));
@@ -132,7 +137,7 @@ public class Patrol {
             return n;
         }
     }
-    private static boolean spawnPatrol(ServerWorld world, BlockPos pos, Random random, boolean captain) {
+    private static boolean spawnPatrol(ServerWorld world, BlockPos pos, Random random, boolean captain, PartyMembership party) {
         BlockState blockState = world.getBlockState(pos);
         EntityType type = RPGMinibossesEntities.minibosses.get(world.getRandom().nextInt(RPGMinibossesEntities.minibosses.size())).entityType;
 
@@ -147,6 +152,9 @@ public class Patrol {
 
                 patrolEntity.setPosition((double) pos.getX(), (double) pos.getY(), (double) pos.getZ());
                 patrolEntity.initialize(world, world.getLocalDifficulty(pos), SpawnReason.NATURAL, (EntityData) null);
+                if (patrolEntity instanceof MinibossEntity member) {
+                    member.setPartyMembership(party);
+                }
                 world.spawnEntityAndPassengers(patrolEntity);
                 return true;
             } else {

@@ -7,7 +7,7 @@ import net.fabricmc.api.ModInitializer;
  * Fabric loader entrypoint. Loader mod id {@code "anarchy_rpg"} (matches the content namespace).
  *
  * <p>Fabric registries are open throughout {@code onInitialize}, so the shared registration phases
- * run directly, in dependency order: config -> stats -> sounds -> entities -> blocks -> effects ->
+ * run directly, in dependency order: config -> sounds -> entities -> blocks -> effects ->
  * items (needs entities + blocks + config) -> item group -> deferred init (events/handlers).</p>
  */
 public final class RPGMinibossesFabric implements ModInitializer {
@@ -17,7 +17,6 @@ public final class RPGMinibossesFabric implements ModInitializer {
     public void onInitialize() {
         RPGMinibosses.initConfig();
 
-        RPGMinibosses.registerStats();
         RPGMinibosses.registerSounds();
         RPGMinibosses.registerEntities();
         RPGMinibosses.registerBlocks();

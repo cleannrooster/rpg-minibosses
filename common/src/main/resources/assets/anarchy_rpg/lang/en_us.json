@@ -122,8 +122,16 @@
   "item.anarchy_rpg.poster_templar": "Wanted Poster (Templar)",
   "item.anarchy_rpg.tabula_rasa": "Tabula Rasa",
 
-  "stat.anarchy_rpg.benevolence": "Benevolence",
-  "stat.anarchy_rpg.infamy": "Infamy",
+  "faction.anarchy_rpg.name.ashen_road": "The Ashen Road",
+  "faction.anarchy_rpg.name.free_blades": "The Free Blades",
+  "faction.anarchy_rpg.name.oathbound": "The Oathbound",
+  "faction.anarchy_rpg.name.last_lantern": "Company of the Last Lantern",
+  "faction.anarchy_rpg.name.broken_spear": "Brotherhood of the Broken Spear",
+  "faction.anarchy_rpg.name.wayfarers": "The Wayfarer Compact",
+  "faction.anarchy_rpg.name.ironbound": "The Ironbound",
+  "faction.anarchy_rpg.name.thornmarch": "The Thornmarch",
+  "faction.anarchy_rpg.name.quiet_hand": "The Quiet Hand",
+  "faction.anarchy_rpg.name.open_gate": "Wardens of the Open Gate",
 
   "block.anarchy_rpg.poster_merc": "Wanted Poster (Mercenary)",
   "block.anarchy_rpg.poster_jugg": "Wanted Poster (Juggernaut)",

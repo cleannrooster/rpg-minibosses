@@ -1,0 +1,31 @@
+{
+  "names": [
+    "faction.anarchy_rpg.name.ashen_road",
+    "faction.anarchy_rpg.name.free_blades",
+    "faction.anarchy_rpg.name.oathbound",
+    "faction.anarchy_rpg.name.last_lantern",
+    "faction.anarchy_rpg.name.broken_spear",
+    "faction.anarchy_rpg.name.wayfarers",
+    "faction.anarchy_rpg.name.ironbound",
+    "faction.anarchy_rpg.name.thornmarch",
+    "faction.anarchy_rpg.name.quiet_hand",
+    "faction.anarchy_rpg.name.open_gate"
+  ],
+  "colors": ["red", "blue", "green", "yellow", "purple", "orange", "cyan", "black"],
+  "patterns": [
+    "minecraft:stripe_center",
+    "minecraft:cross",
+    "minecraft:border",
+    "minecraft:triangle_top",
+    "minecraft:circle",
+    "minecraft:rhombus",
+    "minecraft:half_horizontal",
+    "minecraft:stripe_downright"
+  ],
+  "relation_weights": {
+    "allied": 1,
+    "neutral": 3,
+    "rival": 3,
+    "at_war": 2
+  }
+}

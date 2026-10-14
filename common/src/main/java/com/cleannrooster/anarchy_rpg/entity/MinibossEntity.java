@@ -397,7 +397,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         }
 
         if( damageSource.getAttacker() instanceof ServerPlayerEntity player){
-            player.getStatHandler().setStat(player,Stats.CUSTOM.getOrCreateStat(RPGMinibosses.INFAMY),player.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(RPGMinibosses.INFAMY))+5);
+            com.cleannrooster.anarchy_rpg.faction.Factions.recordDeed(this, player,
+                    com.cleannrooster.anarchy_rpg.faction.StandingCause.KILLED_MEMBER, RPGMinibossesEntities.config.standingKillMember);
         }
         super.onDeath(damageSource);
     }
@@ -610,6 +611,30 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     public boolean hasPatrolLeader = false;
 
+    /** This adventurer's party, and through it its faction. Server-side; assigned on first use. */
+    @Nullable
+    private com.cleannrooster.anarchy_rpg.faction.PartyMembership partyMembership;
+
+    /**
+     * This adventurer's party. One that has none yet joins a nearby party or starts its own
+     * ({@link com.cleannrooster.anarchy_rpg.faction.Factions#defaultPartyFor}), so every adventurer has a
+     * party from the first time anything asks.
+     */
+    public com.cleannrooster.anarchy_rpg.faction.PartyMembership getPartyMembership() {
+        if (this.partyMembership == null) {
+            this.partyMembership = com.cleannrooster.anarchy_rpg.faction.Factions.defaultPartyFor(this);
+        }
+        return this.partyMembership;
+    }
+
+    public boolean hasPartyMembership() {
+        return this.partyMembership != null;
+    }
+
+    public void setPartyMembership(com.cleannrooster.anarchy_rpg.faction.PartyMembership partyMembership) {
+        this.partyMembership = partyMembership;
+    }
+
     @Override
     public void setAiDisabled(boolean aiDisabled) {
         super.setAiDisabled(aiDisabled);
@@ -750,6 +775,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             }
             if (this.getDataTracker().get(DOWN) && !this.getCantHire()) {
                 if (this.getOwnerUuid() == null) {
+                    if (player instanceof ServerPlayerEntity serverPlayer) {
+                        com.cleannrooster.anarchy_rpg.faction.Factions.recordDeed(this, serverPlayer,
+                                com.cleannrooster.anarchy_rpg.faction.StandingCause.SPARED_MEMBER, RPGMinibossesEntities.config.standingSpareMember);
+                    }
                     this.setOwnerUuid(player.getUuid());
                     this.getDataTracker().set(DOWN, false);
                     this.heal(this.getMaxHealth());
@@ -896,11 +925,13 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     }
 
     /**
-     * True when these two are actually fighting each other rather than merely standing near one another.
+     * True when these two are actually fighting each other, or their factions are at war, rather than
+     * merely standing near one another.
      * Used to decide whether the friendly-fire reduction applies — see {@link #damage}.
      */
     public boolean isEnemyOf(MinibossEntity other) {
-        return super.getTarget() == other || other.getTarget() == this;
+        return super.getTarget() == other || other.getTarget() == this
+                || com.cleannrooster.anarchy_rpg.faction.Factions.atWar(this, other);
     }
 
     public void playIntro(PlayerEntity player) {
@@ -1067,8 +1098,14 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         }
         else{
             this.targetSelector.add(2, new ActiveTargetGoal(this, PlayerEntity.class, true, (player) ->!this.isTamed() && player instanceof ServerPlayerEntity playerEntity
-                    && playerEntity.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(RPGMinibosses.INFAMY)) > 5 + playerEntity.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(RPGMinibosses.BENEVOLENCE))));
+                    && com.cleannrooster.anarchy_rpg.faction.Factions.disposition(this, playerEntity) == com.cleannrooster.anarchy_rpg.faction.Disposition.HOSTILE));
 
+        }
+
+        if (!RPGMinibossesEntities.config.betrayal && RPGMinibossesEntities.config.factionWarfare) {
+            this.targetSelector.add(3, new ActiveTargetGoal<>(this, MinibossEntity.class, true, (target) -> !this.isTamed()
+                    && target instanceof MinibossEntity other && !other.isTamed() && !other.getDataTracker().get(DOWN)
+                    && com.cleannrooster.anarchy_rpg.faction.Factions.atWar(this, other)));
         }
 
         this.targetSelector.add(4, new UniversalAngerGoalMiniboss<>(this, true));
@@ -1260,6 +1297,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         nbt.putBoolean("Sitting", this.sitting);
         nbt.putBoolean("cantHire", this.getDataTracker().get(CANTHIRE));
         nbt.putBoolean("FromStructure", this.fromStructure);
+        if (this.partyMembership != null) {
+            nbt.put("Party", this.partyMembership.toNbt());
+        }
 
     }
     protected TradeOfferList offers;
@@ -1314,6 +1354,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         this.getDataTracker().set(CANTHIRE,cantHire);
         this.sitting = nbt.getBoolean("Sitting");
         this.fromStructure = nbt.getBoolean("FromStructure");
+        if (nbt.contains("Party")) {
+            this.partyMembership = com.cleannrooster.anarchy_rpg.faction.PartyMembership.fromNbt(nbt.getCompound("Party"));
+        }
 
     }
     static {
@@ -1343,7 +1386,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     public void setAngryAt(@Nullable UUID angryAt) {
         if(angryAt != this.angryAt && this.angerTime == 0 && !this.getWorld().isClient() &&   ((ServerWorld)this.getWorld()).getEntity(angryAt) instanceof ServerPlayerEntity player){
-          player.getStatHandler().setStat(player,Stats.CUSTOM.getOrCreateStat(RPGMinibosses.INFAMY),player.getStatHandler().getStat(Stats.CUSTOM.getOrCreateStat(RPGMinibosses.INFAMY))+1);
+          com.cleannrooster.anarchy_rpg.faction.Factions.recordDeed(this, player,
+                  com.cleannrooster.anarchy_rpg.faction.StandingCause.PROVOKED, RPGMinibossesEntities.config.standingProvokeMember);
 
         }
         this.angryAt = angryAt;

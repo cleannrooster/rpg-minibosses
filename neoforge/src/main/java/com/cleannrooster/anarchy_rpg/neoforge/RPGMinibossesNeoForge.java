@@ -41,7 +41,6 @@ public final class RPGMinibossesNeoForge {
         // successfully. ITEM_GROUP and ARMOR_MATERIAL are NOT given their own phases — they are written
         // during the ITEM phase (armor materials via Armors static-init, creative tabs in registerItems),
         // which NeoForge accepts. Splitting them out is what caused the frozen-registry crash.
-        event.register(RegistryKeys.CUSTOM_STAT, helper -> RPGMinibosses.registerStats());
         event.register(RegistryKeys.SOUND_EVENT, helper -> RPGMinibosses.registerSounds());
         event.register(RegistryKeys.ENTITY_TYPE, helper -> RPGMinibosses.registerEntities());
         event.register(RegistryKeys.BLOCK, helper -> RPGMinibosses.registerBlocks());

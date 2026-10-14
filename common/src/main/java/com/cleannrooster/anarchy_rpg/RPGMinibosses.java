@@ -75,9 +75,6 @@ public final class RPGMinibosses {
     public static final SoundEvent ANTICIPATION_SOUND = SoundEvent.of(ANTICIPATION);
     public static final SoundEvent WARCRY_SOUND = SoundEvent.of(WARCRY);
 
-    public static final Identifier INFAMY = Identifier.of(CONTENT_NAMESPACE, "infamy");
-    public static final Identifier BENEVOLENCE = Identifier.of(CONTENT_NAMESPACE, "benevolence");
-
     public static final RegistryKey<World> DIMENSIONKEY =
             RegistryKey.of(RegistryKeys.WORLD, Identifier.of(CONTENT_NAMESPACE, "guild_hall"));
 
@@ -103,6 +100,7 @@ public final class RPGMinibosses {
         com.cleannrooster.anarchy_rpg.entity.combat.net.AttackNetwork.register();
         com.cleannrooster.anarchy_rpg.magic.TickScheduler.register();
         com.cleannrooster.anarchy_rpg.magic.MagicDebugCommand.register();
+        com.cleannrooster.anarchy_rpg.faction.Factions.register();
         SpellEngineCompat.hooks().init();
         registerEvents();
         registerWorldgenInjection();
@@ -113,12 +111,6 @@ public final class RPGMinibosses {
     }
 
     // ── Registry phases (one registry each) ─────────────────────────────────
-    /** CUSTOM_STAT phase. */
-    public static void registerStats() {
-        Registry.register(Registries.CUSTOM_STAT, INFAMY, INFAMY);
-        Registry.register(Registries.CUSTOM_STAT, BENEVOLENCE, BENEVOLENCE);
-    }
-
     /** SOUND_EVENT phase. */
     public static void registerSounds() {
         Registry.register(Registries.SOUND_EVENT, EXPLOSION, EXPLOSION_SOUND);

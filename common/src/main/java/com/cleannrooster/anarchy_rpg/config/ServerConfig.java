@@ -304,4 +304,25 @@ public class ServerConfig  implements ConfigData {
     @Comment("Distance to enforce advancement requirement.")
     public float distance = 128;
 
+    @Comment("Standing: lowest value a player's standing with a faction can fall to")
+    public int standingMin = -100;
+    @Comment("Standing: highest value a player's standing with a faction can rise to")
+    public int standingMax = 100;
+    @Comment("Standing: below this, a faction's adventurers attack on sight and refuse to talk")
+    public int standingHostileBelow = -20;
+    @Comment("Standing: below this (and not hostile), a faction's adventurers are wary")
+    public int standingWaryBelow = -5;
+    @Comment("Standing: above this, a faction's adventurers are friendly")
+    public int standingFriendlyAbove = 20;
+    @Comment("Standing: above this, a faction's adventurers are devoted")
+    public int standingDevotedAbove = 50;
+    @Comment("Standing change for killing a faction's adventurer")
+    public int standingKillMember = -20;
+    @Comment("Standing change for provoking a faction's adventurer")
+    public int standingProvokeMember = -4;
+    @Comment("Standing change for sparing a defeated adventurer")
+    public int standingSpareMember = 8;
+    @Comment("Adventurers attack adventurers of a faction their own faction is at war with (ignored when betrayal is on)")
+    public boolean factionWarfare = true;
+
 }
