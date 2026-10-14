@@ -151,6 +151,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         builder.add(INDICATOR, 40);
         builder.add(OWNER_UUID, Optional.empty());
         builder.add(CANTHIRE, false);
+        builder.add(FACTION_FLAG, com.cleannrooster.anarchy_rpg.faction.PackedFlag.NONE);
 
     }
 
@@ -237,6 +238,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     public static final TrackedData<Integer> INDICATOR ;
     public static final TrackedData<Optional<UUID>> OWNER_UUID ;
     public static final TrackedData<Boolean> CANTHIRE ;
+    /** This adventurer's faction flag, packed ({@link com.cleannrooster.anarchy_rpg.faction.PackedFlag}), for drawing it above them. */
+    public static final TrackedData<Integer> FACTION_FLAG;
     /** Mirrors the intro (petrified) effect to clients, which vanilla does not send it to. */
     public static final TrackedData<Boolean> PETRIFIED;
 
@@ -247,6 +250,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         INDICATOR = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
         OWNER_UUID = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
         CANTHIRE = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        FACTION_FLAG = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
         PETRIFIED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     }
@@ -625,6 +629,19 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         return this.partyMembership;
     }
 
+    /** Keeps the tracked flag in step with this adventurer's faction, so clients can draw it. */
+    private void syncFactionFlag(ServerWorld world) {
+        var faction = com.cleannrooster.anarchy_rpg.faction.FactionState.roster(world.getServer()).get(this.getPartyMembership().faction());
+        int packed = com.cleannrooster.anarchy_rpg.faction.PackedFlag.pack(faction.flag(), world.getRegistryManager());
+        if (this.dataTracker.get(FACTION_FLAG) != packed) {
+            this.dataTracker.set(FACTION_FLAG, packed);
+        }
+    }
+
+    public int getPackedFactionFlag() {
+        return this.dataTracker.get(FACTION_FLAG);
+    }
+
     public boolean hasPartyMembership() {
         return this.partyMembership != null;
     }
@@ -692,6 +709,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         aimAt(this.getTarget());
         super.mobTick();
         com.cleannrooster.anarchy_rpg.conversation.Conversations.tick(this);
+        if (this.age % 40 == 0 && this.getWorld() instanceof ServerWorld serverWorld) {
+            this.syncFactionFlag(serverWorld);
+        }
         if (this.getCustomer() != null && !this.getWorld().isClient()) {
             this.getNavigation().stop();
             this.getLookControl().lookAt(this.getCustomer(), 30.0F, 30.0F);

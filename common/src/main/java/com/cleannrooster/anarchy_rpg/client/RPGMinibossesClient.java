@@ -32,6 +32,7 @@ public final class RPGMinibossesClient {
     public static void earlyInit() {
         com.cleannrooster.anarchy_rpg.client.combat.SlashEffectManager.registerReceiver();
         com.cleannrooster.anarchy_rpg.client.conversation.ConversationClient.registerReceivers();
+        com.cleannrooster.anarchy_rpg.client.faction.FactionFlagRenderer.registerReceiver();
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.EXCHANGE,
                 com.cleannrooster.anarchy_rpg.client.exchange.ExchangeScreen::new);
@@ -67,6 +68,9 @@ public final class RPGMinibossesClient {
         // Attack ribbons: receives one swing packet per attack and rebuilds the arc locally from the same
         // geometry the server damaged with.
         com.cleannrooster.anarchy_rpg.client.combat.SlashEffectManager.init();
+        com.cleannrooster.anarchy_rpg.client.faction.FactionFlagRenderer.register();
+        dev.architectury.event.events.client.ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(
+                player -> com.cleannrooster.anarchy_rpg.client.faction.FactionFlagRenderer.clear());
         com.cleannrooster.anarchy_rpg.client.fx.CueHandlers.init();
 
 

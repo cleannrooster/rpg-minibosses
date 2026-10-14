@@ -7,7 +7,11 @@ import com.cleannrooster.anarchy_rpg.faction.Faction;
 import com.cleannrooster.anarchy_rpg.faction.FactionFlag;
 import com.cleannrooster.anarchy_rpg.faction.FactionState;
 import com.cleannrooster.anarchy_rpg.faction.PartyMembership;
+import com.cleannrooster.anarchy_rpg.faction.PackedFlag;
 import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.networking.NetworkManager;
+import dev.architectury.platform.Platform;
+import dev.architectury.utils.Env;
 import dev.architectury.event.events.common.TickEvent;
 import net.minecraft.block.BannerBlock;
 import net.minecraft.block.BlockState;
@@ -68,7 +72,14 @@ public final class HubTurnover {
     private HubTurnover() {
     }
 
+    /** Hubs within this distance of a player are sent to them as banner markers. */
+    private static final double MARKER_SEND_RADIUS = 96.0;
+
     public static void register() {
+        if (Platform.getEnvironment() == Env.SERVER) {
+            // A client declares this by registering its receiver; declaring it twice is an error.
+            NetworkManager.registerS2CPayloadType(HubMarkersPayload.ID, HubMarkersPayload.CODEC);
+        }
         TickEvent.SERVER_LEVEL_POST.register(HubTurnover::tick);
         LifecycleEvent.SERVER_STOPPED.register(server -> {
             LOADED.clear();
@@ -117,6 +128,8 @@ public final class HubTurnover {
         loaded.keySet().retainAll(seen);
         handled.retainAll(seen);
 
+        sendMarkers(world, state);
+
         for (Map.Entry<Long, Long> entry : loaded.entrySet()) {
             long key = entry.getKey();
             if (handled.contains(key) || world.getTime() - entry.getValue() < SETTLE_TICKS) {
@@ -127,6 +140,30 @@ public final class HubTurnover {
                 handled.add(key);
                 state.markDirty();
             }
+        }
+    }
+
+    /** Tells each player where the set-up hubs near them are, and which flag each flies. */
+    private static void sendMarkers(ServerWorld world, HubState state) {
+        double radiusSq = MARKER_SEND_RADIUS * MARKER_SEND_RADIUS;
+        for (ServerPlayerEntity player : world.getPlayers()) {
+            if (!NetworkManager.canPlayerReceive(player, HubMarkersPayload.ID)) {
+                continue;
+            }
+            List<HubMarkersPayload.Marker> markers = new ArrayList<>();
+            for (HubAnchor anchor : state.anchors.values()) {
+                if (anchor.party == null) {
+                    continue;
+                }
+                BlockPos center = anchor.center();
+                if (player.squaredDistanceTo(center.getX() + 0.5, player.getY(), center.getZ() + 0.5) > radiusSq) {
+                    continue;
+                }
+                var flag = FactionState.roster(world.getServer()).get(anchor.party.faction()).flag();
+                BlockPos marker = new BlockPos(center.getX(), anchor.bounds.getMaxY() + 2, center.getZ());
+                markers.add(new HubMarkersPayload.Marker(marker, PackedFlag.pack(flag, world.getRegistryManager())));
+            }
+            NetworkManager.sendToPlayer(player, new HubMarkersPayload(markers));
         }
     }
 
