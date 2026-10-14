@@ -146,7 +146,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         super.initDataTracker(builder);
         builder.add(PETRIFIED, false);
         builder.add(HAS_ROLLED, false);
-        builder.add(LESSER, false);
         builder.add(NAME, -1);
         builder.add(DOWN, false);
         builder.add(INDICATOR, 40);
@@ -220,10 +219,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
            // ((PathAwareEntity) entity).prevBodyYaw = ((PathAwareEntity) entity).bodyYaw;
         }
     }
-    private boolean isLesser(){
-        return this.getDataTracker().get(MinibossEntity.LESSER);
-
-    }
     public final MinibossAnimationProvider.MinibossAnimationDispatcher dispatcher;
 
     public final MoveAnalysis moveAnalysis;
@@ -232,7 +227,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     private static final TrackedData<Boolean> HAS_ROLLED ;
     public static final TrackedData<Boolean> DOWN;
 
-    public static final TrackedData<Boolean> LESSER ;
     public static final TrackedData<Integer> NAME ;
 
     public static final TrackedData<Integer> INDICATOR ;
@@ -243,7 +237,6 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     static{
         HAS_ROLLED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        LESSER = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         NAME = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
         DOWN = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         INDICATOR = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -473,7 +466,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
             }
             if(this.getDataTracker().get(NAME) == -1){
-                if((this.isLesser() && RPGMinibossesEntities.config.lesserPetrify > this.getRandom().nextFloat()) || (!this.isLesser() && RPGMinibossesEntities.config.greaterPetrify > this.getRandom().nextFloat())) {
+                if(RPGMinibossesEntities.config.petrifyChance > this.getRandom().nextFloat()) {
                     this.applyIntroEffect();
                 }
                 if(!this.hasCustomName()) {

@@ -19,31 +19,31 @@
       "bounding_box": "piece",
       "spawns": [
         {
-          "type": "anarchy_rpg:minor_juggernaut",
+          "type": "anarchy_rpg:juggernaut",
           "weight": 25,
           "minCount": 1,
           "maxCount": 1
         },
         {
-          "type": "anarchy_rpg:minor_trickster",
+          "type": "anarchy_rpg:trickster",
           "weight": 25,
           "minCount": 1,
           "maxCount": 1
         },
         {
-          "type": "anarchy_rpg:minor_templar",
+          "type": "anarchy_rpg:templar",
           "weight": 25,
           "minCount": 1,
           "maxCount": 1
         },
         {
-          "type": "anarchy_rpg:minor_archmage_fire",
+          "type": "anarchy_rpg:archmage_fire",
           "weight": 25,
           "minCount": 1,
           "maxCount": 1
         },
         {
-          "type": "anarchy_rpg:minor_mercenary",
+          "type": "anarchy_rpg:mercenary",
           "weight": 25,
           "minCount": 1,
           "maxCount": 1

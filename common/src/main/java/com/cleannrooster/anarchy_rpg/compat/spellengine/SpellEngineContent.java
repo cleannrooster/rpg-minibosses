@@ -127,11 +127,9 @@ public final class SpellEngineContent implements SpellEngineCompat.Hooks {
 
     /** Bosses whose Spell Engine-only drops were split into {@code loot_table/compat/entities/<boss>}. */
     private static final java.util.Set<String> COMPAT_DROPS = java.util.Set.of("archmage_fire", "gemini_alpha",
-            "gemini_alpha_uber", "gemini_beta", "gemini_beta_uber", "juggernaut", "mercenary", "minor_archmage_fire",
-            "minor_juggernaut", "minor_mercenary", "minor_templar", "minor_trickster", "templar", "trickster");
+            "gemini_alpha_uber", "gemini_beta", "gemini_beta_uber", "juggernaut", "mercenary", "templar", "trickster");
     /** ...and those that also drop the ESA-only Juggernaut / Trickster sets ({@code loot_table/compat_esa/...}). */
-    private static final java.util.Set<String> ESA_DROPS = java.util.Set.of("juggernaut", "minor_juggernaut",
-            "minor_trickster", "trickster");
+    private static final java.util.Set<String> ESA_DROPS = java.util.Set.of("juggernaut", "trickster");
 
     private static LootPool.Builder compatPool(String path) {
         return LootPool.builder()

@@ -139,160 +139,85 @@ public class RPGMinibossesEntities {
     }
 
     public static double normalMovementSpeed = 0.22;
+
     public static final Entry<JuggernautEntity> JUGGERNAUT_ENTITY_ENTRY = new Entry<JuggernautEntity>("juggernaut",
-            (entityType,world) -> new JuggernautEntity(entityType,world,false,config.juggernautGreater), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
+            (entityType,world) -> new JuggernautEntity(entityType,world,config.juggernautSpawnChance), HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_SCALE,config.scale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)/*
-            .add(ReabsorptionInit.DEFIANCE,config.juggernautGreaterDefiance)*/
-            .add(EntityAttributes.GENERIC_ARMOR,config.juggernautGreaterArmor)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautGreaterAttackDamage)
+            .add(ReabsorptionInit.DEFIANCE,config.juggernautDefiance)*/
+            .add(EntityAttributes.GENERIC_ARMOR,config.juggernautArmor)
 
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.juggernautGreaterMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.juggernautGreaterMaxHealth)
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautAttackDamage)
+
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.juggernautMovementSpeed)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.juggernautMaxHealth)
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-
-            .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.juggernautGreaterKnockbackResistance),
-            0x09356B,
-            0xebcb6a,false);
-    public static final Entry<ArtilleristEntity> ARTILLERIST_ENTITY_ENTRY = new Entry<ArtilleristEntity>("mercenary",
-            (entityType,world) -> new ArtilleristEntity(entityType,world,false,config.mercenaryGreater), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
-
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryGreaterArmor)
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.mercenaryGreaterMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryGreaterMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
-          //  .add(ReabsorptionInit.DEFIANCE,config.mercenaryGreaterDefiance),
-
-            0x09356B,
-            0xebcb6a,false);
-
-    public static final Entry<TricksterEntity> TRICKSTER_ENTITY_ENTRY = new Entry<TricksterEntity>("trickster",
-            (entityType,world) -> new TricksterEntity(entityType,world,false,config.rogueGreater),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
-
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ATTACK_SPEED,6)
-            .add(EntityAttributes.GENERIC_ARMOR,config.rogueGreaterArmor)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueGreaterAttackDamage)
-
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueGreaterMovementSpeed)
-         /*   .add(ReabsorptionInit.SPELLSUPPRESS,100+config.rogueGreaterSuppress)
-            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueGreaterEvasion)*/
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueGreaterMaxHealth),
-            0x09356B,
-            0xebcb6a,false);
-    public static final Entry<JuggernautEntity> M_JUGGERNAUT_ENTITY_ENTRY = new Entry<JuggernautEntity>("minor_juggernaut",
-            (entityType,world) -> new JuggernautEntity(entityType,world,true,config.juggernautLesser), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
-
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)/*
-            .add(ReabsorptionInit.DEFIANCE,config.juggernautLesserDefiance)*/
-            .add(EntityAttributes.GENERIC_ARMOR,config.juggernautLesserArmor)
-
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.juggernautLesserAttackDamage)
-
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.juggernautLesserMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.juggernautLesserMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-            .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.juggernautLesserKnockbackResistance),
+            .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE,config.juggernautKnockbackResistance),
             0x09356B,
             0xebcb6a,true);
-    public static final Entry<ArtilleristEntity> M_ARTILLERIST_ENTITY_ENTRY = new Entry<ArtilleristEntity>("minor_mercenary",
-            (entityType,world) -> new ArtilleristEntity(entityType,world,true,config.mercenaryLesser), HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
+    public static final Entry<ArtilleristEntity> ARTILLERIST_ENTITY_ENTRY = new Entry<ArtilleristEntity>("mercenary",
+            (entityType,world) -> new ArtilleristEntity(entityType,world,config.mercenarySpawnChance), HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_SCALE,config.scale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryLesserArmor)
+            .add(EntityAttributes.GENERIC_ARMOR,config.mercenaryArmor)
 
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed* config.mercenaryLesserMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryLesserMaxHealth)
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed* config.mercenaryMovementSpeed)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.mercenaryMaxHealth)
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),/*
-            .add(ReabsorptionInit.DEFIANCE,config.mercenaryLesserDefiance),
+            .add(ReabsorptionInit.DEFIANCE,config.mercenaryDefiance),
 */
             0x09356B,
             0xebcb6a,true);
 
-    public static final Entry<TricksterEntity> M_TRICKSTER_ENTITY_ENTRY = new Entry<TricksterEntity>("minor_trickster",
-            (entityType,world) -> new TricksterEntity(entityType,world,true,config.rogueLesser),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
+    public static final Entry<TricksterEntity> TRICKSTER_ENTITY_ENTRY = new Entry<TricksterEntity>("trickster",
+            (entityType,world) -> new TricksterEntity(entityType,world,config.rogueSpawnChance),HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_SCALE,config.scale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueLesserAttackDamage)
-            .add(EntityAttributes.GENERIC_ARMOR,config.rogueLesserArmor)
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.rogueAttackDamage)
+            .add(EntityAttributes.GENERIC_ARMOR,config.rogueArmor)
 
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueLesserMovementSpeed)/*
-            .add(ReabsorptionInit.SPELLSUPPRESS,100F+config.rogueLesserSuppress)
-            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueLesserEvasion)*/
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.rogueMovementSpeed)/*
+            .add(ReabsorptionInit.SPELLSUPPRESS,100F+config.rogueSuppress)
+            .add(ReabsorptionInit.GLANCINGBLOW,100+config.rogueEvasion)*/
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueLesserMaxHealth),
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.rogueMaxHealth),
             0x09356B,
             0xebcb6a,true);
 
     public static final Entry<ArchmageFireEntity> ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("archmage_fire",
-            (entityType,world) -> new ArchmageFireEntity(entityType,world,false,config.fireMageGreater),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
+            (entityType,world) -> new ArchmageFireEntity(entityType,world,config.fireMageSpawnChance),HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_SCALE,config.scale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,24)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
+            .add(EntityAttributes.GENERIC_ARMOR,config.fireMageArmor)
 
-            .add(EntityAttributes.GENERIC_ARMOR,config.fireMageGreaterArmor)
             .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageGreaterMaxHealth)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageMaxHealth)
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
-            0xebcb6a,false)
+            0xebcb6a,true)
             .magic(MagicSchool.FIRE, config.fireMageFirePower);
+
     public static final Entry<TemplarEntity> TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("templar",
-            (entityType,world) -> new TemplarEntity(entityType,world,false,config.templarGreater),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.greaterScale)
+            (entityType,world) -> new TemplarEntity(entityType,world,config.templarSpawnChance),HostileEntity.createHostileAttributes()
+            .add(EntityAttributes.GENERIC_SCALE,config.scale)
 
             .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarGreaterAttackDamage)
+            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarAttackDamage)
             .add(EntityAttributes.GENERIC_ATTACK_SPEED,1)
-            .add(EntityAttributes.GENERIC_ARMOR,config.templarGreaterArmor)
+            .add(EntityAttributes.GENERIC_ARMOR,config.templarArmor)
 
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarGreaterMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,100F)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
-            0x09356B,
-            0xebcb6a,false)
-            .magic(MagicSchool.HEALING, config.templarGreaterHealingPower);
-    public static final Entry<ArchmageFireEntity> M_ARCHMAGE_FIRE_ENTITY_ENTRY = new Entry<ArchmageFireEntity>("minor_archmage_fire",
-            (entityType,world) -> new ArchmageFireEntity(entityType,world,true,config.fireMageLesser),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
-
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,24)
-            .add(EntityAttributes.GENERIC_ATTACK_SPEED,4)
-            .add(EntityAttributes.GENERIC_ARMOR,config.fireMageLesserArmor)
-
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.fireMageLesserMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.fireMageLesserMaxHealth)
+            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarMovementSpeed)
+            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.templarMaxHealth)
             .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
             0x09356B,
             0xebcb6a,true)
-            .magic(MagicSchool.FIRE, config.fireMageLesserFirePower);
-
-    public static final Entry<TemplarEntity> M_TEMPLAR_ENTITY_ENTRY = new Entry<TemplarEntity>("minor_templar",
-            (entityType,world) -> new TemplarEntity(entityType,world,true,config.templarLesser),HostileEntity.createHostileAttributes()
-            .add(EntityAttributes.GENERIC_SCALE,config.lesserScale)
-
-            .add(EntityAttributes.GENERIC_FOLLOW_RANGE,32)
-            .add(EntityAttributes.GENERIC_ATTACK_DAMAGE,config.templarLesserAttackDamage)
-            .add(EntityAttributes.GENERIC_ATTACK_SPEED,1)
-            .add(EntityAttributes.GENERIC_ARMOR,config.templarLesserArmor)
-
-            .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, normalMovementSpeed*config.templarLesserMovementSpeed)
-            .add(EntityAttributes.GENERIC_MAX_HEALTH,config.templarLesserMaxHealth)
-            .add(EntityAttributes.GENERIC_STEP_HEIGHT,1.2F),
-            0x09356B,
-            0xebcb6a,true)
-            .magic(MagicSchool.HEALING, config.templarLesserHealingPower);
+            .magic(MagicSchool.HEALING, config.templarHealingPower);
 
     public static final Entry<GeminiEntity> GEMINI_ALPHA = new Entry<GeminiEntity>("gemini_alpha",
             ((type, world) -> new GeminiEntity(type,world,MagicSchool.FIRE)),HostileEntity.createHostileAttributes()

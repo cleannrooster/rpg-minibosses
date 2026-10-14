@@ -1,21 +1,5 @@
 {
   "type": "minecraft:entity",
-  "pools": [
-    {
-      "rolls": 1,
-      "entries": [
-        {
-          "type": "minecraft:item",
-          "name": "anarchy_rpg:gemini_fragment",
-          "conditions": [
-            {
-              "condition": "minecraft:random_chance",
-              "chance": 0.125
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "random_sequence": "minecraft:entities/templar"
+  "pools": [],
+  "random_sequence": "minecraft:entities/juggernaut"
 }

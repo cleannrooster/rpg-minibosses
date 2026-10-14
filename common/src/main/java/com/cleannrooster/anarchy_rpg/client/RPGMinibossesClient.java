@@ -49,11 +49,6 @@ public final class RPGMinibossesClient {
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL, MinibossRenderer.FIREMAGE_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.TEMPLAR_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL, MinibossRenderer.TEMPLAR_TEXTURE));
-        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_ARTILLERIST_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.MERCENARY_MODEL, MinibossRenderer.MERCENARY_TEXTURE));
-        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_TRICKSTER_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.ROGUE_MODEL, MinibossRenderer.ROGUE_TEXTURE));
-        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_TEMPLAR_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.TEMPLAR_MODEL, MinibossRenderer.TEMPLAR_TEXTURE));
-        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_JUGGERNAUT_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.JUGG_MODEL, MinibossRenderer.JUGG_TEXTURE));
-        EntityRendererRegistry.register(() -> RPGMinibossesEntities.M_ARCHMAGE_FIRE_ENTITY_ENTRY.entityType, (context) -> new MinibossRenderer(context, MinibossRenderer.FIREMAGE_MODEL, MinibossRenderer.FIREMAGE_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_ALPHA.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FIRE_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_BETA.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FROST_TEXTURE));
         EntityRendererRegistry.register(() -> RPGMinibossesEntities.GEMINI_ALPHA_UBER.entityType, (context) -> new GeminiRenderer(context, GeminiRenderer.FIRE_TEXTURE));

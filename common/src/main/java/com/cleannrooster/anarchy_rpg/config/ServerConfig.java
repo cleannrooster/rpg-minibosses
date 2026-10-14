@@ -32,148 +32,78 @@ public class ServerConfig  implements ConfigData {
     @Comment("Spawn the miniboss inside its worldgen encounter structure. When false, the structures still generate but spawn empty.")
     public boolean structureEncounterSpawns = true;
 
-    @Comment("Chance for Forsaken Templars to spawn naturally")
-    public  float templarGreater = 1.0F;
-    @Comment("Forsaken Templar maxHealth ")
-    public  float templarMaxHealth = 60F;
+    @Comment("Chance for Templars to spawn naturally")
+    public  float templarSpawnChance = 1.0F;
+    @Comment("Templar maxHealth ")
+    public  float templarMaxHealth = 25F;
+    @Comment("Templar Armor ")
+    public  float templarArmor = 12F;
+    @Comment("Templar Attack Damage ")
+    public  float templarAttackDamage = 0F;
+    @Comment("Templar Movement Speed ")
+    public  float templarMovementSpeed = 1.4F;
+    @Comment("Templar Healing Power ")
+    public  float templarHealingPower = 4F;
 
-    @Comment("Forsaken Templar Armor ")
-    public  float templarGreaterArmor = 16F;
-    @Comment("Forsaken Templar Attack Damage ")
-    public  float templarGreaterAttackDamage = 0F;
-    @Comment("Forsaken Templar Movement Speed ")
-    public  float templarGreaterMovementSpeed = 1.4F;
-    @Comment("Forsaken Templar Healing Power ")
-    public  float templarGreaterHealingPower = 6F;
 
 
-    @Comment("Chance for Forsaken Fire Mages to spawn naturally")
-    public  float fireMageGreater = 1.0F;
-    @Comment("Forsaken Fire Mages maxHealth ")
-    public  float fireMageGreaterMaxHealth = 60F;
-    @Comment("Forsaken Fire Mages Armor ")
-    public  float fireMageGreaterArmor = 4F;
-    @Comment("Forsaken Fire Mages Movement Speed ")
+
+    @Comment("Chance for Fire Mages to spawn naturally")
+    public  float fireMageSpawnChance = 1.0F;
+    @Comment("Fire Mages maxHealth ")
+    public  float fireMageMaxHealth = 25F;
+    @Comment("Fire Mages Armor ")
+    public  float fireMageArmor = 4F;
+    @Comment("Fire Mages Movement Speed ")
     public  float fireMageMovementSpeed = 1.2F;
-    @Comment("Forsaken Fire Mages Fire Power ")
-    public  float fireMageFirePower = 6.0F;
+    @Comment("Fire Mages Fire Power ")
+    public  float fireMageFirePower = 4F;
 
-    @Comment("Chance for Forsaken Juggernauts to spawn naturally")
-    public  float juggernautGreater = 1.0F;
-    @Comment("Forsaken Juggernauts maxHealth ")
-    public  float juggernautGreaterMaxHealth = 60F;
-    @Comment("Forsaken Juggernauts Armor ")
-    public  float juggernautGreaterArmor = 20F;
-    @Comment("Forsaken Juggernauts Defiance ")
-    public  float juggernautGreaterDefiance = 4F;
-    @Comment("Forsaken Juggernauts Attack Damage ")
-    public  float juggernautGreaterAttackDamage = 1.0F;
-    @Comment("Forsaken Juggernauts Movement Speed Modifier")
-    public  float juggernautGreaterMovementSpeed = 1F;
-    @Comment("Forsaken Juggernauts Knockback Resistance ")
-    public  float juggernautGreaterKnockbackResistance = 0.75F;
+    @Comment("Chance for Juggernauts to spawn naturally")
+    public  float juggernautSpawnChance = 1.0F;
+    @Comment("Juggernauts maxHealth ")
+    public  float juggernautMaxHealth = 25F;
+    @Comment("Juggernauts Armor ")
+    public  float juggernautArmor = 16F;
+    @Comment("Juggernauts Defiance ")
+    public  float juggernautDefiance = 2F;
+    @Comment("Juggernauts Attack Damage ")
+    public  float juggernautAttackDamage = 1.0F;
+    @Comment("Juggernauts Movement Speed Modifier")
+    public  float juggernautMovementSpeed = 1F;
+    @Comment("Juggernauts Knockback Resistance ")
+    public  float juggernautKnockbackResistance = 0.75F;
 
-    @Comment("Chance for Forsaken Rogues to spawn naturally")
-    public  float rogueGreater = 1.0F;
-    @Comment("Forsaken Rogues Max Health ")
-    public  float rogueGreaterMaxHealth = 60F;
-    @Comment("Forsaken Rogues Armor ")
-    public  float rogueGreaterArmor = 8F;
-    @Comment("Forsaken Rogues Attack Damage ")
-    public  float rogueGreaterAttackDamage = 1.0F;
-    @Comment("Forsaken Rogues Movement Speed ")
-    public  float rogueGreaterMovementSpeed = 1.4F;
-    @Comment("Forsaken Rogues Suppress ")
-    public  float rogueGreaterSuppress = 60F;
-    @Comment("Forsaken Rogues Evasion ")
-    public  float rogueGreaterEvasion = 60F;
-    @Comment("Chance for Forsaken Mercenaries to spawn naturally")
-    public  float mercenaryGreater = 1.0F;
-    @Comment("Forsaken Mercenaries Max Health ")
-    public  float mercenaryGreaterMaxHealth = 60F;
-    @Comment("Forsaken Mercenaries Armor ")
-    public  float mercenaryGreaterArmor = 14F;
-    @Comment("Forsaken Mercenaries Ranged Damage: added to each crossbow bolt they fire")
-    public  float mercenaryGreaterRangedDamage = 0F;
-    @Comment("Forsaken Mercenaries Movement Speed Modifier")
-    public  float mercenaryGreaterMovementSpeed = 1.4F;
-    @Comment("Forsaken Mercenary Defiance ")
-    public  float mercenaryGreaterDefiance = 2.0F;
+    @Comment("Chance for Rogues to spawn naturally")
+    public  float rogueSpawnChance = 1.0F;
+    @Comment("Rogues Max Health ")
+    public  float rogueMaxHealth = 25;
+    @Comment("Rogues Armor ")
+    public  float rogueArmor = 8F;
+    @Comment("Rogues Attack Damage ")
+    public  float rogueAttackDamage = 1.0F;
+    @Comment("Rogues Movement Speed ")
+    public  float rogueMovementSpeed = 1.4F;
+    @Comment("Rogues Suppress ")
+    public  float rogueSuppress = 40F;
+    @Comment("Rogues Evasion ")
+    public  float rogueEvasion = 40F;
 
-    @Comment("Chance for Lesser Templars to spawn naturally")
-    public  float templarLesser = 1.0F;
-    @Comment("Lesser Templar maxHealth ")
-    public  float templarLesserMaxHealth = 25F;
-    @Comment("Lesser Templar Armor ")
-    public  float templarLesserArmor = 12F;
-    @Comment("Lesser Templar Attack Damage ")
-    public  float templarLesserAttackDamage = 0F;
-    @Comment("Lesser Templar Movement Speed ")
-    public  float templarLesserMovementSpeed = 1.4F;
-    @Comment("Lesser Templar Healing Power ")
-    public  float templarLesserHealingPower = 4F;
+    @Comment("Chance for Mercenaries to spawn naturally")
+    public  float mercenarySpawnChance = 1.0F;
+    @Comment("Mercenary Max Health ")
+    public  float mercenaryMaxHealth = 25F;
+    @Comment("Mercenaries Armor ")
+    public  float mercenaryArmor = 10;
+    @Comment("Mercenaries Ranged Damage: added to each crossbow bolt they fire")
+    public  float mercenaryRangedDamage = 0F;
+    @Comment("Mercenaries Movement Speed Modifier")
+    public  float mercenaryMovementSpeed = 1.4F;
+    @Comment("Mercenary Defiance ")
+    public  float mercenaryDefiance = 1F;
 
-
-
-
-    @Comment("Chance for Lesser Fire Mages to spawn naturally")
-    public  float fireMageLesser = 1.0F;
-    @Comment("Lesser Fire Mages maxHealth ")
-    public  float fireMageLesserMaxHealth = 25F;
-    @Comment("Lesser Fire Mages Armor ")
-    public  float fireMageLesserArmor = 4F;
-    @Comment("Lesser Fire Mages Movement Speed ")
-    public  float fireMageLesserMovementSpeed = 1.2F;
-    @Comment("Lesser Fire Mages Fire Power ")
-    public  float fireMageLesserFirePower = 4F;
-
-    @Comment("Chance for Lesser Juggernauts to spawn naturally")
-    public  float juggernautLesser = 1.0F;
-    @Comment("Lesser Juggernauts maxHealth ")
-    public  float juggernautLesserMaxHealth = 25F;
-    @Comment("Lesser Juggernauts Armor ")
-    public  float juggernautLesserArmor = 16F;
-    @Comment("Lesser Juggernauts Defiance ")
-    public  float juggernautLesserDefiance = 2F;
-    @Comment("Lesser Juggernauts Attack Damage ")
-    public  float juggernautLesserAttackDamage = 1.0F;
-    @Comment("Lesser Juggernauts Movement Speed Modifier")
-    public  float juggernautLesserMovementSpeed = 1F;
-    @Comment("Lesser Juggernauts Knockback Resistance ")
-    public  float juggernautLesserKnockbackResistance = 0.75F;
-
-    @Comment("Chance for Forsaken Rogues to spawn naturally")
-    public  float rogueLesser = 1.0F;
-    @Comment("Lesser Rogues Max Health ")
-    public  float rogueLesserMaxHealth = 25;
-    @Comment("Lesser Rogues Armor ")
-    public  float rogueLesserArmor = 8F;
-    @Comment("Lesser Rogues Attack Damage ")
-    public  float rogueLesserAttackDamage = 1.0F;
-    @Comment("Lesser Rogues Movement Speed ")
-    public  float rogueLesserMovementSpeed = 1.4F;
-    @Comment("Lesser Rogues Suppress ")
-    public  float rogueLesserSuppress = 40F;
-    @Comment("Lesser Rogues Evasion ")
-    public  float rogueLesserEvasion = 40F;
-
-    @Comment("Chance for Lesser Mercenaries to spawn naturally")
-    public  float mercenaryLesser = 1.0F;
-    @Comment("Lesser Mercenary Max Health ")
-    public  float mercenaryLesserMaxHealth = 25F;
-    @Comment("Lesser Mercenaries Armor ")
-    public  float mercenaryLesserArmor = 10;
-    @Comment("Lesser Mercenaries Ranged Damage: added to each crossbow bolt they fire")
-    public  float mercenaryLesserRangedDamage = 0F;
-    @Comment("Lesser Mercenaries Movement Speed Modifier")
-    public  float mercenaryLesserMovementSpeed = 1.4F;
-    @Comment("Lesser Mercenary Defiance ")
-    public  float mercenaryLesserDefiance = 1F;
-
-    @Comment("Lesser Scale ")
-    public  float lesserScale = 1.0F;
-    @Comment("Greater Scale ")
-    public  float greaterScale = 1.2F;
+    @Comment("Adventurer Scale ")
+    public  float scale = 1.0F;
 
 
 
@@ -263,11 +193,8 @@ public class ServerConfig  implements ConfigData {
     public float stormPulseAmplitude = 0.8F;
     @Comment("Distance from existing Minibosses within which new ones cannot spawn (Deprecated)")
     public  float areaCannotSpawn = 30;
-    @Comment("Chance for Lesser Minibosses to be Petrified upon Spawn")
-    public  float lesserPetrify = 0F;
-
-    @Comment("Chance for Greater Minibosses to be Petrified upon Spawn")
-    public  float greaterPetrify = 1F;
+    @Comment("Chance for adventurers to be Petrified upon Spawn")
+    public  float petrifyChance = 0F;
     @Comment("Minibosses target players on sight")
 
     public boolean trueAnarchy = false;
