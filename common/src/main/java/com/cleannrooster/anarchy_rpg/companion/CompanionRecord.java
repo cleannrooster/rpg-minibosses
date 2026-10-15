@@ -71,6 +71,8 @@ public final class CompanionRecord {
     int guideWaited;
     /** A Rogue that waited too long for its owner and is heading home; meeting them resumes the lead. Not saved. */
     boolean guideReturning;
+    /** Set when the owner respawned while it was down: it gets up at full health when it joins them. Not saved. */
+    boolean healOnJoin;
     /** World time of the last vault while leading, for its cooldown. Not saved. */
     long guideVaultAt;
     /** Where the owner was a second ago, to measure how fast they are going. Not saved. */

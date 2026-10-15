@@ -622,7 +622,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
                 this.setTarget(null);
                 return null;
             }
-            if(this.isTamed() && this.getOwner() instanceof PlayerEntity player1 && super.getTarget() instanceof Tameable tameable && tameable.getOwner() instanceof PlayerEntity player2 && !player1.shouldDamagePlayer(player2)){
+            // Another player's companion, a teammate, or a teammate's companion: never a target.
+            if (com.cleannrooster.anarchy_rpg.companion.CompanionFriendlyFire.mustNotFight(this, super.getTarget())) {
                 this.setTarget(null);
                 return null;
             }
@@ -1057,7 +1058,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
                 || !living.isAlive()) {
             return false;
         }
-        if (this.isTeammate(candidate)) {
+        if (this.isTeammate(candidate)
+                || com.cleannrooster.anarchy_rpg.companion.CompanionFriendlyFire.mustNotFight(this, candidate)) {
             return false;
         }
         if (this.getOwnerUuid() != null && this.getOwnerUuid().equals(candidate.getUuid())) {

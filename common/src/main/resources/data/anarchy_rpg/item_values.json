@@ -38,10 +38,37 @@
     "minecraft:dragon_breath": 2.0,
     "anarchy_rpg:lavos_horn": 48.0,
     "anarchy_rpg:gemini_fragment": 64.0,
-    "anarchy_rpg:deatomized_fragment": 96.0
+    "anarchy_rpg:deatomized_fragment": 96.0,
+    "minecraft:netherite_block": 360.0,
+    "minecraft:ancient_debris": 10.0,
+    "minecraft:raw_iron": 0.4,
+    "minecraft:raw_gold": 0.8,
+    "minecraft:raw_copper": 0.08,
+    "minecraft:raw_iron_block": 3.6,
+    "minecraft:raw_gold_block": 7.2,
+    "minecraft:raw_copper_block": 0.7,
+    "minecraft:iron_nugget": 0.05,
+    "minecraft:gold_nugget": 0.1,
+    "minecraft:copper_block": 0.9,
+    "minecraft:coal_block": 0.9,
+    "minecraft:redstone_block": 0.9,
+    "minecraft:lapis_block": 1.8,
+    "minecraft:quartz_block": 0.6,
+    "minecraft:diamond_ore": 8.0,
+    "minecraft:deepslate_diamond_ore": 8.0,
+    "minecraft:emerald_ore": 1.0,
+    "minecraft:deepslate_emerald_ore": 1.0,
+    "minecraft:leather": 0.2,
+    "minecraft:rabbit_hide": 0.05,
+    "minecraft:turtle_scute": 2.0,
+    "minecraft:armadillo_scute": 1.0,
+    "minecraft:phantom_membrane": 0.5,
+    "minecraft:breeze_rod": 1.0,
+    "minecraft:heavy_core": 20.0
   },
   "tags": {
     "minecraft:logs": 0.05,
-    "minecraft:planks": 0.02
+    "minecraft:planks": 0.02,
+    "minecraft:stone_tool_materials": 0.01
   }
 }

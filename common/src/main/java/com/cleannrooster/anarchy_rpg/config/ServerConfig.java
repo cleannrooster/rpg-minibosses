@@ -228,6 +228,8 @@ public class ServerConfig  implements ConfigData {
     public int standingMax = 100;
     @Comment("Standing: below this, a guild's adventurers attack on sight and refuse to talk")
     public int standingHostileBelow = -20;
+    @Comment("Standing: negative standing recovers toward 0 by this much per in-game day (24000 ticks of world time), online or not. 0 turns recovery off")
+    public int standingRecoveryPerDay = 2;
     @Comment("Guilds can grow wary of you but never hostile: standing below the hostile threshold counts as wary, so nobody attacks on sight (anyone you attack still fights back). Off: bad standing makes adventurers hostile")
     public boolean guildsNeverHostile = false;
     @Comment("Standing: below this (and not hostile), a guild's adventurers are wary")

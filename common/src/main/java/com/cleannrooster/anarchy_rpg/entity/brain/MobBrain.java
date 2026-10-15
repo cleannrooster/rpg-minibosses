@@ -58,6 +58,13 @@ public abstract class MobBrain {
 
     /** Tracks which PhaseTransitions have already fired to prevent re-entry. */
     private final Set<PhaseTransition> firedTransitions = new HashSet<>();
+    /**
+     * The brain's phase transitions, built once. {@link #definePhaseTransitions} makes new records (with new
+     * {@code onEnter} lambdas) on every call, and a record compares its lambda by identity, so checking a fresh
+     * list against {@link #firedTransitions} each tick never matched: a transition re-fired every tick below its
+     * threshold (the Juggernaut roared and wiped its cooldowns every tick in Last Stand).
+     */
+    private List<PhaseTransition> phaseTransitions;
 
     protected MobBrain(MinibossEntity entity,
                        BrainState initialStance,
@@ -247,7 +254,10 @@ public abstract class MobBrain {
 
     private void checkPhaseTransitions() {
         float hpPct = entity.getHealth() / Math.max(1f, entity.getMaxHealth());
-        for (PhaseTransition pt : definePhaseTransitions()) {
+        if (phaseTransitions == null) {
+            phaseTransitions = List.copyOf(definePhaseTransitions());
+        }
+        for (PhaseTransition pt : phaseTransitions) {
             if (!firedTransitions.contains(pt) && pt.isTriggered(hpPct)) {
                 firedTransitions.add(pt);
                 setStance(pt.forcedStance());

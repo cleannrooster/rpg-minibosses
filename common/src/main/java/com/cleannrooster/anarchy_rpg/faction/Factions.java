@@ -3,6 +3,7 @@ package com.cleannrooster.anarchy_rpg.faction;
 import com.cleannrooster.anarchy_rpg.RPGMinibosses;
 import com.cleannrooster.anarchy_rpg.entity.MinibossEntity;
 import com.cleannrooster.anarchy_rpg.entity.RPGMinibossesEntities;
+import dev.architectury.event.events.common.TickEvent;
 import dev.architectury.registry.ReloadListenerRegistry;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SynchronousResourceReloader;
@@ -23,10 +24,18 @@ public final class Factions {
     private Factions() {
     }
 
+    private static final int RECOVERY_INTERVAL = 1200;
+
     public static void register() {
         ReloadListenerRegistry.register(ResourceType.SERVER_DATA,
                 (SynchronousResourceReloader) FactionPools::reload, RPGMinibosses.id("faction_pools"));
         FactionDebugCommand.register();
+        // Grudges cool with world time; settling once a minute is plenty for points that come days apart.
+        TickEvent.SERVER_POST.register(server -> {
+            if (server.getTicks() % RECOVERY_INTERVAL == 0) {
+                StandingLedger.get(server).recover(server.getOverworld().getTime());
+            }
+        });
     }
 
     /**

@@ -74,6 +74,7 @@ public final class Companions {
         CompanionDebugCommand.register();
         CompanionCommand.register();
         CompanionTravel.register();
+        CompanionFriendlyFire.register();
     }
 
     static long now(MinecraftServer server) {
@@ -420,6 +421,10 @@ public final class Companions {
         if (checkSeparated(server, world, npc, record, now)) {
             return;
         }
+        // Only following and leading use boats; under any other order (or downed) it gets out of one.
+        if (record.mode != CompanionMode.FOLLOWING && record.mode != CompanionMode.GUIDING && GuideBoat.isBoating(npc)) {
+            GuideBoat.disembark(npc);
+        }
         switch (record.mode) {
             case DOWNED -> {
                 npc.setCompanionDowned(true);
@@ -444,7 +449,15 @@ public final class Companions {
                     record.mode = CompanionMode.TRAVELING_TO_BASE;
                 }
             }
-            case FOLLOWING -> npc.setSitting(false);
+            case FOLLOWING -> {
+                npc.setSitting(false);
+                ServerPlayerEntity owner = server.getPlayerManager().getPlayer(record.owner);
+                if (owner != null) {
+                    GuideBoat.followSecond(world, npc, owner);
+                } else if (GuideBoat.isBoating(npc)) {
+                    GuideBoat.disembark(npc);
+                }
+            }
             case PATROLLING -> PatrolSpecialty.tick(server, world, npc, record);
             case GUIDING -> GuideSpecialty.tick(server, world, npc, record);
         }

@@ -30,6 +30,10 @@ import java.util.WeakHashMap;
  * aboard (the second seat) or in a boat of their own and close enough; otherwise it holds still and says so.
  * When the boat stops making headway (a bank, a beach, the shallows), the Rogue steps onto dry land. A conjured boat is put away
  * (anyone still in it lands at the water's edge); a found one is left where it landed.
+ *
+ * <p>Any following companion uses the same boats to keep up with an owner who sets off by boat
+ * ({@link #followSecond}): it takes its own (never the owner's), rows after them, holds station when close, and
+ * comes ashore near them once they are back on land.</p>
  */
 final class GuideBoat {
     private static final String NS = RPGMinibosses.CONTENT_NAMESPACE;
@@ -82,8 +86,9 @@ final class GuideBoat {
         return npc.getVehicle() instanceof BoatEntity;
     }
 
-    /** Gets into a boat if there is water ahead. Returns whether it did. */
-    static boolean tryBoard(ServerWorld world, MinibossEntity npc, ServerPlayerEntity owner, Vec3d heading) {
+    /** Gets into a boat if there is water ahead, and says {@code announce} to the owner if given. Returns whether it did. */
+    static boolean tryBoard(ServerWorld world, MinibossEntity npc, ServerPlayerEntity owner, Vec3d heading,
+                            @org.jetbrains.annotations.Nullable Text announce) {
         Long landed = LANDED_AT.get(npc);
         if (npc.hasVehicle() || (landed != null && world.getTime() - landed < REBOARD_COOLDOWN)) {
             return false;
@@ -103,7 +108,8 @@ final class GuideBoat {
             return false;
         }
         BoatEntity boat = world.getEntitiesByClass(BoatEntity.class, npc.getBoundingBox().expand(FIND_RADIUS),
-                        candidate -> candidate.getPassengerList().isEmpty() && candidate.isTouchingWater())
+                        candidate -> candidate.getPassengerList().isEmpty() && candidate.isTouchingWater()
+                                && candidate != owner.getVehicle())
                 .stream().min(Comparator.comparingDouble(npc::squaredDistanceTo)).orElse(null);
         boolean conjured = boat == null;
         if (conjured) {
@@ -123,7 +129,9 @@ final class GuideBoat {
             return false;
         }
         CROSSINGS.put(npc, new Crossing(boat.getUuid(), conjured));
-        owner.sendMessage(npc.getName().copy().append(": ").append(Text.translatable("conversation." + NS + ".guide.boat")));
+        if (announce != null) {
+            owner.sendMessage(npc.getName().copy().append(": ").append(announce));
+        }
         return true;
     }
 
@@ -152,6 +160,11 @@ final class GuideBoat {
         }
         record.guideWaited = 0;
         crossing.rowedSeconds++;
+        landIfAshore(world, npc, boat, crossing);
+    }
+
+    /** After a second of rowing: lands on reaching a shore (no headway for a while, or beached). */
+    private static void landIfAshore(ServerWorld world, MinibossEntity npc, BoatEntity boat, Crossing crossing) {
         Vec3d now = boat.getPos();
         if (crossing.lastPos != null && crossing.rowedSeconds > GRACE_SECONDS) {
             double dx = now.x - crossing.lastPos.x;
@@ -163,6 +176,49 @@ final class GuideBoat {
         if (crossing.stalledSeconds >= STALL_SECONDS || (beached && crossing.rowedSeconds > GRACE_SECONDS)) {
             land(world, npc, boat, crossing);
         }
+    }
+
+    /** Close enough to the owner afloat to hold station rather than row. */
+    private static final double FOLLOW_KEEP = 4.0;
+    /** Farther than this from an owner who has set off by boat: board and follow. */
+    private static final double FOLLOW_BOARD = 5.0;
+    /** Farther than this it has lost them: out of the boat, and the usual teleport-follow takes over. */
+    private static final double FOLLOW_LOST = 96.0;
+
+    /**
+     * Once a second for a following companion. With its owner afloat and drawing away, it gets into its own boat;
+     * once in one, it rows after them (holding still when close), and comes ashore once they are on land.
+     */
+    static void followSecond(ServerWorld world, MinibossEntity npc, ServerPlayerEntity owner) {
+        boolean ownerAfloat = owner.getVehicle() instanceof BoatEntity ownerBoat && ownerBoat.isTouchingWater();
+        if (!(npc.getVehicle() instanceof BoatEntity boat)) {
+            CROSSINGS.remove(npc);
+            if (ownerAfloat && owner.getWorld() == world && !npc.isIncapacitated()
+                    && npc.squaredDistanceTo(owner) > FOLLOW_BOARD * FOLLOW_BOARD) {
+                Vec3d heading = new Vec3d(owner.getX() - npc.getX(), 0, owner.getZ() - npc.getZ());
+                if (heading.lengthSquared() > 1.0E-4) {
+                    tryBoard(world, npc, owner, heading.normalize(), null);
+                }
+            }
+            return;
+        }
+        if (owner.getWorld() != world || npc.squaredDistanceTo(owner) > FOLLOW_LOST * FOLLOW_LOST) {
+            disembark(npc);
+            return;
+        }
+        Crossing crossing = CROSSINGS.computeIfAbsent(npc, ignored -> new Crossing(boat.getUuid(), false));
+        // Afloat, it keeps pace and holds station near them; once they are ashore it rows in until it lands.
+        crossing.rowing = !ownerAfloat || boat.squaredDistanceTo(owner) > FOLLOW_KEEP * FOLLOW_KEEP;
+        if (!crossing.rowing) {
+            boat.setVelocity(boat.getVelocity().multiply(0.0, 1.0, 0.0));
+            boat.velocityModified = true;
+            crossing.rowedSeconds = 0;
+            crossing.stalledSeconds = 0;
+            crossing.lastPos = null;
+            return;
+        }
+        crossing.rowedSeconds++;
+        landIfAshore(world, npc, boat, crossing);
     }
 
     /** Every tick: while rowing, turn toward and drive at the destination. */

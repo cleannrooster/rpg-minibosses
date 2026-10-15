@@ -385,7 +385,8 @@ public final class GuideSpecialty {
             return;
         }
         if (!tryVault(world, npc, record, heading)) {
-            GuideBoat.tryBoard(world, npc, owner, heading);
+            GuideBoat.tryBoard(world, npc, owner, heading,
+                    Text.translatable("conversation." + RPGMinibosses.CONTENT_NAMESPACE + ".guide.boat"));
         }
     }
 
@@ -503,6 +504,10 @@ public final class GuideSpecialty {
             CompanionRecord record = CompanionRegistry.get(world.getServer()).ofNpc(npc.getUuid());
             if (record != null && record.mode == CompanionMode.GUIDING) {
                 GuideBoat.tick(npc, rowingGoal(world.getServer(), record));
+            } else if (record != null && record.mode == CompanionMode.FOLLOWING
+                    && world.getServer().getPlayerManager().getPlayer(record.owner()) instanceof ServerPlayerEntity owner
+                    && owner.getWorld() == world) {
+                GuideBoat.tick(npc, owner.getPos());
             }
         }
     }

@@ -36,6 +36,9 @@ import java.util.UUID;
  * A mod that already brings pets along (Waystones can) just leaves nothing to do: a companion already beside
  * its owner is left alone. Only a FOLLOWING companion comes along; one waiting, patrolling, at base or down
  * stays where it is. A Rogue leading the way stops leading and comes along.
+ *
+ * <p>One exception: when the owner dies and respawns, a downed companion gets up at full health and joins them
+ * at the respawn point, wherever it went down.</p>
  */
 final class CompanionTravel {
     /** Ticks after the jump before joining, so the owner's destination chunks are in. */
@@ -57,6 +60,11 @@ final class CompanionTravel {
 
     static void register() {
         TickEvent.SERVER_POST.register(CompanionTravel::tick);
+        PlayerEvent.PLAYER_RESPAWN.register((player, conqueredEnd, removalReason) -> {
+            if (!conqueredEnd) {
+                onRespawn(player);
+            }
+        });
         PlayerEvent.PLAYER_QUIT.register(player -> {
             LAST.remove(player.getUuid());
             PENDING.remove(player.getUuid());
@@ -68,9 +76,8 @@ final class CompanionTravel {
     }
 
     private static void tick(MinecraftServer server) {
-        if (!RPGMinibossesEntities.config.companionFollowTeleports) {
-            return;
-        }
+        // With teleport-following off, only a respawn rejoin (a downed companion getting up) still runs.
+        boolean follow = RPGMinibossesEntities.config.companionFollowTeleports;
         CompanionRegistry registry = CompanionRegistry.get(server);
         double jump = RPGMinibossesEntities.config.companionTeleportJumpDistance;
         int now = server.getTicks();
@@ -83,7 +90,7 @@ final class CompanionTravel {
             }
             Sample here = new Sample(player.getWorld().getRegistryKey(), player.getPos());
             Sample last = LAST.put(player.getUuid(), here);
-            if (last != null && (!last.dimension().equals(here.dimension()) || last.pos().squaredDistanceTo(here.pos()) > jump * jump)) {
+            if (follow && last != null && (!last.dimension().equals(here.dimension()) || last.pos().squaredDistanceTo(here.pos()) > jump * jump)) {
                 PENDING.put(player.getUuid(), now);
             }
             Integer since = PENDING.get(player.getUuid());
@@ -102,6 +109,35 @@ final class CompanionTravel {
         }
     }
 
+    /** The owner died: a downed companion gets up, healed, and is brought to where they respawned. */
+    private static void onRespawn(ServerPlayerEntity player) {
+        MinecraftServer server = player.getServer();
+        CompanionRegistry registry = CompanionRegistry.get(server);
+        CompanionRecord record = registry.ofOwner(player.getUuid());
+        if (record == null || record.mode != CompanionMode.DOWNED || record.onTrip()) {
+            return;
+        }
+        record.mode = CompanionMode.FOLLOWING;
+        record.healOnJoin = true;
+        // Loaded: up at once, so it is never left flagged as down if the join below gives up. An unloaded one is
+        // healed as it is re-created beside the owner.
+        if (Companions.findAnywhere(server, record.npc) instanceof MinibossEntity live
+                && live.getCompanionIncarnation() == record.incarnation) {
+            getUp(live, record);
+        }
+        registry.markDirty();
+        // Joined even when the respawn point is close by: it should be on its feet beside them, not left where it fell.
+        PENDING.put(player.getUuid(), server.getTicks());
+    }
+
+    /** On its feet at full health, if its owner respawned while it was down. The flag is cleared once it has joined. */
+    private static void getUp(MinibossEntity npc, CompanionRecord record) {
+        if (record.healOnJoin) {
+            npc.setCompanionDowned(false);
+            npc.setHealth(npc.getMaxHealth());
+        }
+    }
+
     /** Brings the companion beside its owner. False if the destination is not loaded yet (try again). */
     private static boolean joinOwner(MinecraftServer server, CompanionRecord record, ServerPlayerEntity owner) {
         ServerWorld to = owner.getServerWorld();
@@ -113,8 +149,13 @@ final class CompanionTravel {
         MinibossEntity live = found instanceof MinibossEntity npc && npc.getCompanionIncarnation() == record.incarnation ? npc : null;
         BlockPos at = Companions.standableNear(to, ownerPos);
 
+        if (live != null && GuideBoat.isBoating(live)) {
+            GuideBoat.disembark(live);
+        }
         if (live != null && live.getWorld() == to) {
             live.setSitting(false);
+            getUp(live, record);
+            record.healOnJoin = false;
             if (live.squaredDistanceTo(owner) > JOINED * JOINED) {
                 live.getNavigation().stop();
                 live.requestTeleport(at.getX() + 0.5, at.getY(), at.getZ() + 0.5);
@@ -138,9 +179,11 @@ final class CompanionTravel {
         npc.setSitting(false);
         record.incarnation++;
         npc.setCompanionIncarnation(record.incarnation);
+        getUp(npc, record);
         if (!to.spawnEntity(npc)) {
             return false;
         }
+        record.healOnJoin = false;
         record.lastKnown = GlobalPos.create(to.getRegistryKey(), at);
         record.lastSeen = Companions.now(server);
         record.separatedSince = 0;

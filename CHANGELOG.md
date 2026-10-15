@@ -15,6 +15,8 @@ and can be hired. Fighting them is still an option.
   neutral, rival, at war) is rolled from the seed, and they are never all at war at once.
 - You have a standing with each guild. Trading and hiring raise it; killing its members lowers it. How a guild's
   adventurers treat you follows your standing: **hostile**, **wary**, **neutral**, **friendly** or **devoted**.
+- Grudges cool: negative standing climbs back toward neutral by 2 points per in-game day, whether you are online or
+  not (`standingRecoveryPerDay`). Good standing never decays.
 - Adventurers from guilds at war fight each other, and those fights end in real deaths.
 - **Forsaken Adventurers:** adventurers who don't live in a camp or tower (natural spawns, wanderers, encounter
   bosses; patrols still belong to a guild) answer to no guild. They attack on sight, wear a red and black aura so
@@ -27,6 +29,12 @@ and can be hired. Fighting them is still an option.
 - Right-click a non-hostile adventurer to talk. The conversation offers whatever that adventurer can do for you.
 - **Exchange:** barter for its stock. The stock includes its drop pool, a little dungeon loot, and a rare boss key.
   The prices follow your standing.
+  - Armor and tools are valued on their repair material (a diamond chestplate is worth 8 diamonds; a hoe less than
+    a sword; netherite armor is its diamond version plus the ingot; a netherite tool adds the ingot in proportion to its use,
+    so a hoe a quarter of it). Modded gear made of an unpriced material keeps
+    its attribute-based value.
+  - Enchantments are worth their share of their highest level; treasure ones such as Mending count double, and
+    curses lower the value.
 - **Rumors:** it tells of a nearby structure, boss or player, as a direction and a rough distance. How far to trust it
   depends on your standing. When someone asks about you, you hear about it as gossip.
   - Structures from many popular structure mods count: YUNG's, Repurposed Structures, When Dungeons Arise,
@@ -59,9 +67,14 @@ and can be hired. Fighting them is still an option.
 ### Companions
 - Spare a defeated adventurer, or **hire** one, to make it your companion. You can have one at a time.
 - Companions don't die. When knocked down they get back up after a while, or straight away if you heal them.
+  If you die while yours is down, it gets up at full health and joins you where you respawn.
 - **Orders:** Follow, Wait (1–24 hours), Wait at rendezvous point, Set rendezvous point here, and Dismiss. Companions
   carry your gear in **Storage** and wear what you give them in **Equipment**.
 - Companions follow you through teleports and between dimensions: waystones, `/tp`, portals and respawning.
+- When you set off by boat, a following companion gets into its own (a nearby empty one, or one it conjures) and
+  rows after you, holding station when close. It comes ashore near you once you land.
+- Companions of different players never target or hurt each other. Players on the same vanilla team can't hurt each
+  other or each other's companions through companions, whatever the team's friendlyFire setting.
 - Lost or stuck companions find their way home. `/companion recall` sends yours home, and `/companion release`
   frees the slot. `/dismisscompanion` frees the slot with no refund.
 - Each type of companion has a **speciality**:
@@ -83,6 +96,8 @@ and can be hired. Fighting them is still an option.
 
 ### Fixes
 - Attacks interrupted mid-swing no longer leave their animation playing, so there is no more endless spin.
+- Health-based phase changes such as the Juggernaut's Last Stand happen once, instead of every tick (which replayed
+  the roar and reset its attack cooldowns constantly).
 - NPCs sit properly when riding, and their heads no longer turn backwards.
 
 ### Notes for server owners
