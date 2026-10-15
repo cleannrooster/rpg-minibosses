@@ -3,7 +3,7 @@
 	"id": "${fabric_mod_id}",
 	"version": "${version}",
 	"name": "ANARCHY - RPG Minibosses",
-	"description": "Find petrified adventurers in the wild!",
+	"description": "Talk to the adventurers of three rival guilds: trade, hear rumors, recruit companions, and buy services at their camps.",
 	"authors": [
 		"cleannrooster/Forg!"
 	],

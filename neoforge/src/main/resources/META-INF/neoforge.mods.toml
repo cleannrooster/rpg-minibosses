@@ -15,7 +15,7 @@ version = "${version}"
 displayName = "ANARCHY - RPG Minibosses"
 authors = "cleannrooster/Forg!"
 description = '''
-Find petrified adventurers in the wild!
+Talk to the adventurers of three rival guilds: trade, hear rumors, recruit companions, and buy services at their camps.
 '''
 logoFile = "assets/anarchy_rpg/icon.png"
 
