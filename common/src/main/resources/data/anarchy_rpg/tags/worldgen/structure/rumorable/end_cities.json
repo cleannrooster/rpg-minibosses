@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:end_city",
+    {
+      "id": "mes:phantom_citadel",
+      "required": false
+    },
+    {
+      "id": "mes:enderkeep_courtyard",
+      "required": false
+    },
+    {
+      "id": "mes:ender_spire",
+      "required": false
+    },
+    {
+      "id": "mes:enderwatch_tower",
+      "required": false
+    }
+  ]
+}

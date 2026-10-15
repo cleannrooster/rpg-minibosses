@@ -40,7 +40,8 @@ public final class CompanionMenus {
 
     static void registerOption() {
         ConversationOptions.register(ConversationOption.STORAGE,
-                (npc, player, disposition) -> Companions.recordFor(player, npc) != null ? OptionAvailability.ENABLED : OptionAvailability.HIDDEN,
+                (npc, player, disposition) -> Companions.recordFor(player, npc) != null && !TraderSpecialty.isTrader(npc)
+                        ? OptionAvailability.ENABLED : OptionAvailability.HIDDEN,
                 (npc, player, argument) -> open(npc, player, Window.STORAGE));
         ConversationOptions.register(ConversationOption.COMPANION_GEAR,
                 (npc, player, disposition) -> Companions.recordFor(player, npc) != null ? OptionAvailability.ENABLED : OptionAvailability.HIDDEN,

@@ -48,8 +48,12 @@ public final class ExchangeMenus {
     private static OptionAvailability availability(MinibossEntity npc, ServerPlayerEntity player,
                                                    com.cleannrooster.anarchy_rpg.faction.Disposition disposition) {
         if (npc.getOwnerUuid() != null) {
-            // A companion is not a trader: its owner gets Storage, everyone else nothing.
-            return OptionAvailability.HIDDEN;
+            // A companion is not a trader (its owner gets Storage, everyone else nothing), except a Mercenary,
+            // which keeps trading with its owner and turns over its oldest stock each day.
+            if (!com.cleannrooster.anarchy_rpg.companion.TraderSpecialty.tradesWithOwner(npc, player)) {
+                return OptionAvailability.HIDDEN;
+            }
+            com.cleannrooster.anarchy_rpg.companion.TraderSpecialty.cycleIfDue(npc, player);
         }
         npc.getExchangeStock().ensureGenerated(npc, player);
         if (npc.getExchangeStock().isEmpty()) {

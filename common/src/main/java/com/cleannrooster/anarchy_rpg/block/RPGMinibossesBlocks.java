@@ -50,9 +50,10 @@ public class RPGMinibossesBlocks {
         TEMPLARPOSTERBLOCKITEM = Registry.register(Registries.ITEM,Identifier.of(RPGMinibosses.CONTENT_NAMESPACE,"poster_templar"),new BlockItem(TEMPLARPOSTERBLOCK, new Item.Settings()));
     }
 
-    /** Event-callback registration; safe outside registry events. */
+    /**
+     * Event-callback registration; safe outside registry events. Wanted posters are deprecated in 3.0: still
+     * registered, so posters already placed in a world stay, but no longer in the creative tab.
+     */
     public static void addToItemGroup(){
-        CreativeTabRegistry.append(CreativeTabRegistry.defer(KEY), MERCPOSTERBLOCKITEM, JUGGPOSTERBLOCKITEM,
-                MAGEPOSTERBLOCKITEM, TEMPLARPOSTERBLOCKITEM, ROGUEPOSTERBLOCKITEM);
     }
 }

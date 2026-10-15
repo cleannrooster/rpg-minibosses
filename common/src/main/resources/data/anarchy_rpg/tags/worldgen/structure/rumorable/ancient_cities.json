@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:ancient_city",
+    {
+      "id": "repurposed_structures:ancient_city_end",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ancient_city_nether",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ancient_city_ocean",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:city_nether",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:city_overworld",
+      "required": false
+    }
+  ]
+}

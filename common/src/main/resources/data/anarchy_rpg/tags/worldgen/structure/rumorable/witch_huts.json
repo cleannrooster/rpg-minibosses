@@ -1,0 +1,38 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:swamp_hut",
+    {
+      "id": "betterwitchhuts:witch_hut",
+      "required": false
+    },
+    {
+      "id": "explorify:mangrove_hut",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:witch_hut_birch",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:witch_hut_dark_forest",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:witch_hut_giant_tree_taiga",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:witch_hut_mangrove",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:witch_hut_oak",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:witch_hut_taiga",
+      "required": false
+    }
+  ]
+}

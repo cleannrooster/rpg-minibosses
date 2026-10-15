@@ -67,15 +67,20 @@ public final class Companions {
         });
         CompanionOptions.register();
         CompanionMenus.registerOption();
+        // Specialties (M4d), each registering its own conversation option.
+        EnchantingSpecialties.register();
+        PatrolSpecialty.register();
+        GuideSpecialty.register();
         CompanionDebugCommand.register();
         CompanionCommand.register();
+        CompanionTravel.register();
     }
 
     static long now(MinecraftServer server) {
         return server.getOverworld().getTime();
     }
 
-    private static void say(ServerPlayerEntity player, MinibossEntity npc, String line) {
+    static void say(ServerPlayerEntity player, MinibossEntity npc, String line) {
         player.sendMessage(npc.getName().copy().append(Text.literal(": " + line)));
     }
 
@@ -93,8 +98,15 @@ public final class Companions {
         npc.setCompanionIncarnation(record.incarnation);
         record.mode = CompanionMode.FOLLOWING;
         npc.setSitting(false);
-        // Its trade stock is not the player's to take: storage starts empty and stays the companion's own.
-        npc.getExchangeStock().clearForRecruit();
+        if (CompanionSpecialty.of(npc) == CompanionSpecialty.TRADER) {
+            // A Mercenary keeps trading: its stock stays, and it carries no storage.
+            npc.getExchangeStock().ensureGenerated(npc, player);
+            // Its stock is fresh today; the first turnover is tomorrow.
+            record.specialtyDay = CompanionSpecialties.today(player.getServer());
+        } else {
+            // Its trade stock is not the player's to take: storage starts empty and stays the companion's own.
+            npc.getExchangeStock().clearForRecruit();
+        }
         // What it already wears and holds stays its own: replaceable, never taken out.
         CompanionGear.bindExisting(npc);
         snapshot(npc, record);
@@ -135,7 +147,7 @@ public final class Companions {
         return rendezvous != null ? rendezvous : spawnPointOf(server, owner);
     }
 
-    private static GlobalPos spawnPointOf(MinecraftServer server, UUID owner) {
+    static GlobalPos spawnPointOf(MinecraftServer server, UUID owner) {
         GlobalPos spawn = CompanionRegistry.get(server).lastSpawnOf(owner);
         return spawn != null ? spawn : GlobalPos.create(World.OVERWORLD, server.getOverworld().getSpawnPos());
     }
@@ -148,6 +160,8 @@ public final class Companions {
     // ── Orders ──────────────────────────────────────────────────────────────
 
     static void follow(ServerPlayerEntity player, MinibossEntity npc, CompanionRecord record) {
+        record.patrolling = false;
+        GuideSpecialty.clear(record);
         record.mode = CompanionMode.FOLLOWING;
         npc.setSitting(false);
         dirty(player.getServer(), npc, record);
@@ -155,6 +169,8 @@ public final class Companions {
     }
 
     static void stay(ServerPlayerEntity player, MinibossEntity npc, CompanionRecord record, long ticks, String length) {
+        record.patrolling = false;
+        GuideSpecialty.clear(record);
         record.mode = CompanionMode.STAYING;
         record.stayUntil = now(player.getServer()) + Math.max(1, ticks);
         npc.setSitting(true);
@@ -168,6 +184,8 @@ public final class Companions {
         if (rendezvousOf(player.getServer(), player.getUuid()) == null) {
             return;
         }
+        record.patrolling = false;
+        GuideSpecialty.clear(record);
         record.mode = CompanionMode.TRAVELING_TO_BASE;
         npc.setSitting(true);
         dirty(player.getServer(), npc, record);
@@ -184,16 +202,22 @@ public final class Companions {
     static void dismiss(ServerPlayerEntity player, MinibossEntity npc) {
         CompanionRegistry.get(player.getServer()).release(player.getUuid());
         CompanionGear.returnGear(npc, player);
+        // A Mercenary's inventory is its trade stock, not storage: it leaves with it.
         var storage = npc.getExchangeStock().inventory();
-        for (int i = 0; i < storage.size(); i++) {
+        for (int i = 0; i < storage.size() && !TraderSpecialty.isTrader(npc); i++) {
             var stack = storage.removeStack(i);
             if (!stack.isEmpty()) {
                 player.getInventory().offerOrDrop(stack);
             }
         }
+        say(player, npc, "Farewell, then.");
+        walkOff(player, npc);
+    }
+
+    /** No longer anyone's: it turns its back on {@code player} and walks off for good, with whatever it has. */
+    static void walkOff(ServerPlayerEntity player, MinibossEntity npc) {
         npc.setOwnerUuid(null);
         npc.setSitting(true);
-        say(player, npc, "Farewell, then.");
         Vec3d away = npc.getPos().subtract(player.getPos()).multiply(1, 0, 1);
         if (away.lengthSquared() < 1.0E-4) {
             away = new Vec3d(1, 0, 0);
@@ -202,7 +226,7 @@ public final class Companions {
         npc.startDeparting(BlockPos.ofFloored(target), DEPART_MAX_TICKS);
     }
 
-    private static void dirty(MinecraftServer server, MinibossEntity npc, CompanionRecord record) {
+    static void dirty(MinecraftServer server, MinibossEntity npc, CompanionRecord record) {
         snapshot(npc, record);
         CompanionRegistry.get(server).markDirty();
     }
@@ -280,6 +304,9 @@ public final class Companions {
             tickDeparting(world, npc);
             return;
         }
+        if (npc.getOwnerUuid() != null) {
+            GuideSpecialty.tickEveryTick(npc); // Vaulting and rowing need every tick; the rest runs once a second.
+        }
         if (npc.getOwnerUuid() == null || npc.age % 20 != 0) {
             return;
         }
@@ -343,6 +370,8 @@ public final class Companions {
                 }
             }
             case FOLLOWING -> npc.setSitting(false);
+            case PATROLLING -> PatrolSpecialty.tick(server, world, npc, record);
+            case GUIDING -> GuideSpecialty.tick(server, world, npc, record);
         }
         restNearSpawn(server, world, npc, record);
         if (npc.age % SNAPSHOT_INTERVAL == 0 && !npc.isRemoved()) {
@@ -435,7 +464,7 @@ public final class Companions {
             return;
         }
         if (npc.squaredDistanceTo(target) <= ARRIVED * ARRIVED) {
-            record.mode = CompanionMode.AT_BASE;
+            record.mode = record.patrolling ? CompanionMode.PATROLLING : CompanionMode.AT_BASE;
             npc.getNavigation().stop();
             return;
         }
@@ -446,7 +475,7 @@ public final class Companions {
      * Records a simulated trip home and bumps the incarnation, so any copy of this entity still saved in
      * a chunk removes itself if it ever loads.
      */
-    private static void beginTrip(MinecraftServer server, MinibossEntity npc, CompanionRecord record, GlobalPos base) {
+    static void beginTrip(MinecraftServer server, MinibossEntity npc, CompanionRecord record, GlobalPos base) {
         snapshot(npc, record);
         GlobalPos from = GlobalPos.create(npc.getWorld().getRegistryKey(), npc.getBlockPos());
         record.tripDestination = base;
@@ -537,7 +566,8 @@ public final class Companions {
                 // off waits for them, and gets the full grace period after they return for its chunk to load.
                 record.lastSeen = now;
             }
-            if (owner != null && (record.mode == CompanionMode.FOLLOWING || record.mode == CompanionMode.DOWNED)
+            if (owner != null && (record.mode == CompanionMode.FOLLOWING || record.mode == CompanionMode.DOWNED
+                    || record.mode == CompanionMode.GUIDING)
                     && now - record.lastSeen >= RPGMinibossesEntities.config.companionLostTimeoutTicks) {
                 // Left behind somewhere unloaded while its owner is off elsewhere: it makes its way home.
                 sendHome(server, record, null);
@@ -551,9 +581,11 @@ public final class Companions {
                 registry.markDirty();
                 continue;
             }
-            GlobalPos base = baseOf(server, record.owner);
-            boolean baseMoved = record.mode == CompanionMode.AT_BASE && last != null
-                    && (!last.dimension().equals(base.dimension()) || last.pos().getSquaredDistance(base.pos()) > BASE_MOVED * BASE_MOVED);
+            GlobalPos base = record.patrolling ? spawnPointOf(server, record.owner) : baseOf(server, record.owner);
+            double tolerance = record.mode == CompanionMode.PATROLLING
+                    ? RPGMinibossesEntities.config.companionPatrolRadius + 16 + BASE_MOVED : BASE_MOVED;
+            boolean baseMoved = (record.mode == CompanionMode.AT_BASE || record.mode == CompanionMode.PATROLLING) && last != null
+                    && (!last.dimension().equals(base.dimension()) || last.pos().getSquaredDistance(base.pos()) > tolerance * tolerance);
             if (stayOver || record.mode == CompanionMode.TRAVELING_TO_BASE || baseMoved) {
                 record.tripDestination = base;
                 record.tripArrivesAt = now + (last == null ? 20 : travelTicks(last, base));
@@ -617,7 +649,7 @@ public final class Companions {
         if (!world.spawnEntity(npc)) {
             return;
         }
-        record.mode = CompanionMode.AT_BASE;
+        record.mode = record.patrolling ? CompanionMode.PATROLLING : CompanionMode.AT_BASE;
         record.tripDestination = null;
         record.needsRestore = false;
         record.missingSince = 0;
@@ -630,7 +662,7 @@ public final class Companions {
      * The nearest spot within a few blocks of {@code target} with solid ground and two blocks of air, so a
      * companion arriving at a bed or a cramped spawn point stands beside it. Falls back to the target.
      */
-    private static BlockPos standableNear(ServerWorld world, BlockPos target) {
+    static BlockPos standableNear(ServerWorld world, BlockPos target) {
         BlockPos best = null;
         double bestSq = Double.MAX_VALUE;
         for (BlockPos pos : BlockPos.iterateOutwards(target, 4, 3, 4)) {

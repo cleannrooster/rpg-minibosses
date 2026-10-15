@@ -1,0 +1,103 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:desert_pyramid",
+    "minecraft:jungle_pyramid",
+    {
+      "id": "betterdeserttemples:desert_temple",
+      "required": false
+    },
+    {
+      "id": "betterjungletemples:jungle_temple",
+      "required": false
+    },
+    {
+      "id": "explorify:badlands_pyramid",
+      "required": false
+    },
+    {
+      "id": "explorify:desert_shrine",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:abandoned_temple",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:infested_temple",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_badlands",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_dark_forest",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_end",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_flower_forest",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_giant_tree_taiga",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_icy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_jungle",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_mushroom",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_nether",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_ocean",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:pyramid_snowy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_nether_basalt",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_nether_crimson",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_nether_soul",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_nether_warped",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_nether_wasteland",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_ocean",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:temple_taiga",
+      "required": false
+    }
+  ]
+}

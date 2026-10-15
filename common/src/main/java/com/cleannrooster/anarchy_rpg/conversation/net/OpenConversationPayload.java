@@ -20,14 +20,15 @@ import java.util.List;
  * on the server: the client never works out which options exist or whether they can be picked.
  *
  * @param factionName   null for a companion, which belongs to its player rather than to a faction
- * @param heardAboutYou gossip about someone asking after this player; always null until Rumors exist
+ * @param greeting      what the adventurer says: a greeting, or its answer (a rumor) when re-sent mid-conversation
+ * @param heardAboutYou gossip about someone asking after this player, or null
  */
 public record OpenConversationPayload(int npcId, Text npcName, Text greeting, @Nullable Text factionName,
                                       DyeColor flagColor, Disposition standing, @Nullable Text heardAboutYou,
                                       List<Entry> options) implements CustomPayload {
 
-    /** One option as shown: whether it can be picked and, if not, why. */
-    public record Entry(ConversationOption option, boolean enabled, @Nullable Text reason) {
+    /** One option as shown: whether it can be picked, why not (or a tooltip), and a label replacing its name. */
+    public record Entry(ConversationOption option, boolean enabled, @Nullable Text reason, @Nullable Text label) {
     }
 
     public static final CustomPayload.Id<OpenConversationPayload> ID =
@@ -54,6 +55,7 @@ public record OpenConversationPayload(int npcId, Text npcName, Text greeting, @N
             buffer.writeVarInt(entry.option().ordinal());
             buffer.writeBoolean(entry.enabled());
             writeOptionalText(buffer, entry.reason());
+            writeOptionalText(buffer, entry.label());
         }
     }
 
@@ -71,8 +73,9 @@ public record OpenConversationPayload(int npcId, Text npcName, Text greeting, @N
             ConversationOption option = ConversationOption.fromIndex(buffer.readVarInt());
             boolean enabled = buffer.readBoolean();
             Text reason = readOptionalText(buffer);
+            Text label = readOptionalText(buffer);
             if (option != null) {
-                options.add(new Entry(option, enabled, reason));
+                options.add(new Entry(option, enabled, reason, label));
             }
         }
         return new OpenConversationPayload(npcId, npcName, greeting, factionName, flagColor, standing, heardAboutYou, options);

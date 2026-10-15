@@ -1,0 +1,110 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:pillager_outpost",
+    {
+      "id": "#minecraft:pillager_outpost",
+      "required": false
+    },
+    {
+      "id": "#ctov:pillager_outpost",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:illager_fort",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:illager_campsite",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:illager_windmill",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:bandit_village",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:bandit_towers",
+      "required": false
+    },
+    {
+      "id": "mvs:small_pillager_tower",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_badlands",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_basalt",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_birch",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_crimson",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_desert",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_end",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_giant_tree_taiga",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_icy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_jungle",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_mangrove",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_nether_brick",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_oak",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_ocean",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_savanna",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_snowy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_soul",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_taiga",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:outpost_warped",
+      "required": false
+    }
+  ]
+}

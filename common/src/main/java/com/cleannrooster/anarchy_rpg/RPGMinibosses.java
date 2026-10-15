@@ -91,7 +91,7 @@ public final class RPGMinibosses {
     /** Load configs. Must run before {@link #registerItems()} (Spell Engine equipment reads its item config). */
     public static void initConfig() {
         SpellEngineCompat.hooks().initConfig();
-        StructurePoolCompat.hooks().initConfig();
+        // Wanted posters are deprecated in 3.0: no villages config, no poster house (StructurePoolCompat).
     }
 
     /** Spell handlers, gameplay events, world-gen injection, model ids. No registry mutation. */
@@ -105,6 +105,7 @@ public final class RPGMinibosses {
         com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.register();
         com.cleannrooster.anarchy_rpg.hub.HubTurnover.register();
         com.cleannrooster.anarchy_rpg.companion.Companions.register();
+        com.cleannrooster.anarchy_rpg.rumor.Rumors.register();
         SpellEngineCompat.hooks().init();
         registerEvents();
         registerWorldgenInjection();
@@ -179,10 +180,8 @@ public final class RPGMinibosses {
 
     // ── Event / handler registration (no registry mutation; Architectury-backed on both loaders) ─────
     private static void registerWorldgenInjection() {
-        if (!Platform.isModLoaded("lithostitched")) {
-            // Only inject the village if Lithostitched is not present.
-            StructurePoolCompat.hooks().injectVillages();
-        }
+        // The wanted-poster village house is deprecated in 3.0: neither StructurePoolCompat nor the
+        // Lithostitched modifiers (shipped as .json.deprecated) inject it any more.
         // Add the miniboss encounter placed features to their preferred biomes (loader-agnostic via Architectury).
         com.cleannrooster.anarchy_rpg.worldgen.MinibossEncounters.injectBiomes();
     }

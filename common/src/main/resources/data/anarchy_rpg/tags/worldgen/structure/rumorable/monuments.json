@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:monument",
+    {
+      "id": "betteroceanmonuments:ocean_monument",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:monument_desert",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:monument_icy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:monument_jungle",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:monument_nether",
+      "required": false
+    }
+  ]
+}

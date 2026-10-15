@@ -1,0 +1,49 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "explorify:ruins",
+      "required": false
+    },
+    {
+      "id": "explorify:mausoleum",
+      "required": false
+    },
+    {
+      "id": "explorify:black_spiral",
+      "required": false
+    },
+    {
+      "id": "mvs:castle_ruins",
+      "required": false
+    },
+    {
+      "id": "mvs:cathedral",
+      "required": false
+    },
+    {
+      "id": "mvs:ruined_beacon",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ruins_land_cold",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ruins_land_hot",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ruins_land_icy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ruins_land_warm",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:ruins_nether",
+      "required": false
+    }
+  ]
+}

@@ -69,6 +69,20 @@ public final class Conversations {
      * why when it is something other than hostility.
      */
     public static boolean tryOpen(MinibossEntity npc, ServerPlayerEntity player) {
+        return open(npc, player, null);
+    }
+
+    /**
+     * The adventurer answers within the conversation (a rumor, say): the screen is sent again with
+     * {@code line} in place of the greeting and the options re-checked, so spent charges show at once.
+     */
+    public static void reply(MinibossEntity npc, ServerPlayerEntity player, Text line) {
+        if (!open(npc, player, line)) {
+            end(npc, player, true);
+        }
+    }
+
+    private static boolean open(MinibossEntity npc, ServerPlayerEntity player, @Nullable Text reply) {
         if (!(npc.getWorld() instanceof ServerWorld world) || !npc.notPetrified() || npc.isIncapacitated()) {
             return false;
         }
@@ -94,16 +108,20 @@ public final class Conversations {
         for (Entry<ConversationOption, ConversationOptions.Registration> entry : ConversationOptions.all().entrySet()) {
             OptionAvailability availability = entry.getValue().rule().check(npc, player, disposition);
             if (availability.shown()) {
-                options.add(new OpenConversationPayload.Entry(entry.getKey(), availability.enabled(), availability.reason()));
+                options.add(new OpenConversationPayload.Entry(entry.getKey(), availability.enabled(), availability.reason(),
+                        availability.label()));
             }
         }
 
         npc.setConversationPartner(player.getUuid());
         npc.getNavigation().stop();
         ACTIVE.put(player.getUuid(), npc.getId());
-        NetworkManager.sendToPlayer(player, new OpenConversationPayload(npc.getId(), npc.getName(), greeting(npc, disposition),
+        // Gossip is handed over when a conversation starts, not with every reply.
+        Text gossip = reply == null ? com.cleannrooster.anarchy_rpg.rumor.Rumors.onConversationOpened(player) : null;
+        NetworkManager.sendToPlayer(player, new OpenConversationPayload(npc.getId(), npc.getName(),
+                reply != null ? reply : greeting(npc, disposition),
                 faction == null ? null : faction.name(),
-                faction == null ? net.minecraft.util.DyeColor.WHITE : faction.flag().base(), disposition, null, options));
+                faction == null ? net.minecraft.util.DyeColor.WHITE : faction.flag().base(), disposition, gossip, options));
         return true;
     }
 

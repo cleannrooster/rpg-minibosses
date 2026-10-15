@@ -10,6 +10,7 @@ import com.cleannrooster.anarchy_rpg.RPGMinibosses;
  * {@code net.fabric_extras.structure_pool} type, and presence is tested by resource lookup, which
  * initialises nothing.</p>
  */
+@Deprecated // 3.0: wanted posters are deprecated; nothing calls this any more. Kept for their possible return.
 public final class StructurePoolCompat {
     /** A class shipped by Structure Pool API; its presence is the gate. */
     static final String PROBE = "net/fabric_extras/structure_pool/api/StructurePoolAPI.class";

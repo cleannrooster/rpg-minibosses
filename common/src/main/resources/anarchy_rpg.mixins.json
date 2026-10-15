@@ -3,6 +3,7 @@
 	"package": "com.cleannrooster.anarchy_rpg.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
+		"BoatEntityMixin",
 		"PatrolSpawnerMixin",
 		"ServerPlayerEntityMixin"
 	],

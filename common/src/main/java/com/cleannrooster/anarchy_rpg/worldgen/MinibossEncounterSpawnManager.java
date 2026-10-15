@@ -98,6 +98,11 @@ public final class MinibossEncounterSpawnManager {
         }
         if (!world.spawnEntity(mob)) {
             mob.discard();
+            return;
         }
+        // Remembered so rumors can tell of this boss while its chunk is unloaded.
+        com.cleannrooster.anarchy_rpg.rumor.EncounterLedger.get(world.getServer()).add(
+                new com.cleannrooster.anarchy_rpg.rumor.EncounterLedger.Placement(mob.getUuid(), world.getRegistryKey(),
+                        mob.getBlockPos(), net.minecraft.registry.Registries.ENTITY_TYPE.getId(mob.getType())));
     }
 }

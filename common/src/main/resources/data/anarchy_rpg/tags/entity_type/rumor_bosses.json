@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "anarchy_rpg:gemini_alpha",
+    "anarchy_rpg:gemini_beta",
+    "anarchy_rpg:gemini_alpha_uber",
+    "anarchy_rpg:gemini_beta_uber",
+    "minecraft:wither",
+    "minecraft:elder_guardian",
+    "minecraft:warden"
+  ]
+}

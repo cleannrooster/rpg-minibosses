@@ -96,7 +96,7 @@ public final class ConversationScreen extends Screen {
         // Greeting block.
         y += BLOCK_GAP;
         y = addWrapped(greeting, textWidth, y, WHITE, 0);
-        // Gossip block, once Rumors exist.
+        // Gossip block: someone was asking after you.
         if (gossip != null) {
             y += BLOCK_GAP;
             y = addWrapped(gossip.copy().formatted(Formatting.ITALIC), textWidth, y, GRAY, 0);
@@ -137,7 +137,7 @@ public final class ConversationScreen extends Screen {
             cell[0]++;
         };
         for (OpenConversationPayload.Entry entry : this.conversation.options()) {
-            ButtonWidget.Builder builder = ButtonWidget.builder(entry.option().label(), button ->
+            ButtonWidget.Builder builder = ButtonWidget.builder(entry.label() != null ? entry.label() : entry.option().label(), button ->
                             NetworkManager.sendToServer(new ConversationActionPayload(this.npcId(), entry.option(), this.argumentFor(entry.option()))))
                     .dimensions(0, 0, cellWidth, BUTTON_HEIGHT);
             if (entry.reason() != null) {

@@ -409,6 +409,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             com.cleannrooster.anarchy_rpg.faction.Factions.recordDeed(this, player,
                     com.cleannrooster.anarchy_rpg.faction.StandingCause.KILLED_MEMBER, RPGMinibossesEntities.config.standingKillMember);
         }
+        // An encounter boss that truly dies is no longer anything to rumor about.
+        if (this.fromStructure && this.getWorld() instanceof ServerWorld serverWorld) {
+            com.cleannrooster.anarchy_rpg.rumor.EncounterLedger.get(serverWorld.getServer()).remove(this.getUuid());
+        }
         super.onDeath(damageSource);
     }
 
@@ -467,6 +471,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         // and it still has to notice when it is time to get back up.
         if (!this.getWorld().isClient()) {
             com.cleannrooster.anarchy_rpg.companion.Companions.tick(this);
+            com.cleannrooster.anarchy_rpg.rumor.Rumors.tick(this);
         }
         // Teach this client the shapes of this mob's attacks. Done on tick rather than in the
         // constructor because the hook is overridden per mob, and a base constructor calling it would
@@ -742,6 +747,13 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     public com.cleannrooster.anarchy_rpg.exchange.ExchangeStock getExchangeStock() {
         return this.exchangeStock;
+    }
+
+    /** How many rumors this adventurer has left to tell. Server-side; saved. */
+    private final com.cleannrooster.anarchy_rpg.rumor.RumorCharges rumorCharges = new com.cleannrooster.anarchy_rpg.rumor.RumorCharges();
+
+    public com.cleannrooster.anarchy_rpg.rumor.RumorCharges getRumorCharges() {
+        return this.rumorCharges;
     }
 
     @Override
@@ -1424,6 +1436,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
             nbt.put("Party", this.partyMembership.toNbt());
         }
         nbt.put("ExchangeStock", this.exchangeStock.toNbt(this.getRegistryManager()));
+        nbt.put("RumorCharges", this.rumorCharges.toNbt());
         nbt.putBoolean("CompanionDowned", this.getDataTracker().get(COMPANION_DOWNED));
         nbt.putLong("CompanionIncarnation", this.companionIncarnation);
         if (this.departing) {
@@ -1479,6 +1492,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         }
         if (nbt.contains("ExchangeStock")) {
             this.exchangeStock.readNbt(nbt.getCompound("ExchangeStock"), this.getRegistryManager());
+        }
+        if (nbt.contains("RumorCharges")) {
+            this.rumorCharges.readNbt(nbt.getCompound("RumorCharges"));
         }
         this.getDataTracker().set(COMPANION_DOWNED, nbt.getBoolean("CompanionDowned"));
         this.companionIncarnation = nbt.getLong("CompanionIncarnation");

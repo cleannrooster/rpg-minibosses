@@ -304,4 +304,44 @@ public class ServerConfig  implements ConfigData {
     @Comment("Companions: a rendezvous point must be within this many blocks of the owner's spawn point")
     public double companionRendezvousRadius = 64.0;
 
+    @Comment("Companions: a following companion comes along when its owner teleports or changes dimension (waystones, /tp, portals, respawning)")
+    public boolean companionFollowTeleports = true;
+    @Comment("Companions: an owner moving more than this many blocks in a single tick counts as a teleport")
+    public double companionTeleportJumpDistance = 16.0;
+    @Comment("Companions: radius, in blocks, of the ring a Juggernaut patrols around its owner's spawn point")
+    public double companionPatrolRadius = 24.0;
+    @Comment("Companions: a patrolling Juggernaut that has not completed a round in this many ticks (not counting fights) is stuck, and is brought back to the spawn point")
+    public long companionPatrolCircuitTicks = 1800L;
+    @Comment("Companions: a Rogue leading the way waits when its owner falls this many blocks behind")
+    public double companionGuideWaitDistance = 16.0;
+    @Comment("Companions: a leading Rogue kept waiting this many ticks heads home instead (catching up with it on the way resumes the lead)")
+    public long companionGuideWaitTimeoutTicks = 1200L;
+    @Comment("Companions: a Rogue gives up leading after this many ticks (24000 = a day)")
+    public long companionGuideMaxTicks = 24000L;
+    @Comment("Companions: how many of a recruited Mercenary's oldest stacks are swapped for fresh ones each day")
+    public int companionTraderCycleCount = 4;
+
+    @Comment("Rumors: how many rumors an adventurer can hold at once")
+    public int rumorChargesMax = 3;
+    @Comment("Rumors: a wandering adventurer hears one new rumor per this many ticks of world time (24000 = a day; 0 = never)")
+    public long rumorRegenTicks = 24000L;
+    @Comment("Rumors: a companion hears one new rumor per this many blocks travelled with its owner away from home (0 = never)")
+    public double rumorCompanionBlocksPerCharge = 1500.0;
+    @Comment("Rumors: a companion hears one new rumor per this many hostile kills, its own or its owner's nearby (0 = never)")
+    public int rumorCompanionKillsPerCharge = 12;
+    @Comment("Rumors: chance a rumor is true when the adventurer is neutral toward you (friendly and devoted are always true)")
+    public double rumorTruthChanceNeutral = 0.8;
+    @Comment("Rumors: chance a rumor is true when the adventurer is wary of you")
+    public double rumorTruthChanceWary = 0.4;
+    @Comment("Rumors: mods whose every structure can be rumored about (one kind per mod), for mods not listed in the #anarchy_rpg:rumorable/* tags")
+    public java.util.List<String> rumorStructureNamespaces = new java.util.ArrayList<>(java.util.List.of("nova_structures", "idas", "structory"));
+    @Comment("Rumors: how far to search for structures, in chunks")
+    public int rumorStructureRadiusChunks = 64;
+    @Comment("Rumors: how many structure kinds to search per question (each search is costly)")
+    public int rumorStructureAttempts = 4;
+    @Comment("Rumors: how far away, in blocks, a boss can be rumored about")
+    public double rumorBossRadius = 2048.0;
+    @Comment("Rumors: other players can be the subject of rumors (only players who have talked to an adventurer)")
+    public boolean rumorPlayers = true;
+
 }

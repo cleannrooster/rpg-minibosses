@@ -1,0 +1,74 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:village",
+    {
+      "id": "#ctov:village",
+      "required": false
+    },
+    {
+      "id": "#integrated_villages:villages",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:mushroom_village",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_badlands",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_bamboo",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_birch",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_cherry",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_crimson",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_dark_forest",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_giant_taiga",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_jungle",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_mountains",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_mushroom",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_oak",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_ocean",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_swamp",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:village_warped",
+      "required": false
+    }
+  ]
+}

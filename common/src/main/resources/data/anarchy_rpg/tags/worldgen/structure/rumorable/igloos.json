@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:igloo",
+    {
+      "id": "repurposed_structures:igloo_grassy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:igloo_mangrove",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:igloo_mushroom",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:igloo_stone",
+      "required": false
+    }
+  ]
+}

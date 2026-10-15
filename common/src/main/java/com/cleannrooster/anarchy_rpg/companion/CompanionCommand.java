@@ -17,6 +17,8 @@ import net.minecraft.text.Text;
  *   wherever it is, loaded or not;</li>
  *   <li>{@code /companion release} — frees your companion slot outright, for a companion that is truly
  *   stuck. Its gear and storage come back to you if it is loaded; otherwise they are lost with it.</li>
+ *   <li>{@code /dismisscompanion} — the last-resort fallback: frees the slot and gives nothing back. A
+ *   loaded companion walks off with everything it carries; an unloaded one leaves when it next loads.</li>
  * </ul>
  */
 final class CompanionCommand {
@@ -29,6 +31,28 @@ final class CompanionCommand {
                 dispatcher.register(CommandManager.literal("companion")
                         .then(CommandManager.literal("recall").executes(CompanionCommand::recall))
                         .then(CommandManager.literal("release").executes(CompanionCommand::release))));
+        CommandRegistrationEvent.EVENT.register((dispatcher, registryAccess, environment) ->
+                dispatcher.register(CommandManager.literal("dismisscompanion").executes(CompanionCommand::dismissWithoutRefund)));
+    }
+
+    private static int dismissWithoutRefund(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
+        CompanionRegistry registry = CompanionRegistry.get(player.getServer());
+        CompanionRecord record = registry.ofOwner(player.getUuid());
+        if (record == null) {
+            context.getSource().sendError(text("none"));
+            return 0;
+        }
+        registry.release(player.getUuid());
+        if (Companions.findAnywhere(player.getServer(), record.npc()) instanceof MinibossEntity npc
+                && npc.getCompanionIncarnation() == record.incarnation) {
+            // Loaded: it simply leaves, keeping its gear and whatever it carries.
+            npc.setCompanionDowned(false);
+            Companions.walkOff(player, npc);
+        }
+        // Unloaded: no record means any copy that loads later leaves on its own.
+        context.getSource().sendFeedback(() -> text("dismissed_no_refund"), false);
+        return 1;
     }
 
     private static int recall(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {

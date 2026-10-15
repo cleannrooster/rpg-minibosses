@@ -106,6 +106,16 @@ public class MinibossAnimationProvider  extends AzEntityAnimator<MinibossEntity>
             command(controller, animation, loop, speed).sendForEntity(entity);
         }
 
+        /**
+         * Stop whatever is playing on a controller. An attack that is cancelled rather than finished never
+         * reaches the clip that would normally end it (the spin's {@code spin_end}), and a looping clip would
+         * otherwise play on forever.
+         */
+        public void cancel(String controller) {
+            CACHE.computeIfAbsent("cancel|" + controller,
+                    ignored -> AzCommand.controllerBuilder().cancel(controller).build()).sendForEntity(entity);
+        }
+
         /** Play a v2 clip belonging to this entity's own family. */
         public void playOwn(String controller, String suffix, boolean loop, float speed) {
             play(controller, family(entity) + suffix, loop, speed);

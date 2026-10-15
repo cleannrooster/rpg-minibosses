@@ -26,8 +26,11 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.random.Random;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * What an adventurer has to trade: more than it drops on death, and never what it is wearing or holding.
@@ -48,6 +51,9 @@ import java.util.List;
  *   <li>one roll of the Ender Dragon's table, which modpacks use to inject rare loot (the old guild hall
  *   trades drew from it too).</li>
  * </ol>
+ *
+ * <p>A recruited Mercenary is the exception to "never refills": each day it {@link #cycle cycles} its oldest
+ * stacks for fresh ones. Each slot remembers the day it was stocked for that.
  */
 public final class ExchangeStock {
     public static final int SIZE = 9;
@@ -57,6 +63,16 @@ public final class ExchangeStock {
 
     private final SimpleInventory inventory = new SimpleInventory(SIZE);
     private boolean generated;
+    /**
+     * The in-game day each slot was filled. A stack returned from the request pane lands in a free slot and
+     * keeps that slot's old day: close enough, since it can only make that stack cycle a little sooner.
+     */
+    private final long[] stockedDay = new long[SIZE];
+
+    /** The in-game day by the overworld clock; the same day companion specialties count by. */
+    private static long today(ServerWorld world) {
+        return world.getServer().getOverworld().getTimeOfDay() / 24000L;
+    }
 
     public SimpleInventory inventory() {
         return this.inventory;
@@ -76,6 +92,63 @@ public final class ExchangeStock {
     }
 
     /**
+     * The Mercenary's daily turnover: the {@code count} oldest stacks go, and fresh ones are rolled into empty
+     * slots until {@code count} have been added, so a bought-out stock refills {@code count} a day. Fresh
+     * stacks come from the same sources as generation, except boss keys, which stay first-stock only.
+     */
+    public void cycle(MinibossEntity npc, @Nullable PlayerEntity asker, int count) {
+        if (!(npc.getWorld() instanceof ServerWorld world) || count <= 0) {
+            return;
+        }
+        this.ensureGenerated(npc, asker);
+        Integer[] slots = new Integer[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            slots[i] = i;
+        }
+        Arrays.sort(slots, Comparator.comparingLong(slot -> this.stockedDay[slot]));
+        int removed = 0;
+        for (int slot : slots) {
+            if (removed >= count) {
+                break;
+            }
+            if (!this.inventory.getStack(slot).isEmpty()) {
+                this.inventory.setStack(slot, ItemStack.EMPTY);
+                removed++;
+            }
+        }
+
+        Random random = Random.create(world.getRandom().nextLong());
+        var config = RPGMinibossesEntities.config;
+        List<ItemStack> fresh = new ArrayList<>();
+        Consumer<ItemStack> collect = stack -> {
+            if (!stack.isEmpty() && !stack.isIn(BOSS_KEYS)) {
+                fresh.add(stack.copy());
+            }
+        };
+        List<Item> weapons = npc.getWeaponPool();
+        for (int round = 0; round < 8 && fresh.size() < count; round++) {
+            switch (random.nextInt(4)) {
+                case 0 -> this.roll(world, npc, npc.getType().getLootTableId(), random.nextLong(), asker, collect);
+                case 1 -> {
+                    if (!weapons.isEmpty()) {
+                        collect.accept(weapons.get(random.nextInt(weapons.size())).getDefaultStack());
+                    }
+                }
+                case 2 -> this.roll(world, npc, SUPPLIES, random.nextLong(), asker, collect);
+                default -> {
+                    if (!config.exchangeDungeonLootTables.isEmpty()) {
+                        this.dungeonLoot(world, npc, asker, random, collect);
+                    }
+                }
+            }
+        }
+        long day = today(world);
+        for (int i = 0; i < Math.min(count, fresh.size()); i++) {
+            this.add(fresh.get(i), day);
+        }
+    }
+
+    /**
      * Fills the stock on first use; afterwards does nothing.
      *
      * @param asker the player asking to trade, credited with the kill when rolling the drop pool
@@ -85,6 +158,8 @@ public final class ExchangeStock {
             return;
         }
         this.generated = true;
+        long day = today(world);
+        Consumer<ItemStack> add = stack -> this.add(stack, day);
         long seed = npc.getUuid().getLeastSignificantBits() ^ world.getSeed();
         Random random = Random.create(seed);
 
@@ -92,27 +167,32 @@ public final class ExchangeStock {
         if (random.nextDouble() < config.exchangeBossKeyChance) {
             List<Item> keys = Registries.ITEM.stream().filter(item -> item.getDefaultStack().isIn(BOSS_KEYS)).toList();
             if (!keys.isEmpty()) {
-                this.add(keys.get(random.nextInt(keys.size())).getDefaultStack());
+                add.accept(keys.get(random.nextInt(keys.size())).getDefaultStack());
             }
         }
         for (int i = 0; i < config.exchangeStockDropRolls; i++) {
-            this.roll(world, npc, npc.getType().getLootTableId(), random.nextLong(), asker, true);
+            this.roll(world, npc, npc.getType().getLootTableId(), random.nextLong(), asker,
+                    stack -> {
+                        if (!stack.isIn(BOSS_KEYS)) {
+                            add.accept(stack);
+                        }
+                    });
         }
         if (random.nextDouble() < config.exchangeDungeonLootChance && !config.exchangeDungeonLootTables.isEmpty()) {
-            this.dungeonLoot(world, npc, asker, random);
+            this.dungeonLoot(world, npc, asker, random, add);
         }
         List<Item> weapons = npc.getWeaponPool();
         for (int i = 0; i < config.exchangeStockWeapons && !weapons.isEmpty(); i++) {
-            this.add(weapons.get(random.nextInt(weapons.size())).getDefaultStack());
+            add.accept(weapons.get(random.nextInt(weapons.size())).getDefaultStack());
         }
         for (int i = 0; i < config.exchangeStockSupplyRolls; i++) {
-            this.roll(world, npc, SUPPLIES, random.nextLong(), asker, false);
+            this.roll(world, npc, SUPPLIES, random.nextLong(), asker, add);
         }
-        this.roll(world, npc, EntityType.ENDER_DRAGON.getLootTableId(), random.nextLong(), asker, false);
+        this.roll(world, npc, EntityType.ENDER_DRAGON.getLootTableId(), random.nextLong(), asker, add);
     }
 
     private void roll(ServerWorld world, MinibossEntity npc, RegistryKey<LootTable> key, long seed,
-                      @Nullable PlayerEntity asker, boolean withoutBossKeys) {
+                      @Nullable PlayerEntity asker, Consumer<ItemStack> sink) {
         LootTable table = world.getServer().getReloadableRegistries().getLootTable(key);
         LootContextParameterSet.Builder builder = new LootContextParameterSet.Builder(world)
                 .add(LootContextParameters.THIS_ENTITY, npc)
@@ -125,18 +205,15 @@ public final class ExchangeStock {
                     .add(LootContextParameters.LAST_DAMAGE_PLAYER, asker)
                     .luck(asker.getLuck());
         }
-        table.generateLoot(builder.build(LootContextTypes.ENTITY), seed, stack -> {
-            if (!withoutBossKeys || !stack.isIn(BOSS_KEYS)) {
-                this.add(stack);
-            }
-        });
+        table.generateLoot(builder.build(LootContextTypes.ENTITY), seed, sink);
     }
 
     /**
      * One roll of a random configured chest table. A chest fills many stacks, so only a few, picked at
      * random, are kept: enough to make the stock feel found rather than flooded.
      */
-    private void dungeonLoot(ServerWorld world, MinibossEntity npc, @Nullable PlayerEntity asker, Random random) {
+    private void dungeonLoot(ServerWorld world, MinibossEntity npc, @Nullable PlayerEntity asker, Random random,
+                             Consumer<ItemStack> sink) {
         var config = RPGMinibossesEntities.config;
         String name = config.exchangeDungeonLootTables.get(random.nextInt(config.exchangeDungeonLootTables.size()));
         Identifier id = Identifier.tryParse(name);
@@ -154,13 +231,26 @@ public final class ExchangeStock {
         for (int i = found.size() - 1; i > 0; i--) {
             Collections.swap(found, i, random.nextInt(i + 1));
         }
-        found.stream().filter(stack -> !stack.isEmpty()).limit(Math.max(0, config.exchangeDungeonLootMaxStacks)).forEach(this::add);
+        found.stream().filter(stack -> !stack.isEmpty()).limit(Math.max(0, config.exchangeDungeonLootMaxStacks)).forEach(sink);
     }
 
-    /** Merges into matching stacks, then fills empty slots; whatever does not fit is left out. */
-    private void add(ItemStack stack) {
-        if (!stack.isEmpty()) {
-            this.inventory.addStack(stack.copy());
+    /**
+     * Merges into matching stacks, then fills empty slots; whatever does not fit is left out. Slots it fills
+     * are stamped with {@code day}; a stack merged into an older one keeps that one's day.
+     */
+    private void add(ItemStack stack, long day) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        boolean[] wasEmpty = new boolean[SIZE];
+        for (int i = 0; i < SIZE; i++) {
+            wasEmpty[i] = this.inventory.getStack(i).isEmpty();
+        }
+        this.inventory.addStack(stack.copy());
+        for (int i = 0; i < SIZE; i++) {
+            if (wasEmpty[i] && !this.inventory.getStack(i).isEmpty()) {
+                this.stockedDay[i] = day;
+            }
         }
     }
 
@@ -172,6 +262,7 @@ public final class ExchangeStock {
             stacks.set(i, this.inventory.getStack(i));
         }
         Inventories.writeNbt(nbt, stacks, registries);
+        nbt.putLongArray("StockedDay", this.stockedDay);
         return nbt;
     }
 
@@ -181,6 +272,10 @@ public final class ExchangeStock {
         Inventories.readNbt(nbt, stacks, registries);
         for (int i = 0; i < SIZE; i++) {
             this.inventory.setStack(i, stacks.get(i));
+        }
+        long[] days = nbt.getLongArray("StockedDay");
+        for (int i = 0; i < SIZE; i++) {
+            this.stockedDay[i] = i < days.length ? days[i] : 0;
         }
     }
 }

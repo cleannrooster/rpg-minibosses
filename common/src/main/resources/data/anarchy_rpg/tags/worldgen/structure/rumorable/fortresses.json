@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:fortress",
+    {
+      "id": "betterfortresses:fortress",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:fortress_jungle",
+      "required": false
+    }
+  ]
+}

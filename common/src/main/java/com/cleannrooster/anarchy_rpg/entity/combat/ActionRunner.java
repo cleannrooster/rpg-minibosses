@@ -17,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>The runner also owns the contract that stops attacks from stranding a mob: whenever an execution
  * ends — normally, by cancellation, or because the mob lost its target — {@link GroundLocomotion#releaseAttackMotion()}
- * is called. There is no path out of an action that skips it.
+ * is called. There is no path out of an action that skips it. A cancelled action also stops its clip, so a
+ * looping attack (the Juggernaut's spin) cannot keep playing after the attack itself is gone.
  */
 public final class ActionRunner {
 
@@ -160,10 +161,13 @@ public final class ActionRunner {
         }
     }
 
-    /** Abandon whatever is running. Always releases movement authority. */
+    /** Abandon whatever is running. Always releases movement authority and stops the attack's clip. */
     public void cancel() {
         if (this.current == null) {
             return;
+        }
+        if (this.current.animation() != null) {
+            this.entity.dispatcher.cancel(this.current.animationController());
         }
         this.current = null;
         this.context = null;

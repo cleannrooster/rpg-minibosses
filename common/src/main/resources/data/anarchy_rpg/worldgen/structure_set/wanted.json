@@ -3,9 +3,10 @@
     "type": "minecraft:random_spread",
     "salt": 11234243,
     "separation": 8,
-    "spacing": 32
+    "spacing": 32,
+    "frequency": 0.0,
+    "frequency_reduction_method": "default"
   },
-
   "structures": [
     {
       "structure": "anarchy_rpg:wanted",

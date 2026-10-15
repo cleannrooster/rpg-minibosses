@@ -46,6 +46,36 @@ public final class CompanionRecord {
     long lastSeen;
     /** World time a loaded companion was first seen far from (or in another world than) its owner; 0 when not. */
     long separatedSince;
+    /** In-game day its daily specialty was last used (see {@link CompanionSpecialties#today}); -1 for never. */
+    long specialtyDay = -1;
+    /** Juggernaut's standing order to guard the owner's spawn: survives trips and being downed. */
+    boolean patrolling;
+    /** Which ring point the patrol is walking to. Not saved: a reload just starts the ring over. */
+    int patrolWaypoint;
+    /** The current round (see PatrolSpecialty): the point being walked to, points settled and reached, time spent. Not saved. */
+    @Nullable
+    BlockPos patrolGoal;
+    int patrolResolved;
+    int patrolReached;
+    long patrolRoundTicks;
+    /** Complete rounds walked, and times it was leashed back for being stuck. Saved, for the debug command. */
+    long completedPatrols;
+    long patrolLeashes;
+    /** Rogue guiding: the surface spot it is leading to, the structure there, and when it set off. */
+    @Nullable
+    GlobalPos guideTarget;
+    @Nullable
+    Identifier guideStructure;
+    long guideStartedAt;
+    /** Seconds spent waiting for the owner to catch up, for spacing out the hint. Not saved. */
+    int guideWaited;
+    /** A Rogue that waited too long for its owner and is heading home; meeting them resumes the lead. Not saved. */
+    boolean guideReturning;
+    /** World time of the last vault while leading, for its cooldown. Not saved. */
+    long guideVaultAt;
+    /** Where the owner was a second ago, to measure how fast they are going. Not saved. */
+    @Nullable
+    net.minecraft.util.math.Vec3d guideOwnerLast;
 
     CompanionRecord(UUID owner, UUID npc) {
         this.owner = owner;
@@ -84,6 +114,26 @@ public final class CompanionRecord {
         return this.lastKnown;
     }
 
+    public long specialtyDay() {
+        return this.specialtyDay;
+    }
+
+    public boolean patrolling() {
+        return this.patrolling;
+    }
+
+    public long completedPatrols() {
+        return this.completedPatrols;
+    }
+
+    public long patrolLeashes() {
+        return this.patrolLeashes;
+    }
+
+    public long patrolRoundTicks() {
+        return this.patrolRoundTicks;
+    }
+
     NbtCompound toNbt() {
         NbtCompound nbt = new NbtCompound();
         nbt.putUuid("Owner", this.owner);
@@ -99,6 +149,15 @@ public final class CompanionRecord {
         nbt.putLong("Incarnation", this.incarnation);
         nbt.putBoolean("NeedsRestore", this.needsRestore);
         nbt.putLong("LastSeen", this.lastSeen);
+        nbt.putLong("SpecialtyDay", this.specialtyDay);
+        nbt.putBoolean("Patrolling", this.patrolling);
+        nbt.putLong("CompletedPatrols", this.completedPatrols);
+        nbt.putLong("PatrolLeashes", this.patrolLeashes);
+        putPos(nbt, "GuideTarget", this.guideTarget);
+        if (this.guideStructure != null) {
+            nbt.putString("GuideStructure", this.guideStructure.toString());
+        }
+        nbt.putLong("GuideStartedAt", this.guideStartedAt);
         return nbt;
     }
 
@@ -118,6 +177,13 @@ public final class CompanionRecord {
         record.incarnation = nbt.getLong("Incarnation");
         record.needsRestore = nbt.getBoolean("NeedsRestore");
         record.lastSeen = nbt.getLong("LastSeen");
+        record.specialtyDay = nbt.contains("SpecialtyDay") ? nbt.getLong("SpecialtyDay") : -1;
+        record.patrolling = nbt.getBoolean("Patrolling");
+        record.completedPatrols = nbt.getLong("CompletedPatrols");
+        record.patrolLeashes = nbt.getLong("PatrolLeashes");
+        record.guideTarget = getPos(nbt, "GuideTarget");
+        record.guideStructure = nbt.contains("GuideStructure") ? Identifier.tryParse(nbt.getString("GuideStructure")) : null;
+        record.guideStartedAt = nbt.getLong("GuideStartedAt");
         return record;
     }
 

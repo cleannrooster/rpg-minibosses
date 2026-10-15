@@ -1,0 +1,38 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:woodland_mansion",
+    {
+      "id": "repurposed_structures:mansion_birch",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_desert",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_jungle",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_mangrove",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_oak",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_savanna",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_snowy",
+      "required": false
+    },
+    {
+      "id": "repurposed_structures:mansion_taiga",
+      "required": false
+    }
+  ]
+}

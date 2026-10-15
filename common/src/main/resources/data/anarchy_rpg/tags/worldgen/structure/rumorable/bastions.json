@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:bastion_remnant",
+    {
+      "id": "repurposed_structures:bastion_underground",
+      "required": false
+    }
+  ]
+}

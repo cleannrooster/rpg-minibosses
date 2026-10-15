@@ -1,0 +1,61 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "explorify:tavern",
+      "required": false
+    },
+    {
+      "id": "explorify:campsite",
+      "required": false
+    },
+    {
+      "id": "explorify:farmstead",
+      "required": false
+    },
+    {
+      "id": "explorify:dark_forest_settlement",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:greenwood_pub",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:merchant_campsite",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:lighthouse",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:small_prairie_house",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:fishing_hut",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:jungle_tree_house",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:bathhouse",
+      "required": false
+    },
+    {
+      "id": "mvs:cartographer_tower",
+      "required": false
+    },
+    {
+      "id": "mvs:windmill",
+      "required": false
+    },
+    {
+      "id": "mvs:barn",
+      "required": false
+    }
+  ]
+}

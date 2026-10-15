@@ -1,0 +1,81 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "dungeons_arise:keep_kayra",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:plague_asylum",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:shiraz_palace",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:thornborn_towers",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:foundry",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:mechanical_nest",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:coliseum",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:typhon",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:scorched_mines",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:mining_system",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:mushroom_mines",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:monastery",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:aviary",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:undead_pirate_ship",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:illager_corsair",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:illager_galley",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:heavenly_rider",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:heavenly_conqueror",
+      "required": false
+    },
+    {
+      "id": "dungeons_arise:heavenly_challenger",
+      "required": false
+    }
+  ]
+}
