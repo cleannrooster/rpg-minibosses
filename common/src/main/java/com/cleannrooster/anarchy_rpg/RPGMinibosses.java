@@ -106,6 +106,7 @@ public final class RPGMinibosses {
         com.cleannrooster.anarchy_rpg.hub.HubTurnover.register();
         com.cleannrooster.anarchy_rpg.companion.Companions.register();
         com.cleannrooster.anarchy_rpg.rumor.Rumors.register();
+        com.cleannrooster.anarchy_rpg.journal.GuildJournal.register();
         com.cleannrooster.anarchy_rpg.service.CampServices.register();
         com.cleannrooster.anarchy_rpg.hub.CampMap.register();
         SpellEngineCompat.hooks().init();

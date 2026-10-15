@@ -150,6 +150,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         builder.add(CANTHIRE, false);
         builder.add(FACTION_FLAG, com.cleannrooster.anarchy_rpg.faction.PackedFlag.NONE);
         builder.add(COMPANION_DOWNED, false);
+        builder.add(FORSAKEN, false);
 
     }
 
@@ -171,11 +172,11 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     @Override
     public Text getName() {
-        if(this.getDataTracker().get(NAME) != -1){
-            return Text.translatable(this.NAMES.get(this.getDataTracker().get(NAME)));
-        }
-
-        return super.getName();
+        Text name = this.getDataTracker().get(NAME) != -1
+                ? Text.translatable(this.NAMES.get(this.getDataTracker().get(NAME))) : super.getName();
+        return this.isForsaken()
+                ? Text.translatable("entity." + com.cleannrooster.anarchy_rpg.RPGMinibosses.CONTENT_NAMESPACE + ".forsaken", name)
+                : name;
     }
     @Environment(value = EnvType.CLIENT)
     public static void setRotationFromVelocity(Entity entity) {
@@ -242,6 +243,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     public static final TrackedData<Boolean> COMPANION_DOWNED;
     /** Mirrors the intro (petrified) effect to clients, which vanilla does not send it to. */
     public static final TrackedData<Boolean> PETRIFIED;
+    /** A Forsaken Adventurer: answers to no guild and attacks on sight. Synced so clients can draw its aura. */
+    public static final TrackedData<Boolean> FORSAKEN;
 
     static{
         HAS_ROLLED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -253,6 +256,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         FACTION_FLAG = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.INTEGER);
         COMPANION_DOWNED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
         PETRIFIED = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        FORSAKEN = DataTracker.registerData(MinibossEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     }
 
@@ -636,15 +640,34 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
     private com.cleannrooster.anarchy_rpg.faction.PartyMembership partyMembership;
 
     /**
-     * This adventurer's party. One that has none yet joins a nearby party or starts its own
-     * ({@link com.cleannrooster.anarchy_rpg.faction.Factions#defaultPartyFor}), so every adventurer has a
-     * party from the first time anything asks.
+     * This adventurer's party. Camp residents and patrols are given theirs when they spawn; any other
+     * adventurer has none, and the first time anything asks it becomes Forsaken, in a party of one
+     * ({@code forsakenOutsideCamps}). With that off, it joins a nearby party or starts its own
+     * ({@link com.cleannrooster.anarchy_rpg.faction.Factions#defaultPartyFor}).
      */
     public com.cleannrooster.anarchy_rpg.faction.PartyMembership getPartyMembership() {
         if (this.partyMembership == null) {
-            this.partyMembership = com.cleannrooster.anarchy_rpg.faction.Factions.defaultPartyFor(this);
+            if (!this.getWorld().isClient() && RPGMinibossesEntities.config.forsakenOutsideCamps) {
+                this.partyMembership = com.cleannrooster.anarchy_rpg.faction.PartyMembership.create(this.getRandom());
+                this.dataTracker.set(FORSAKEN, true);
+            } else {
+                this.partyMembership = com.cleannrooster.anarchy_rpg.faction.Factions.defaultPartyFor(this);
+            }
         }
         return this.partyMembership;
+    }
+
+    /**
+     * Whether this is a Forsaken Adventurer: no guild, hostile to every player and at odds with every guild.
+     * One recruited as a companion stops being Forsaken for good ({@link #redeem}).
+     */
+    public boolean isForsaken() {
+        return this.dataTracker.get(FORSAKEN) && this.getOwnerUuid() == null;
+    }
+
+    /** No longer Forsaken: recruited, it answers to its player now. */
+    public void redeem() {
+        this.dataTracker.set(FORSAKEN, false);
     }
 
     /** Keeps the tracked flag in step with this adventurer's faction, so clients can draw it. */
@@ -668,6 +691,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     public void setPartyMembership(com.cleannrooster.anarchy_rpg.faction.PartyMembership partyMembership) {
         this.partyMembership = partyMembership;
+        this.dataTracker.set(FORSAKEN, false);
     }
 
     /** The player this adventurer is talking to, if any. Server-side and not saved: a reload ends it. */
@@ -1459,6 +1483,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (this.partyMembership != null) {
             nbt.put("Party", this.partyMembership.toNbt());
         }
+        nbt.putBoolean("Forsaken", this.dataTracker.get(FORSAKEN));
         nbt.put("ExchangeStock", this.exchangeStock.toNbt(this.getRegistryManager()));
         nbt.put("RumorCharges", this.rumorCharges.toNbt());
         nbt.put("CampServiceUses", this.campServiceUses.toNbt());
@@ -1516,6 +1541,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (nbt.contains("Party")) {
             this.partyMembership = com.cleannrooster.anarchy_rpg.faction.PartyMembership.fromNbt(nbt.getCompound("Party"));
         }
+        this.dataTracker.set(FORSAKEN, nbt.getBoolean("Forsaken"));
         if (nbt.contains("ExchangeStock")) {
             this.exchangeStock.readNbt(nbt.getCompound("ExchangeStock"), this.getRegistryManager());
         }

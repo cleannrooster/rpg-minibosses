@@ -33,6 +33,7 @@ public final class RPGMinibossesClient {
         com.cleannrooster.anarchy_rpg.client.combat.SlashEffectManager.registerReceiver();
         com.cleannrooster.anarchy_rpg.client.conversation.ConversationClient.registerReceivers();
         com.cleannrooster.anarchy_rpg.client.faction.FactionFlagRenderer.registerReceiver();
+        com.cleannrooster.anarchy_rpg.client.journal.JournalClient.earlyInit();
         dev.architectury.registry.menu.MenuRegistry.registerScreenFactory(
                 com.cleannrooster.anarchy_rpg.exchange.ExchangeMenus.EXCHANGE,
                 com.cleannrooster.anarchy_rpg.client.exchange.ExchangeScreen::new);
@@ -81,6 +82,8 @@ public final class RPGMinibossesClient {
         dev.architectury.event.events.client.ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(
                 player -> com.cleannrooster.anarchy_rpg.client.faction.FactionFlagRenderer.clear());
         com.cleannrooster.anarchy_rpg.client.fx.CueHandlers.init();
+        com.cleannrooster.anarchy_rpg.client.fx.ForsakenAuras.init();
+        com.cleannrooster.anarchy_rpg.client.journal.JournalClient.init();
 
 
         ClientTickEvent.CLIENT_PRE.register((client) -> {

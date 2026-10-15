@@ -220,7 +220,7 @@ public final class ConversationScreen extends Screen {
     }
 
     /** Flag colors as text on the dark panel: dark ones (black, purple, blue) are lifted toward white. */
-    private static int readableOnDark(int rgb) {
+    public static int readableOnDark(int rgb) {
         int r = ColorHelper.Argb.getRed(rgb);
         int g = ColorHelper.Argb.getGreen(rgb);
         int b = ColorHelper.Argb.getBlue(rgb);

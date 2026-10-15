@@ -30,11 +30,17 @@ public final class Factions {
     }
 
     /**
-     * The faction this adventurer currently answers to, or null for a companion: a devoted companion
-     * belongs to its player, not to a faction. Its party is kept, only set aside while it has an owner.
+     * The faction this adventurer currently answers to, or null for a companion or a Forsaken Adventurer: a
+     * devoted companion belongs to its player, not to a faction, and the Forsaken answer to no one. A
+     * companion's party is kept, only set aside while it has an owner.
      */
     public static @org.jetbrains.annotations.Nullable FactionSlot factionOf(MinibossEntity npc) {
-        return npc.getOwnerUuid() != null ? null : npc.getPartyMembership().faction();
+        if (npc.getOwnerUuid() != null) {
+            return null;
+        }
+        // Asking settles whether a newly spawned adventurer is Forsaken (see getPartyMembership).
+        PartyMembership party = npc.getPartyMembership();
+        return npc.isForsaken() ? null : party.faction();
     }
 
     /**
@@ -54,6 +60,10 @@ public final class Factions {
             return Disposition.HOSTILE;
         }
         FactionSlot faction = factionOf(npc);
+        // Forsaken Adventurers answer to no guild, and no standing makes them friendly: they attack on sight.
+        if (npc.isForsaken()) {
+            return Disposition.HOSTILE;
+        }
         if (faction == null) {
             return Disposition.NEUTRAL;
         }
@@ -71,6 +81,12 @@ public final class Factions {
     public static boolean atWar(MinibossEntity a, MinibossEntity b) {
         if (!(a.getWorld() instanceof ServerWorld world)) {
             return false;
+        }
+        // The Forsaken are at odds with every guild, though not with each other; companions with neither.
+        factionOf(a);
+        factionOf(b);
+        if (a.getOwnerUuid() == null && b.getOwnerUuid() == null && a.isForsaken() != b.isForsaken()) {
+            return true;
         }
         if (factionOf(a) == null || factionOf(b) == null) {
             return false;

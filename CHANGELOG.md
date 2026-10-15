@@ -16,6 +16,10 @@ and can be hired. Fighting them is still an option.
 - You have a standing with each guild. Trading and hiring raise it; killing its members lowers it. How a guild's
   adventurers treat you follows your standing: **hostile**, **wary**, **neutral**, **friendly** or **devoted**.
 - Adventurers from guilds at war fight each other, and those fights end in real deaths.
+- **Forsaken Adventurers:** adventurers who don't live in a camp or tower (natural spawns, wanderers, encounter
+  bosses; patrols still belong to a guild) answer to no guild. They attack on sight, wear a red and black aura so
+  you can tell, and fight guild adventurers to the death. Killing them doesn't touch your standing; down one and
+  you can still spare and recruit it, which ends its forsaking. `forsakenOutsideCamps` (on by default) turns this off.
 - `guildsNeverHostile` (off by default) lets bad standing go no lower than wary: no one attacks on sight, though anyone
   you attack still fights back.
 
@@ -40,10 +44,17 @@ and can be hired. Fighting them is still an option.
   | Adventurer | Service |
   |---|---|
   | Templar | **Lift a curse:** one random curse comes off the item you hold |
-  | Fire Mage | **Burn an enchantment:** the held item burns, and one random enchantment survives on a book (asks twice) |
+  | Fire Mage | **Enchant an item:** the held item is enchanted at random, as an enchanting table at level 30 would, for a hefty price plus 3 lapis |
   | Mercenary | **Gamble:** a set price, an unseen item from dungeon loot |
   | Rogue | **Buy directions:** exact coordinates of a place, in chat and on a paper note |
   | Juggernaut | **Guard the camp:** keeps watch over its camp for a day |
+
+### Guild Journal
+- Press **J** (rebindable) to open the Guild Journal. It has three tabs:
+  - **Rumors & Gossip:** the last 30 rumors and gossip you were told, newest first, with who told you and when.
+  - **Companion:** who your companion is, what it is doing and where it is, with a **Release** button that frees your
+    companion slot (the same as `/companion release`).
+  - **Guilds:** your standing with each guild, and how the guilds regard each other.
 
 ### Companions
 - Spare a defeated adventurer, or **hire** one, to make it your companion. You can have one at a time.

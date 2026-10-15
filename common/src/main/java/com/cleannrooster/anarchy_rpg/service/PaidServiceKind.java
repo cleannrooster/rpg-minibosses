@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 public enum PaidServiceKind {
     HIRE(HireService::new),
     LIFT_CURSE(LiftCurseService::new),
-    BURN_ENCHANTMENT(BurnEnchantmentService::new),
+    ENCHANT_ITEM(EnchantItemService::new),
     GAMBLE(GambleService::new),
     SELL_DIRECTIONS(SellDirectionsService::new),
     GUARD_CAMP(GuardCampService::new);

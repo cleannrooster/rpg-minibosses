@@ -41,9 +41,7 @@ public final class CampServices {
     /** Non-registry init: each camp service's conversation option, and the debug command. */
     public static void register() {
         registerOption(ConversationOption.CAMP_LIFT_CURSE, PaidServiceKind.LIFT_CURSE, CompanionSpecialty.CLEANSE);
-        registerOption(ConversationOption.CAMP_BURN_ENCHANTMENT, PaidServiceKind.BURN_ENCHANTMENT, CompanionSpecialty.DISENCHANT,
-                BurnEnchantmentService::beforeOpen);
-        BurnEnchantmentService.registerCleanup();
+        registerOption(ConversationOption.CAMP_ENCHANT_ITEM, PaidServiceKind.ENCHANT_ITEM, CompanionSpecialty.DISENCHANT);
         registerOption(ConversationOption.CAMP_GAMBLE, PaidServiceKind.GAMBLE, CompanionSpecialty.TRADER,
                 GambleService::beforeOpen);
         GambleService.registerCleanup();

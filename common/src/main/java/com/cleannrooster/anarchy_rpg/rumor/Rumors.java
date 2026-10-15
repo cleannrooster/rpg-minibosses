@@ -129,6 +129,7 @@ public final class Rumors {
         // The screen shows it; a copy in chat so it is still there after the window closes.
         player.sendMessage(Text.translatable("rumor." + NS + ".chat", npc.getName(), line).formatted(Formatting.GRAY));
         Conversations.reply(npc, player, line);
+        com.cleannrooster.anarchy_rpg.journal.GuildJournal.recordRumor(player, npc, line);
         return true;
     }
 

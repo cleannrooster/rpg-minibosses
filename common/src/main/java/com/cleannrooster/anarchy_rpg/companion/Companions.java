@@ -94,6 +94,7 @@ public final class Companions {
             return RecruitResult.ALREADY_HAS_COMPANION;
         }
         npc.setOwnerUuid(player.getUuid());
+        npc.redeem();
         record.incarnation = 1;
         npc.setCompanionIncarnation(record.incarnation);
         record.mode = CompanionMode.FOLLOWING;
@@ -212,6 +213,80 @@ public final class Companions {
         }
         say(player, npc, "Farewell, then.");
         walkOff(player, npc);
+    }
+
+    /**
+     * Frees the player's companion slot outright, for a companion that is truly stuck ({@code /companion
+     * release}, the journal's Release button). A loaded companion is dismissed normally, handing back its gear
+     * and storage; otherwise the slot is freed and any copy that loads later sees no record and leaves.
+     * Returns the feedback to show, or null when the player has no companion.
+     */
+    public static @Nullable Text release(ServerPlayerEntity player) {
+        CompanionRegistry registry = CompanionRegistry.get(player.getServer());
+        CompanionRecord record = registry.ofOwner(player.getUuid());
+        if (record == null) {
+            return null;
+        }
+        MinibossEntity loaded = loadedCompanion(player.getServer(), record);
+        if (loaded != null) {
+            dismiss(player, loaded);
+            return text("released");
+        }
+        registry.release(player.getUuid());
+        return text("released_unloaded");
+    }
+
+    /** What the Guild Journal shows about a companion. {@code where} is null when nothing is known. */
+    public record Summary(Text name, Text status, @Nullable Text where) {
+    }
+
+    /** The player's companion as the journal shows it, or null when they have none. */
+    public static @Nullable Summary summaryOf(ServerPlayerEntity player) {
+        MinecraftServer server = player.getServer();
+        CompanionRecord record = CompanionRegistry.get(server).ofOwner(player.getUuid());
+        if (record == null) {
+            return null;
+        }
+        MinibossEntity loaded = loadedCompanion(server, record);
+        Text name = loaded != null ? loaded.getName() : nameFromSnapshot(record.snapshot);
+        Text status = record.onTrip() ? text("journal.status.on_trip")
+                : text("journal.status." + record.mode().name().toLowerCase(java.util.Locale.ROOT));
+        Text where = null;
+        if (loaded != null) {
+            where = place(loaded.getWorld().getRegistryKey(), loaded.getBlockPos(), "journal.where.here");
+        } else if (record.lastKnown() != null) {
+            where = place(record.lastKnown().dimension(), record.lastKnown().pos(), "journal.where.last_seen");
+        }
+        return new Summary(name, status, where);
+    }
+
+    private static Text place(net.minecraft.registry.RegistryKey<World> dimension, BlockPos pos, String key) {
+        var id = dimension.getValue();
+        Text world = Text.translatableWithFallback("rumor." + RPGMinibosses.CONTENT_NAMESPACE + ".dimension."
+                + id.getNamespace() + "." + id.getPath(), "the " + id.getPath().replace('_', ' '));
+        return text(key, pos.getX(), pos.getZ(), world);
+    }
+
+    /** The live entity behind {@code record}, if it is loaded; a stale copy left in an old chunk does not count. */
+    private static @Nullable MinibossEntity loadedCompanion(MinecraftServer server, CompanionRecord record) {
+        return findAnywhere(server, record.npc) instanceof MinibossEntity npc
+                && npc.getCompanionIncarnation() == record.incarnation ? npc : null;
+    }
+
+    /** An unloaded companion's name, read from its last snapshot: its rolled name if it has one, else its kind. */
+    private static Text nameFromSnapshot(NbtCompound snapshot) {
+        EntityType<?> type = EntityType.get(snapshot.getString("id")).orElse(null);
+        if (type == null) {
+            return text("your_companion");
+        }
+        if (snapshot.contains("exileName")) {
+            return Text.translatable(type.getTranslationKey() + ".name." + (snapshot.getInt("exileName") + 1));
+        }
+        return type.getName();
+    }
+
+    private static Text text(String key, Object... args) {
+        return Text.translatable("companion." + RPGMinibosses.CONTENT_NAMESPACE + "." + key, args);
     }
 
     /** No longer anyone's: it turns its back on {@code player} and walks off for good, with whatever it has. */

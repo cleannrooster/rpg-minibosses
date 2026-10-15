@@ -72,22 +72,12 @@ final class CompanionCommand {
 
     private static int release(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = context.getSource().getPlayerOrThrow();
-        CompanionRegistry registry = CompanionRegistry.get(player.getServer());
-        CompanionRecord record = registry.ofOwner(player.getUuid());
-        if (record == null) {
+        Text feedback = Companions.release(player);
+        if (feedback == null) {
             context.getSource().sendError(text("none"));
             return 0;
         }
-        if (Companions.findAnywhere(player.getServer(), record.npc()) instanceof MinibossEntity npc
-                && npc.getCompanionIncarnation() == record.incarnation) {
-            // Loaded: a normal dismissal, gear and storage handed back.
-            Companions.dismiss(player, npc);
-            context.getSource().sendFeedback(() -> text("released"), false);
-            return 1;
-        }
-        // Unloaded or lost: free the slot. Any copy that loads later sees no record and simply leaves.
-        registry.release(player.getUuid());
-        context.getSource().sendFeedback(() -> text("released_unloaded"), false);
+        context.getSource().sendFeedback(() -> feedback, false);
         return 1;
     }
 

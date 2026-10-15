@@ -31,6 +31,7 @@ import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.world.LightType;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.world.gen.structure.Structure;
 import net.minecraft.structure.StructureStart;
@@ -277,7 +278,9 @@ public final class HubTurnover {
 
     /**
      * A loaded spot inside the hub with solid ground and two blocks of air. Columns are scanned from the
-     * bottom up, so adventurers land on the ground floor (inside a tower, not on its roof).
+     * bottom up, so adventurers land on the ground floor (inside a tower, not on its roof). The spot must
+     * see sky light: a hub's bounds reach below the surface, and the first air pocket from the bottom is
+     * otherwise often a cave under the camp.
      */
     private static @Nullable BlockPos findStandable(ServerWorld world, BlockBox bounds, Random random) {
         for (int attempt = 0; attempt < SPAWN_ATTEMPTS; attempt++) {
@@ -290,7 +293,8 @@ public final class HubTurnover {
                 BlockPos pos = new BlockPos(x, y, z);
                 if (world.getBlockState(pos.down()).isSolidBlock(world, pos.down())
                         && world.getBlockState(pos).isAir() && world.getBlockState(pos.up()).isAir()
-                        && world.getFluidState(pos).isEmpty()) {
+                        && world.getFluidState(pos).isEmpty()
+                        && world.getLightLevel(LightType.SKY, pos) > 0) {
                     return pos;
                 }
             }

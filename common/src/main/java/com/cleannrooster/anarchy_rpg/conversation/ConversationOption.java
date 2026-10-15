@@ -17,7 +17,7 @@ public enum ConversationOption {
     HIRE,
     /** Camp services, offered by unrecruited adventurers living at a camp or tower. */
     CAMP_LIFT_CURSE,
-    CAMP_BURN_ENCHANTMENT,
+    CAMP_ENCHANT_ITEM,
     CAMP_GAMBLE,
     CAMP_SELL_DIRECTIONS,
     CAMP_GUARD,

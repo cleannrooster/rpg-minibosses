@@ -244,6 +244,8 @@ public class ServerConfig  implements ConfigData {
     public int standingSpareMember = 8;
     @Comment("Adventurers attack adventurers of a guild their own guild is at war with (ignored when betrayal is on)")
     public boolean factionWarfare = true;
+    @Comment("Adventurers who are not camp or tower residents (natural spawns, wanderers, encounter bosses; not patrols) are Forsaken: no guild, hostile on sight, and at odds with every guild")
+    public boolean forsakenOutsideCamps = true;
 
     @Comment("Exchange: each extra stack requested raises the price of everything requested by this fraction")
     public double exchangeMarkupPerStack = 0.15;
@@ -339,8 +341,11 @@ public class ServerConfig  implements ConfigData {
     public int campGambleDailyUses = 3;
     @Comment("Camp services: base price of a Rogue selling exact directions to a place")
     public double campDirectionsPrice = 20.0;
-    @Comment("Camp services: base price of a Fire Mage burning an item for one of its enchantments")
-    public double campBurnEnchantmentPrice = 12.0;
+    @Comment("Camp services: base price of a Fire Mage enchanting the held item at random, as an enchanting table's level-30 option")
+    public double campEnchantItemPrice = 48.0;
+    @Comment("Camp services: lapis lazuli a Fire Mage's enchanting takes, on top of the price")
+    public int campEnchantItemLapis = 3;
+
 
     @Comment("Rumors: how many rumors an adventurer can hold at once")
     public int rumorChargesMax = 3;

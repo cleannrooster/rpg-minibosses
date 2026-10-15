@@ -118,6 +118,9 @@ public final class Conversations {
         ACTIVE.put(player.getUuid(), npc.getId());
         // Gossip is handed over when a conversation starts, not with every reply.
         Text gossip = reply == null ? com.cleannrooster.anarchy_rpg.rumor.Rumors.onConversationOpened(player) : null;
+        if (gossip != null) {
+            com.cleannrooster.anarchy_rpg.journal.GuildJournal.recordGossip(player, npc, gossip);
+        }
         NetworkManager.sendToPlayer(player, new OpenConversationPayload(npc.getId(), npc.getName(),
                 reply != null ? reply : greeting(npc, disposition),
                 faction == null ? null : faction.name(),
