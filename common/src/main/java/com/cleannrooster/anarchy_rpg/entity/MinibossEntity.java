@@ -1418,6 +1418,9 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         } else {
             this.ageWhenTargetSet = this.age;
         }
+        if (target instanceof ServerPlayerEntity player && this.getOwnerUuid() == null) {
+            com.cleannrooster.anarchy_rpg.faction.TargetDiagnostics.onTarget(this, this.getTarget(), player);
+        }
         super.setTarget(target);
 
     }

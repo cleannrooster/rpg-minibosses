@@ -1,6 +1,6 @@
 package com.cleannrooster.anarchy_rpg.client.companion;
 
-import com.cleannrooster.anarchy_rpg.client.gui.VanillaPanel;
+import com.cleannrooster.anarchy_rpg.client.gui.ContainerChrome;
 import com.cleannrooster.anarchy_rpg.companion.CompanionEquipmentScreenHandler;
 import com.cleannrooster.anarchy_rpg.entity.MinibossEntity;
 import net.minecraft.client.gui.DrawContext;
@@ -13,18 +13,18 @@ import net.minecraft.util.Identifier;
 
 /**
  * A companion's equipment, laid out like vanilla's inventory screen: armor column, the companion drawn in
- * vanilla's preview box beside it, then its main and off hand. All vanilla art: the container panel, the
- * inventory screen's preview box, slot sprites, and the empty-slot icons.
+ * vanilla's preview box beside it, then its main and off hand. All vanilla art, in the conversation screen's look
+ * ({@link ContainerChrome}): the gray popup panel, the inventory screen's preview box, slot sprites, the empty-slot
+ * icons, and white shadowed text.
  */
 public final class CompanionEquipmentScreen extends HandledScreen<CompanionEquipmentScreenHandler> {
     private static final Identifier INVENTORY = Identifier.ofVanilla("textures/gui/container/inventory.png");
-    private static final Identifier SLOT = Identifier.ofVanilla("container/slot");
     /** The inventory screen's black preview box, where the player is drawn. */
     private static final int PREVIEW_U = 25;
     private static final int PREVIEW_V = 7;
     private static final int PREVIEW_WIDTH = 51;
     private static final int PREVIEW_HEIGHT = 72;
-    private static final int TEXT = 0x404040;
+    private static final int TEXT = ContainerChrome.TEXT;
 
     public CompanionEquipmentScreen(CompanionEquipmentScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
@@ -40,11 +40,9 @@ public final class CompanionEquipmentScreen extends HandledScreen<CompanionEquip
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        VanillaPanel.draw(context, this.x, this.y, this.backgroundWidth, this.backgroundHeight);
+        ContainerChrome.panel(context, this.x, this.y, this.backgroundWidth, this.backgroundHeight);
         context.drawTexture(INVENTORY, this.x + PREVIEW_U, this.y + PREVIEW_V, PREVIEW_U, PREVIEW_V, PREVIEW_WIDTH, PREVIEW_HEIGHT);
-        for (Slot slot : this.handler.slots) {
-            context.drawGuiTexture(SLOT, this.x + slot.x - 1, this.y + slot.y - 1, 18, 18);
-        }
+        ContainerChrome.slots(context, this.x, this.y, this.handler);
         MinibossEntity companion = this.handler.companion();
         if (companion != null) {
             InventoryScreen.drawEntity(context, this.x + 26, this.y + 8, this.x + 75, this.y + 78, 30, 0.0625F,
@@ -59,7 +57,7 @@ public final class CompanionEquipmentScreen extends HandledScreen<CompanionEquip
         int room = this.backgroundWidth - this.titleX - 8;
         int y = this.titleY;
         for (net.minecraft.text.OrderedText line : this.textRenderer.wrapLines(this.title, room)) {
-            context.drawText(this.textRenderer, line, this.titleX, y, TEXT, false);
+            ContainerChrome.text(context, this.textRenderer, line, this.titleX, y, TEXT);
             y += 10;
         }
     }

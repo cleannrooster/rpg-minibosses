@@ -1,5 +1,6 @@
 package com.cleannrooster.anarchy_rpg.client.service;
 
+import com.cleannrooster.anarchy_rpg.client.gui.ContainerChrome;
 import com.cleannrooster.anarchy_rpg.RPGMinibosses;
 import com.cleannrooster.anarchy_rpg.exchange.ItemValues;
 import com.cleannrooster.anarchy_rpg.service.PaidServiceScreenHandler;
@@ -13,15 +14,14 @@ import net.minecraft.util.Identifier;
 import java.util.Locale;
 
 /**
- * Paying an adventurer for a service: vanilla's dispenser screen as is, with the payment going in its 3x3 grid.
- * The price and the offer's value sit in the empty space left of the grid, the confirm button (labelled by the
- * service: "Hire", ...) right of it. Container text: 0x404040, no shadow.
+ * Paying an adventurer for a service: laid out like vanilla's dispenser, with the payment going in its 3x3 grid, in
+ * the conversation screen's look ({@link ContainerChrome}). The price and the offer's value sit left of the grid,
+ * the confirm button (labelled by the service: "Hire", ...) right of it.
  */
 public final class PaidServiceScreen extends HandledScreen<PaidServiceScreenHandler> {
-    private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/dispenser.png");
-    private static final int TEXT = 0x404040;
-    private static final int AFFORDABLE = 0x2F7F1F;
-    private static final int UNAFFORDABLE = 0xA02828;
+    private static final int TEXT = ContainerChrome.TEXT;
+    private static final int AFFORDABLE = ContainerChrome.AFFORDABLE;
+    private static final int UNAFFORDABLE = ContainerChrome.UNAFFORDABLE;
     /** The empty space left of the dispenser grid, and right of it. */
     private static final int LEFT_X = 8;
     private static final int RIGHT_X = 122;
@@ -60,13 +60,14 @@ public final class PaidServiceScreen extends HandledScreen<PaidServiceScreenHand
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        context.drawTexture(TEXTURE, this.x, this.y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        ContainerChrome.panel(context, this.x, this.y, this.backgroundWidth, this.backgroundHeight);
+        ContainerChrome.slots(context, this.x, this.y, this.handler);
     }
 
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        context.drawText(this.textRenderer, this.title, this.titleX, this.titleY, TEXT, false);
-        context.drawText(this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX, this.playerInventoryTitleY, TEXT, false);
+        ContainerChrome.text(context, this.textRenderer, this.title, this.titleX, this.titleY, TEXT);
+        ContainerChrome.text(context, this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX, this.playerInventoryTitleY, TEXT);
         int priceColor = this.handler.affordable() ? AFFORDABLE : UNAFFORDABLE;
         drawAmount(context, 20, label("price"), this.handler.price(), priceColor);
         drawAmount(context, 44, label("offered"), this.handler.offerValue(), TEXT);
@@ -74,9 +75,9 @@ public final class PaidServiceScreen extends HandledScreen<PaidServiceScreenHand
 
     /** A label line, then the amount and a small currency icon on the line below. */
     private void drawAmount(DrawContext context, int y, Text label, double amount, int color) {
-        context.drawText(this.textRenderer, label, LEFT_X, y, TEXT, false);
+        ContainerChrome.text(context, this.textRenderer, label, LEFT_X, y, TEXT);
         String value = String.format(Locale.ROOT, "%.1f", amount);
-        context.drawText(this.textRenderer, value, LEFT_X, y + 10, color, false);
+        ContainerChrome.text(context, this.textRenderer, value, LEFT_X, y + 10, color);
         int iconX = LEFT_X + this.textRenderer.getWidth(value) + 2;
         context.getMatrices().push();
         context.getMatrices().translate(iconX, y + 9, 0);

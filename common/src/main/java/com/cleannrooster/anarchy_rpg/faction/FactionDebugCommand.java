@@ -94,7 +94,12 @@ final class FactionDebugCommand {
         Text line = npc.getName().copy()
                 .append(Text.literal(" — party " + party.party().toString().substring(0, 8) + ", "))
                 .append(factionName)
-                .append(Text.literal(", regards you as " + Factions.disposition(npc, player)));
+                .append(Text.literal(", regards you as " + Factions.disposition(npc, player)
+                        + (slot == null ? "" : " (standing " + StandingLedger.get(context.getSource().getServer()).get(player.getUuid(), slot) + ")")
+                        + ", target " + (npc.getTarget() == null ? "none" : npc.getTarget().getName().getString())
+                        + ", last hit by " + (npc.getAttacker() == null ? "nothing" : npc.getAttacker().getName().getString())
+                        + ", anger " + npc.getAngerTime()
+                        + (npc.getAngryAt() == null ? "" : " at " + (npc.getAngryAt().equals(player.getUuid()) ? "you" : "someone else"))));
         context.getSource().sendFeedback(() -> line, false);
         return 1;
     }

@@ -1,5 +1,6 @@
 package com.cleannrooster.anarchy_rpg.client.companion;
 
+import com.cleannrooster.anarchy_rpg.client.gui.ContainerChrome;
 import com.cleannrooster.anarchy_rpg.companion.CompanionStorageScreenHandler;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -8,12 +9,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 /**
- * A companion's storage, drawn with vanilla's dispenser texture at its native size, so it looks exactly like
- * a vanilla container and follows resource packs.
+ * A companion's storage, laid out like vanilla's dispenser, in the conversation screen's look
+ * ({@link ContainerChrome}): the gray popup panel, a slot sprite under every slot, white shadowed text.
  */
 public final class CompanionStorageScreen extends HandledScreen<CompanionStorageScreenHandler> {
-    private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/dispenser.png");
-
     public CompanionStorageScreen(CompanionStorageScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
@@ -32,8 +31,14 @@ public final class CompanionStorageScreen extends HandledScreen<CompanionStorage
 
     @Override
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
-        context.drawTexture(TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        ContainerChrome.panel(context, this.x, this.y, this.backgroundWidth, this.backgroundHeight);
+        ContainerChrome.slots(context, this.x, this.y, this.handler);
+    }
+
+    @Override
+    protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
+        ContainerChrome.text(context, this.textRenderer, this.title, this.titleX, this.titleY, ContainerChrome.TEXT);
+        ContainerChrome.text(context, this.textRenderer, this.playerInventoryTitle, this.playerInventoryTitleX,
+                this.playerInventoryTitleY, ContainerChrome.TEXT);
     }
 }
