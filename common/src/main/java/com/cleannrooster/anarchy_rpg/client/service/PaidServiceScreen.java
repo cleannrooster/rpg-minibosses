@@ -1,8 +1,8 @@
-package com.cleannrooster.anarchy_rpg.client.companion;
+package com.cleannrooster.anarchy_rpg.client.service;
 
 import com.cleannrooster.anarchy_rpg.RPGMinibosses;
-import com.cleannrooster.anarchy_rpg.companion.HireScreenHandler;
 import com.cleannrooster.anarchy_rpg.exchange.ItemValues;
+import com.cleannrooster.anarchy_rpg.service.PaidServiceScreenHandler;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -13,11 +13,11 @@ import net.minecraft.util.Identifier;
 import java.util.Locale;
 
 /**
- * Hiring an adventurer: vanilla's dispenser screen as is, with the payment going in its 3x3 grid. The
- * price and the offer's value sit in the empty space left of the grid, the Hire button right of it.
- * Container text: 0x404040, no shadow.
+ * Paying an adventurer for a service: vanilla's dispenser screen as is, with the payment going in its 3x3 grid.
+ * The price and the offer's value sit in the empty space left of the grid, the confirm button (labelled by the
+ * service: "Hire", ...) right of it. Container text: 0x404040, no shadow.
  */
-public final class HireScreen extends HandledScreen<HireScreenHandler> {
+public final class PaidServiceScreen extends HandledScreen<PaidServiceScreenHandler> {
     private static final Identifier TEXTURE = Identifier.ofVanilla("textures/gui/container/dispenser.png");
     private static final int TEXT = 0x404040;
     private static final int AFFORDABLE = 0x2F7F1F;
@@ -27,9 +27,9 @@ public final class HireScreen extends HandledScreen<HireScreenHandler> {
     private static final int RIGHT_X = 122;
     private static final int RIGHT_WIDTH = 46;
 
-    private ButtonWidget hireButton;
+    private ButtonWidget confirmButton;
 
-    public HireScreen(HireScreenHandler handler, PlayerInventory inventory, Text title) {
+    public PaidServiceScreen(PaidServiceScreenHandler handler, PlayerInventory inventory, Text title) {
         super(handler, inventory, title);
     }
 
@@ -37,9 +37,9 @@ public final class HireScreen extends HandledScreen<HireScreenHandler> {
     protected void init() {
         super.init();
         this.titleX = (this.backgroundWidth - this.textRenderer.getWidth(this.title)) / 2;
-        this.hireButton = this.addDrawableChild(ButtonWidget.builder(label("button"), button -> {
+        this.confirmButton = this.addDrawableChild(ButtonWidget.builder(this.handler.kind().buttonLabel(), button -> {
                     if (this.client != null && this.client.interactionManager != null) {
-                        this.client.interactionManager.clickButton(this.handler.syncId, HireScreenHandler.HIRE_BUTTON);
+                        this.client.interactionManager.clickButton(this.handler.syncId, PaidServiceScreenHandler.CONFIRM_BUTTON);
                     }
                 })
                 .dimensions(this.x + RIGHT_X, this.y + 35, RIGHT_WIDTH, 20)
@@ -49,7 +49,7 @@ public final class HireScreen extends HandledScreen<HireScreenHandler> {
     @Override
     protected void handledScreenTick() {
         super.handledScreenTick();
-        this.hireButton.active = this.handler.affordable();
+        this.confirmButton.active = this.handler.affordable();
     }
 
     @Override
@@ -86,6 +86,6 @@ public final class HireScreen extends HandledScreen<HireScreenHandler> {
     }
 
     private static Text label(String key) {
-        return Text.translatable("hire." + RPGMinibosses.CONTENT_NAMESPACE + "." + key);
+        return Text.translatable("service." + RPGMinibosses.CONTENT_NAMESPACE + "." + key);
     }
 }

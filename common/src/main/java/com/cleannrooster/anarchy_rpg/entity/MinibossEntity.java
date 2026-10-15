@@ -472,6 +472,7 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (!this.getWorld().isClient()) {
             com.cleannrooster.anarchy_rpg.companion.Companions.tick(this);
             com.cleannrooster.anarchy_rpg.rumor.Rumors.tick(this);
+            com.cleannrooster.anarchy_rpg.service.CampGuard.tick(this);
         }
         // Teach this client the shapes of this mob's attacks. Done on tick rather than in the
         // constructor because the hook is overridden per mob, and a base constructor calling it would
@@ -754,6 +755,24 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
     public com.cleannrooster.anarchy_rpg.rumor.RumorCharges getRumorCharges() {
         return this.rumorCharges;
+    }
+
+    /** Camp services bought from this adventurer today, per player. Server-side; saved. */
+    private final com.cleannrooster.anarchy_rpg.service.CampServiceUses campServiceUses = new com.cleannrooster.anarchy_rpg.service.CampServiceUses();
+
+    public com.cleannrooster.anarchy_rpg.service.CampServiceUses getCampServiceUses() {
+        return this.campServiceUses;
+    }
+
+    /** World time a paid camp watch ends (Guard the camp); 0 for none. Saved. */
+    private long guardUntil;
+
+    public long getGuardUntil() {
+        return this.guardUntil;
+    }
+
+    public void setGuardUntil(long guardUntil) {
+        this.guardUntil = guardUntil;
     }
 
     @Override
@@ -1194,12 +1213,14 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
 
         @Override
         public boolean canStart() {
-            return ((MinibossEntity)this.mob).shouldWander() && super.canStart();
+            return ((MinibossEntity)this.mob).shouldWander() && !com.cleannrooster.anarchy_rpg.service.CampGuard.onWatch((MinibossEntity) this.mob)
+                    && super.canStart();
         }
 
         @Override
         public boolean canStop() {
-            return super.canStop() || !((MinibossEntity)this.mob).shouldWander();
+            return super.canStop() || !((MinibossEntity)this.mob).shouldWander()
+                    || com.cleannrooster.anarchy_rpg.service.CampGuard.onWatch((MinibossEntity) this.mob);
         }
 
         public WanderAroundFarGoalConditional(PathAwareEntity mob, double speed, float probability) {
@@ -1437,6 +1458,8 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         }
         nbt.put("ExchangeStock", this.exchangeStock.toNbt(this.getRegistryManager()));
         nbt.put("RumorCharges", this.rumorCharges.toNbt());
+        nbt.put("CampServiceUses", this.campServiceUses.toNbt());
+        nbt.putLong("GuardUntil", this.guardUntil);
         nbt.putBoolean("CompanionDowned", this.getDataTracker().get(COMPANION_DOWNED));
         nbt.putLong("CompanionIncarnation", this.companionIncarnation);
         if (this.departing) {
@@ -1496,6 +1519,10 @@ public class MinibossEntity extends PathAwareEntity implements MagicCaster, Tame
         if (nbt.contains("RumorCharges")) {
             this.rumorCharges.readNbt(nbt.getCompound("RumorCharges"));
         }
+        if (nbt.contains("CampServiceUses")) {
+            this.campServiceUses.readNbt(nbt.getCompound("CampServiceUses"));
+        }
+        this.guardUntil = nbt.getLong("GuardUntil");
         this.getDataTracker().set(COMPANION_DOWNED, nbt.getBoolean("CompanionDowned"));
         this.companionIncarnation = nbt.getLong("CompanionIncarnation");
         // A departing ex-companion that loads again simply finishes leaving.

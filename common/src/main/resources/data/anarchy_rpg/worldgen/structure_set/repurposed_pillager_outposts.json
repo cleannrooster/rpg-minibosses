@@ -5,11 +5,11 @@
       "chunk_count": 10,
       "other_set": "minecraft:villages"
     },
-    "frequency": 0.2,
+    "frequency": 0.5,
     "frequency_reduction_method": "legacy_type_1",
     "salt": 162346166,
     "separation": 8,
-    "spacing": 48
+    "spacing": 40
   },
   "structures": [
     {

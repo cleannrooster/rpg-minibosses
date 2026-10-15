@@ -58,7 +58,13 @@ public final class Factions {
             return Disposition.NEUTRAL;
         }
         int standing = StandingLedger.get(player.getServer()).get(player.getUuid(), faction);
-        return Disposition.ofStanding(standing, StandingThresholds.from(RPGMinibossesEntities.config));
+        Disposition byStanding = Disposition.ofStanding(standing, StandingThresholds.from(RPGMinibossesEntities.config));
+        // With guildsNeverHostile, bad standing bottoms out at wary: still curt, refusing services and hiring, and
+        // unreliable with rumors, but never attacking on sight. Anger from being attacked still turns them hostile.
+        if (byStanding == Disposition.HOSTILE && RPGMinibossesEntities.config.guildsNeverHostile) {
+            return Disposition.WARY;
+        }
+        return byStanding;
     }
 
     /** Whether the factions of two adventurers are at war. Party-mates and companions never are. */

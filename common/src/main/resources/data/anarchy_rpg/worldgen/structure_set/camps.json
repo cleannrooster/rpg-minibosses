@@ -2,14 +2,14 @@
   "placement": {
     "type": "minecraft:random_spread",
     "exclusion_zone": {
-      "chunk_count": 10,
+      "chunk_count": 6,
       "other_set": "minecraft:villages"
     },
-    "frequency": 0.2,
-    "frequency_reduction_method": "legacy_type_1",
+    "frequency": 0.85,
+    "frequency_reduction_method": "default",
     "salt": 161245326,
-    "separation": 8,
-    "spacing": 32
+    "separation": 10,
+    "spacing": 38
   },
   "structures": [
     {

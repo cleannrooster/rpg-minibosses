@@ -15,6 +15,12 @@ public enum ConversationOption {
     STORAGE,
     RUMORS,
     HIRE,
+    /** Camp services, offered by unrecruited adventurers living at a camp or tower. */
+    CAMP_LIFT_CURSE,
+    CAMP_BURN_ENCHANTMENT,
+    CAMP_GAMBLE,
+    CAMP_SELL_DIRECTIONS,
+    CAMP_GUARD,
     COMPANION_GEAR,
     PATROL,
     GUIDE,

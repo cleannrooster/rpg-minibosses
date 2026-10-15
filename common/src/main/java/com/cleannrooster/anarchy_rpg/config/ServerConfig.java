@@ -228,6 +228,8 @@ public class ServerConfig  implements ConfigData {
     public int standingMax = 100;
     @Comment("Standing: below this, a guild's adventurers attack on sight and refuse to talk")
     public int standingHostileBelow = -20;
+    @Comment("Guilds can grow wary of you but never hostile: standing below the hostile threshold counts as wary, so nobody attacks on sight (anyone you attack still fights back). Off: bad standing makes adventurers hostile")
+    public boolean guildsNeverHostile = false;
     @Comment("Standing: below this (and not hostile), a guild's adventurers are wary")
     public int standingWaryBelow = -5;
     @Comment("Standing: above this, a guild's adventurers are friendly")
@@ -320,6 +322,25 @@ public class ServerConfig  implements ConfigData {
     public long companionGuideMaxTicks = 24000L;
     @Comment("Companions: how many of a recruited Mercenary's oldest stacks are swapped for fresh ones each day")
     public int companionTraderCycleCount = 4;
+
+    @Comment("Camps: each player starts out (on first joining) with an explorer map to the nearest adventurers' camp")
+    public boolean startWithCampMap = true;
+    @Comment("Camps: ticks after joining before the camp map is given, so starter-kit mods that clear or replace the inventory on first join go first (100 = 5 s)")
+    public int campMapDelayTicks = 100;
+
+    @Comment("Camp services: base price, in currency, of a Juggernaut guarding its camp, and how long it guards (ticks)")
+    public double campGuardPrice = 24.0;
+    public long campGuardTicks = 24000L;
+    @Comment("Camp services: base price of a Templar lifting one random curse")
+    public double campLiftCursePrice = 16.0;
+    @Comment("Camp services: a Mercenary's gamble costs between these (before standing), up to this many times a day")
+    public double campGambleMinPrice = 4.0;
+    public double campGambleMaxPrice = 40.0;
+    public int campGambleDailyUses = 3;
+    @Comment("Camp services: base price of a Rogue selling exact directions to a place")
+    public double campDirectionsPrice = 20.0;
+    @Comment("Camp services: base price of a Fire Mage burning an item for one of its enchantments")
+    public double campBurnEnchantmentPrice = 12.0;
 
     @Comment("Rumors: how many rumors an adventurer can hold at once")
     public int rumorChargesMax = 3;
